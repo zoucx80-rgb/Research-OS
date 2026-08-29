@@ -1,10 +1,28 @@
-from research_os.release.gate import evaluate_release_gate
+from research_os.release.gate import REQUIRED, evaluate_release_gate
 
-def test_release_gate_rejects_missing_distributor_run():
-    r=evaluate_release_gate({"v1_golden":True,"pit":True,"manufacturing":True,"distributor":False,"router_explainable":True,"thesis_falsifiers":True,"ledger":True,"valuation_fitness":True,"decision_no_trade":True,"snapshot_reproducible":True})
+
+SAFETY_CHECKS = {
+    "repository_preflight",
+    "evidence_lineage",
+    "financial_sanity",
+    "expectation_evidence",
+    "valuation_execution",
+    "decision_validation",
+    "completion_gate",
+    "temporal_consistency",
+    "distributor_kpi_safety",
+}
+
+
+def test_release_gate_requires_all_research_safety_checks():
+    assert SAFETY_CHECKS.issubset(set(REQUIRED))
+    status = {k: True for k in REQUIRED}
+    status["financial_sanity"] = False
+    r = evaluate_release_gate(status)
     assert r.ready is False
+    assert "financial_sanity" in r.failed
 
-def test_release_gate_accepts_all_ten_conditions():
-    keys=["v1_golden","pit","manufacturing","distributor","router_explainable","thesis_falsifiers","ledger","valuation_fitness","decision_no_trade","snapshot_reproducible"]
-    r=evaluate_release_gate({k:True for k in keys})
-    assert r.ready is True and r.failed==[]
+
+def test_release_gate_accepts_every_declared_condition():
+    r = evaluate_release_gate({k: True for k in REQUIRED})
+    assert r.ready is True and r.failed == []
