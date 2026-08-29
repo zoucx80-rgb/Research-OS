@@ -15,9 +15,10 @@ def test_runtime_release_checks_include_machine_safety_regressions():
     }
     assert required.issubset(CHECKS)
     seen=[]
+    distributor_nodeid = CHECKS["distributor"]
     def fake_runner(nodeid):
         seen.append(nodeid)
-        return "test_distributor_complete_run" not in nodeid
+        return nodeid != distributor_nodeid
     status=run_release_checks(fake_runner)
     assert status["distributor"] is False
     assert status["pit"] is True
