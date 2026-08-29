@@ -1,6 +1,11 @@
 from pydantic import BaseModel, ConfigDict
+
+from research_os.version import CORE_API_VERSION
+
+
 class VersionBundle(BaseModel):
-    model_config=ConfigDict(frozen=True)
+    model_config = ConfigDict(frozen=True)
+
     research_os_version: str
     dataset_version: str
     parser_version: str
@@ -11,3 +16,4 @@ class VersionBundle(BaseModel):
     forecast_version: str
     valuation_version: str
     report_version: str
+    core_api_version: str = CORE_API_VERSION
