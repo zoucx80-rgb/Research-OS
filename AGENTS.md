@@ -19,6 +19,48 @@ When working on this repository:
 - Do not propagate Research OS-specific rules or configuration into other projects automatically.
 - If another project is required, treat it as an external dependency/source until explicit authorization is given.
 
+## Repository Identity Preflight
+
+For any task that uses Research OS as a methodology baseline, the only valid repository identity is:
+
+- Repository full name: `zoucx80-rgb/Research-OS`
+- Repository id: `1350382205`
+- Default / long-lived branch: `main`
+
+When a connected GitHub resource is available, resolve this repository by exact repository identity. Do not use generic web search to discover or select a Research OS repository.
+
+Do not substitute similarly named repositories, forks, mirrors, third-party `research-os` projects, cached copies with unverified identity, or chat memory when the exact repository cannot be read.
+
+For a research run that requests the latest Research OS:
+
+1. Resolve exactly `zoucx80-rgb/Research-OS`.
+2. Verify repository id `1350382205`.
+3. Verify default branch `main`.
+4. Read current `main` HEAD SHA.
+5. Freeze that SHA for the entire research run.
+6. Read this root `AGENTS.md` from that exact SHA.
+7. Read all required Research OS specifications and code from that same SHA.
+
+If steps 1–6 fail or do not match, stop rather than searching for an alternative Research OS repository.
+
+## Stock Research Short Invocation
+
+The canonical company / stock research protocol is defined in:
+
+`docs/prompts/stock_research.md`
+
+When the user says an equivalent of:
+
+- `按 Research OS 完整研究 <公司> <代码>，decision_ts=<日期>`
+- `用最新 Research OS 分析 <公司> <代码>`
+- `Research OS 完整分析 <公司> <代码>`
+
+apply the full protocol in `docs/prompts/stock_research.md` automatically after repository identity preflight.
+
+A normal stock-research request is **read-only with respect to this repository**. Do not modify Research OS during company research unless the user explicitly asks for an OS change as a separate task.
+
+For current-state research where `decision_ts` is omitted but the user's intent is clearly "current", resolve it to the current date and state that date explicitly. Historical PIT research requires an explicit decision timestamp.
+
 ## Research Data Isolation
 
 Research methodology may be reused. Company facts may not.
@@ -166,6 +208,8 @@ Before claiming completion, verify as applicable:
 ## Repository Identity
 
 Repository: `zoucx80-rgb/Research-OS`
+
+Repository id: `1350382205`
 
 Long-lived branch: `main`
 
