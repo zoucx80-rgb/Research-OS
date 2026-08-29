@@ -1,5 +1,6 @@
 {
-  "research_os_version":"1.2.1",
+  "research_os_version":"1.4.0",
+  "core_api_version":"1.0",
   "status":"stable",
   "module_versions":{
     "finance_core":"2.0.1",
