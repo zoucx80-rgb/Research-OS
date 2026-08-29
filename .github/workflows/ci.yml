@@ -7,6 +7,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: {python-version: '3.12'}
-      - run: pip install -e . pytest
+      - run: pip install -e ".[test]"
       - run: pytest -q
       - run: python scripts/release_gate_v1_1.py
