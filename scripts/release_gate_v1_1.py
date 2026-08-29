@@ -13,7 +13,7 @@ from research_os.release.runtime import run_release_checks
 def main():
     status = run_release_checks()
     result = evaluate_release_gate(status)
-    print(f"Research OS v{__version__} Stable Gate")
+    print(f"Research OS v{__version__} Architecture & Correctness Stable Gate")
     for name, value in status.items():
         print(f"{name}: {'PASS' if value else 'FAIL'}")
     if result.failed:
