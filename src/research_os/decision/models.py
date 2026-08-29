@@ -42,3 +42,8 @@ class DecisionStateRecord(BaseModel):
     claim_ids: list[str] = Field(default_factory=list)
     reason_codes: list[str] = Field(default_factory=list)
     research_os_version: str = RESEARCH_OS_VERSION
+    fundamental_state: FundamentalState | None = None
+    valuation_state: ValuationState | None = None
+    expectation_state: ExpectationState | None = None
+    thesis_state: ThesisState | None = None
+    evidence_confidence: float | None = Field(default=None, ge=0, le=1)
