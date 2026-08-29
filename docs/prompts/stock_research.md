@@ -42,9 +42,10 @@ The final research report must record at least:
 - repository full name and id;
 - branch and frozen commit SHA;
 - Research OS version;
+- Core API version where available;
 - `decision_ts`.
 
-`latest main` is used only to discover the starting SHA. Once frozen, later changes to `main` do not enter the run. For a latest-run baseline on v1.2.1 or later, the runtime, package and public metadata version surfaces must agree; version drift is a validation failure.
+`latest main` is used only to discover the starting SHA. Once frozen, later changes to `main` do not enter the run. For a latest-run baseline on v1.4.0 or later, runtime, package and public metadata version surfaces must agree; version drift is a validation failure.
 
 ## Company Evidence Isolation
 
@@ -74,6 +75,28 @@ Strictly enforce:
 
 If reliable evidence cannot be obtained, use `INSUFFICIENT_EVIDENCE` rather than filling the gap for narrative completeness.
 
+## v1.4 Canonical Runtime and Plugin Resolution
+
+Normal stock research should be invoked with the company/security, decision timestamp, and evidence requirements. The caller does **not** need to manually choose an industry strategy plugin in normal use.
+
+The canonical runtime sequence is:
+
+1. construct `ResearchContext` and `ResearchInputs` from the frozen baseline and current run inputs;
+2. route the company's business model;
+3. build a run-scoped compatible plugin registry;
+4. automatically resolve eligible `stable` industry and methodology plugins;
+5. execute the capability dependency graph;
+6. evaluate the single Research Completion Gate;
+7. freeze one canonical `ResearchRunResult` and versioned snapshot.
+
+`experimental` plugins require explicit opt-in. A plugin override is exceptional and must remain explicit and auditable.
+
+If the routed primary or secondary business model lacks a compatible specialized strategy plugin, record an explicit **Coverage Gap**. If an explicitly requested methodology cannot be satisfied, record a methodology Coverage Gap. A Coverage Gap must never be silently converted into specialized KPI support, PASS, or COMPLETE. Plugin failure, compatibility rejection, and unsupported capability coverage must remain visible in the research result.
+
+Industry and methodology plugins are orthogonal. Business-model routing selects the relevant industry strategy; compatible methodology plugins may then extend the available capability graph. `ResearchEngine` itself must remain unaware of company, industry, or plugin identities.
+
+Reporting must consume the canonical `ResearchRunResult`. It must not accept a parallel status dictionary as a second completion-policy surface, and it must take `final_status`, `blocking_modules`, and `module_statuses` from the same runtime `ResearchCompletionResult`.
+
 ## Machine-Enforced Safety Gates
 
 Use the pinned Research OS implementation as the source of truth. Where the safety context is available, the run must pass the applicable machine contracts before a completed report may be emitted:
@@ -82,7 +105,7 @@ Use the pinned Research OS implementation as the source of truth. Where the safe
 - PIT Validation
 - Evidence Lineage
 - Financial Sanity
-- Business Model Router / KPI Pack
+- Business Model Router / specialized KPI or strategy coverage
 - Capital Efficiency / Funding Loop
 - Driver Graph / Thesis / Anti-Thesis / Falsifiers
 - Expectation Evidence
@@ -94,11 +117,11 @@ Use the pinned Research OS implementation as the source of truth. Where the safe
 
 Financial sanity is a hard prerequisite: unit, scale, arithmetic or cross-report consistency failures block downstream valuation/decision completion. Expectation claims such as beat/miss/priced-in require auditable expectation evidence. The selected valuation model must equal the executed model and retain scenario, assumption, lineage, and driver-bridge evidence. Only legal `ResearchDecisionState` values may appear as decision states.
 
-For v1.2.1 correctness semantics:
+For the v1.2.1 correctness semantics preserved by v1.4.0:
 
 - Interim day-based KPIs require a known reporting-period length or derivable dates. If period length is unavailable, keep the metric missing with an explicit reason rather than substituting 365.
 - Funding-loop inputs such as working-capital change, debt/equity funding and operating cash flow remain missing when not evidenced. An unclassifiable loop is `unknown` and maps to `INSUFFICIENT_EVIDENCE`.
-- CorePack is generic infrastructure only. `KPI Pack = PASS` requires specialized support for the routed primary business model; unsupported primary models remain visible.
+- Generic core KPI infrastructure is not specialized coverage. Specialized KPI/strategy PASS requires support for the routed primary business model; unsupported primary models remain visible as a coverage limitation.
 - `ResearchCompletionGate` is the single completion-policy authority. Reporting must propagate the same `ResearchCompletionResult` (`final_status`, `blocking_modules`, `module_statuses`) and must not independently promote or demote completion.
 - Claim-capability normalization must not treat a decision-state claim as an automatic valuation or target-price claim.
 
@@ -107,7 +130,7 @@ For v1.2.1 correctness semantics:
 Do not begin with a preferred valuation template. Preserve the causal order implemented by the pinned Research OS. At minimum:
 
 1. Evidence ingestion and PIT filtering
-2. Business Model Router and KPI Pack applicability
+2. Business Model Router and plugin / KPI applicability resolution
 3. Financial sanity, period semantics, capital efficiency, funding loop, growth quality
 4. Driver Graph and key-driver ranking
 5. Thesis / Anti-Thesis / Falsifiers
@@ -125,11 +148,12 @@ Do not mechanically average incompatible valuation methods.
 The report should include, where supported by evidence:
 
 - Research OS baseline fingerprint
+- resolved strategy/plugin set and any Coverage Gap
 - `FINAL_STATUS = COMPLETE | INCOMPLETE`
 - module validation/completion status for material gates
 - Research Decision State
 - Thesis / Anti-Thesis / Falsifiers
-- Business Model classification and specialized KPI Pack applicability
+- Business Model classification and specialized KPI/strategy applicability
 - Key operating drivers
 - Financial quality, period-aware operating KPIs, capital efficiency and funding loop
 - Market expectations and expectation gap, or explicit `INSUFFICIENT_EVIDENCE`
