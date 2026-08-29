@@ -10,6 +10,13 @@ jobs:
       - run: pip install -e ".[test]"
       - run: >
           pytest -q
+          tests/unit/runtime
+          tests/unit/plugins
+          tests/unit/knowledge
+          tests/integration/runtime
+          tests/regression/architecture
+      - run: >
+          pytest -q
           tests/regression/research_patterns/test_v1_2_1_correctness_patterns.py
           tests/unit/kpi/test_period_sensitive_packs.py
           tests/unit/capital/test_engine.py
