@@ -76,10 +76,13 @@ def test_valid_safety_context_produces_machine_complete_research_run():
     Safety = _safety_cls()
     fixture = json.loads(Path("tests/fixtures/distributor_full_run.json").read_text())
     ts = datetime.fromisoformat(fixture["decision_ts"])
+    # This integration case claims a complete funding-loop assessment, so it must provide
+    # the funding-source facts required by the v1.2.1 missing-value contract.
+    facts = {**fixture["facts"], "delta_debt": 140.0, "delta_equity": 0.0}
     evidence = [
         Evidence(evidence_id=k, company_id=fixture["company_id"], evidence_type="calculated_metric", source_table=k, value=v,
                  publish_ts=ts, ingested_at=ts, confidence_grade="B", verification_status="PRIMARY_VERIFIED")
-        for k, v in fixture["facts"].items()
+        for k, v in facts.items()
     ]
     expectation = ExpectationEvidence(
         expectation_source="PIT analyst consensus",
@@ -101,7 +104,7 @@ def test_valid_safety_context_produces_machine_complete_research_run():
         claimed_conclusions=["expectation", "valuation", "decision_state"],
     )
     req = orchestration.ResearchRunRequest(
-        company_id=fixture["company_id"], decision_ts=ts, evidence=evidence, facts=fixture["facts"],
+        company_id=fixture["company_id"], decision_ts=ts, evidence=evidence, facts=facts,
         expectation_vintage=ConsensusVintage(company_id=fixture["company_id"], as_of=ts, forecast_period="2026FY", net_profit=6.0),
         valuation_models={"pe": _fit(), "pb": _fit(), "dcf": _fit(.2)}, fundamental_state="IMPROVING", valuation_state="FAIR", expectation_state="UNDER_EXPECTED",
         versions={**fixture["versions"], "research_os_version": "1.2.0"}, safety=safety,
@@ -110,5 +113,7 @@ def test_valid_safety_context_produces_machine_complete_research_run():
     assert run.completion.final_status == "COMPLETE"
     assert run.validation_statuses["Financial Sanity"] == "PASS"
     assert run.validation_statuses["Valuation Execution"] == "PASS"
+    assert run.validation_statuses["Funding Loop"] == "PASS"
+    assert run.funding_loop.funding_state == "debt_funded"
     assert run.capital_efficiency is not None
     assert run.funding_loop is not None
