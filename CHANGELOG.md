@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.4.0 — 2026-08-30
+
+### Added
+A canonical run-scoped `ResearchRuntime` / `ResearchRuntimeFactory` execution boundary; immutable `ResearchInputs`; one public `ResearchRunResult`; versioned industry and methodology plugin manifests; compatibility-aware `PluginRegistry`; deterministic `StrategyResolver`; `PluginProvider` extension point; explicit `CoverageGap` and extension-request contracts; PIT-safe knowledge-provider interface; component fingerprints in frozen snapshots; and architecture regression coverage for third-party synthetic plugin extensibility.
+
+### Changed
+Research composition policy now lives in `ResearchRuntime`, while `ResearchEngine` only executes capability dependencies and has no company, industry, or plugin identifiers. Plugin registries and module instances are rebuilt per run. Stable plugins are eligible for automatic resolution and experimental plugins require explicit opt-in. Reporting now accepts canonical `ResearchRunResult` only and obtains completion fields from the runtime's `ResearchCompletionResult`. Decision records retain optional decision-context fields so reporting remains self-contained without a parallel input dictionary.
+
+### Removed
+The legacy `src/research_os/orchestration.py` policy entry point and the duplicate KPI registry/facade were removed. No replacement compatibility surface is allowed to redefine execution, KPI applicability, or completion policy.
+
+### Validation
+CI now runs architecture contracts before correctness regressions, storage migration smoke, the full test suite, and the release gate. The release gate adds 18 v1.4 architecture checks covering ResearchContext, ResearchInputs, module contracts, dependency resolution, plugin manifest/compatibility/resolution, coverage gaps, plugin failure isolation, canonical runtime/result, knowledge PIT, component fingerprints, completion single-source behavior, Core API consistency, extensibility without engine changes, and absence of duplicate legacy runtime policy.
+
+### Migration
+No new database or Alembic migration is required. Existing callers should migrate from the deleted legacy orchestrator to `ResearchRuntimeFactory`, and reporting callers should pass `ResearchRunResult` rather than an arbitrary dictionary. Custom strategy extensions should use the `PluginProvider` / `PluginManifest` contracts. See `docs/migrations/v1.4.0.md` and `docs/architecture/plugin-authoring-v1.md`.
+
+### Compatibility
+`CORE_API_VERSION` remains `1.0`. v1.2.1 period, missing-value, KPI-applicability, funding-loop, completion, PIT, evidence-lineage, valuation-safety, and decision-safety semantics remain enforced. Existing historical release tags and versioned research snapshots remain immutable.
+
 ## 1.2.1 — 2026-08-29
 
 ### Fixed
