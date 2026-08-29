@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Any, Mapping, Protocol
 
 from pydantic import BaseModel, Field
@@ -40,7 +41,22 @@ class CorePack:
         return []
 
 
+@dataclass(frozen=True)
+class KpiPackResolution:
+    packs: list[Any]
+    specialized_packs: list[Any]
+    requested_models: list[str]
+    unsupported_models: list[str]
+    primary_supported: bool
+
+
 class KpiPackRegistry:
+    MODEL_TO_PACK = {
+        "manufacturer": "manufacturing",
+        "manufacturing": "manufacturing",
+        "distributor": "distributor",
+    }
+
     def __init__(self, packs):
         self.packs = {p.pack_id: p for p in packs}
 
@@ -51,11 +67,31 @@ class KpiPackRegistry:
 
         return cls([CorePack(), ManufacturingPack(), DistributorPack()])
 
+    def resolve_with_status(self, profile: BusinessModelProfile) -> KpiPackResolution:
+        requested = [profile.primary_model, *profile.secondary_models]
+        specialized = []
+        unsupported = []
+        for model in requested:
+            pack_id = self.MODEL_TO_PACK.get(model, model)
+            pack = self.packs.get(pack_id)
+            if pack is None or pack_id == "core":
+                if model not in unsupported:
+                    unsupported.append(model)
+                continue
+            if all(existing.pack_id != pack.pack_id for existing in specialized):
+                specialized.append(pack)
+
+        primary_pack_id = self.MODEL_TO_PACK.get(profile.primary_model, profile.primary_model)
+        primary_supported = primary_pack_id in self.packs and primary_pack_id != "core"
+        core = self.packs.get("core")
+        packs = ([core] if core is not None else []) + specialized
+        return KpiPackResolution(
+            packs=packs,
+            specialized_packs=specialized,
+            requested_models=requested,
+            unsupported_models=unsupported,
+            primary_supported=primary_supported,
+        )
+
     def resolve(self, profile: BusinessModelProfile):
-        ids = ["core"]
-        mapping = {"manufacturer": "manufacturing", "manufacturing": "manufacturing", "distributor": "distributor"}
-        for model in [profile.primary_model, *profile.secondary_models]:
-            pid = mapping.get(model, model)
-            if pid in self.packs and pid not in ids:
-                ids.append(pid)
-        return [self.packs[x] for x in ids]
+        return self.resolve_with_status(profile).packs
