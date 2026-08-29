@@ -1,5 +1,6 @@
 import json
 import tomllib
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
@@ -8,10 +9,20 @@ import research_os
 from research_os.capital.engine import CapitalEfficiencyEngine
 from research_os.completion.gate import REQUIRED_MODULES, ResearchCompletionGate
 from research_os.completion.models import ResearchCompletionInput
-from research_os.kpi.base import KpiPackRegistry
 from research_os.kpi.distributor import DistributorPack
+from research_os.plugins.builtins import BuiltinPluginProvider
+from research_os.plugins.registry import PluginRegistry
+from research_os.plugins.resolver import StrategyResolver
 from research_os.reporting.summary import DecisionSummaryBuilder
 from research_os.router.models import BusinessModelProfile
+from research_os.runtime import (
+    BaselineFingerprint,
+    CompanyRef,
+    LegacyEvidenceView,
+    LegacyFactView,
+    ResearchContext,
+    ResearchOptions,
+)
 from research_os.version import RESEARCH_OS_VERSION
 
 
@@ -47,11 +58,34 @@ def test_unsupported_primary_model_does_not_get_specialized_kpi_pass():
         primary_model="consumer",
         confidence=0.9,
         evidence_ids=["synthetic-evidence"],
+        router_version="router@1.0.0",
     )
-    resolution = KpiPackRegistry.default().resolve_with_status(profile)
-    assert resolution.primary_supported is False
-    assert resolution.specialized_packs == []
-    assert "consumer" in resolution.unsupported_models
+    context = ResearchContext(
+        run_id="run:correctness:unsupported",
+        company=CompanyRef(company_id="synthetic-consumer"),
+        decision_ts=datetime(2026, 8, 29, tzinfo=timezone.utc),
+        baseline=BaselineFingerprint(
+            repository_full_name="zoucx80-rgb/Research-OS",
+            repository_id=1350382205,
+            branch="main",
+            commit_sha="1234567890abcdef1234567890abcdef12345678",
+            research_os_version="1.4.0",
+            core_api_version="1.0",
+        ),
+        evidence=LegacyEvidenceView([]),
+        facts=LegacyFactView(values={}, evidence_by_fact={}),
+        options=ResearchOptions(),
+    )
+    registry = PluginRegistry(core_api_version="1.0", research_os_version="1.4.0")
+    for plugin in BuiltinPluginProvider().plugins():
+        registry.register(plugin)
+
+    resolution = StrategyResolver().resolve(profile, context, registry)
+    assert resolution.industry_plugins == []
+    assert any(
+        gap.gap_type == "industry_strategy" and gap.business_model == "consumer"
+        for gap in resolution.coverage_gaps
+    )
 
 
 def test_reporting_propagates_the_same_completion_result():
