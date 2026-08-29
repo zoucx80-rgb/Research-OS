@@ -36,7 +36,9 @@ def test_reporting_default_uses_runtime_version():
     assert summary.research_os_version == RESEARCH_OS_VERSION
 
 
-def test_orchestration_fallback_uses_central_version_constant():
-    source = Path("src/research_os/orchestration.py").read_text()
-    assert "RESEARCH_OS_VERSION" in source
-    assert 'research_os_version", "1.1.0"' not in source
+def test_canonical_runtime_has_no_hardcoded_legacy_version_fallback():
+    source = Path("src/research_os/runtime/factory.py").read_text()
+    assert '"1.1.0"' not in source
+    assert '"1.2.0"' not in source
+    assert '"1.2.1"' not in source
+    assert "context.baseline.research_os_version" in source
