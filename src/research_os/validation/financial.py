@@ -89,7 +89,9 @@ class FinancialSanityValidator:
         if normalized_revenue == 0:
             return FinancialSanityResult(status="FAIL", errors=["gross margin revenue denominator is zero"])
         expected = normalized_profit / normalized_revenue
-        return _result(expected, float(declared_margin), "gross margin", rel_tol=1e-5, abs_tol=1e-7)
+        # Reported margins are commonly rounded to two decimals/percentage points. The
+        # tolerance accepts ordinary display rounding while still rejecting x10 scale errors.
+        return _result(expected, float(declared_margin), "gross margin", rel_tol=1e-3, abs_tol=1e-4)
 
     def check_yoy(self, *, current: float, previous: float, declared_growth: float) -> FinancialSanityResult:
         if previous == 0:
@@ -147,3 +149,41 @@ class FinancialSanityValidator:
                 else:
                     errors.append(f"conflict for {key}: {baseline} vs {value}")
         return FinancialSanityResult(status="FAIL" if errors else "PASS", errors=errors, normalized_metrics=normalized)
+
+    def validate_fact_mapping(self, facts: dict, *, unit: str = "元") -> FinancialSanityResult:
+        checks: list[FinancialSanityResult] = []
+        if all(facts.get(k) is not None for k in ("revenue", "cogs", "gross_profit")):
+            checks.append(self.check_gross_profit(
+                revenue=facts["revenue"], revenue_unit=unit,
+                cogs=facts["cogs"], cogs_unit=unit,
+                declared_gross_profit=facts["gross_profit"], declared_unit=unit,
+            ))
+        if all(facts.get(k) is not None for k in ("revenue", "gross_profit", "gross_margin")):
+            checks.append(self.check_gross_margin(
+                revenue=facts["revenue"], revenue_unit=unit,
+                gross_profit=facts["gross_profit"], gross_profit_unit=unit,
+                declared_margin=facts["gross_margin"],
+            ))
+        if all(facts.get(k) is not None for k in ("shares_outstanding", "price", "market_cap")):
+            checks.append(self.check_market_cap(
+                shares_outstanding=facts["shares_outstanding"], price=facts["price"],
+                declared_market_cap=facts["market_cap"], declared_unit=facts.get("market_cap_unit", unit),
+            ))
+        if all(facts.get(k) is not None for k in ("scenario_market_cap", "shares_outstanding", "target_price")):
+            checks.append(self.check_target_price(
+                scenario_market_cap=facts["scenario_market_cap"],
+                scenario_market_cap_unit=facts.get("scenario_market_cap_unit", unit),
+                shares_outstanding=facts["shares_outstanding"],
+                declared_target_price=facts["target_price"],
+            ))
+        yoy_sets = (
+            ("revenue", "prior_revenue", "revenue_yoy"),
+            ("current_revenue", "previous_revenue", "declared_yoy"),
+        )
+        for current_key, previous_key, growth_key in yoy_sets:
+            if all(facts.get(k) is not None for k in (current_key, previous_key, growth_key)):
+                checks.append(self.check_yoy(
+                    current=facts[current_key], previous=facts[previous_key], declared_growth=facts[growth_key]
+                ))
+        errors = [error for check in checks for error in check.errors]
+        return FinancialSanityResult(status="FAIL" if errors else "PASS", errors=errors)
