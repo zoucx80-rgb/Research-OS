@@ -4,7 +4,7 @@ import copy
 from datetime import datetime
 from typing import Any, Mapping, Protocol, runtime_checkable
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from research_os.domain.evidence import Evidence
 
@@ -49,6 +49,19 @@ class BaselineFingerprint(BaseModel):
 
 class ResearchOptions(BaseModel):
     model_config = ConfigDict(frozen=True)
+
+    industry_plugin_override: str | None = None
+    methodology_plugin_overrides: tuple[str, ...] = Field(default_factory=tuple)
+    override_rationale: str | None = None
+    allow_experimental_plugins: bool = False
+
+    @model_validator(mode="after")
+    def _require_override_rationale(self):
+        if (self.industry_plugin_override or self.methodology_plugin_overrides) and not (
+            self.override_rationale and self.override_rationale.strip()
+        ):
+            raise ValueError("plugin overrides require override_rationale")
+        return self
 
 
 class LegacyEvidenceView:
