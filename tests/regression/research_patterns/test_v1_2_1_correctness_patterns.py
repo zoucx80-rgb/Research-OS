@@ -88,24 +88,15 @@ def test_unsupported_primary_model_does_not_get_specialized_kpi_pass():
     )
 
 
-def test_reporting_propagates_the_same_completion_result():
+def test_reporting_propagates_the_same_completion_result(canonical_report_result_factory):
     statuses = {module: "PASS" for module in REQUIRED_MODULES}
     statuses["Forecast Discipline"] = "NOT_APPLICABLE"
-    completion = ResearchCompletionGate().evaluate(ResearchCompletionInput(module_statuses=statuses))
-    summary = DecisionSummaryBuilder().build({
-        "company_id": "synthetic-distributor",
-        "business_model": "distributor",
-        "primary_thesis": "synthetic thesis",
-        "thesis_state": "ACTIVE",
-        "fundamental_state": "STABLE",
-        "expectation_state": "MIXED",
-        "valuation_state": "FAIR",
-        "evidence_confidence": 0.8,
-        "top_drivers": [],
-        "top_risks": [],
-        "next_verification_event": "next disclosure",
-        "completion": completion,
-    })
+    completion = ResearchCompletionGate().evaluate(
+        ResearchCompletionInput(module_statuses=statuses)
+    )
+    summary = DecisionSummaryBuilder().build(
+        canonical_report_result_factory(completion=completion)
+    )
     assert summary.final_status == completion.final_status
     assert summary.blocking_modules == completion.blocking_modules
     assert summary.module_statuses == completion.module_statuses
