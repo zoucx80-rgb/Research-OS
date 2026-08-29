@@ -107,6 +107,10 @@ class ResearchOS:
             return "PASS"
         return "INSUFFICIENT_EVIDENCE"
 
+    @staticmethod
+    def _funding_status(result:FundingLoopResult)->str:
+        return "INSUFFICIENT_EVIDENCE" if result.funding_state=="unknown" else "PASS"
+
     def complete_run(self,req:ResearchRunRequest)->ResearchRun:
         statuses={name:"INSUFFICIENT_EVIDENCE" for name in REQUIRED_MODULES}
         safety=req.safety
@@ -120,15 +124,11 @@ class ResearchOS:
                 raise ValueError(f"PREFLIGHT_FAIL: {exc}") from exc
             statuses["Repository Preflight"]="PASS"
 
-        # Enforce point-in-time at the orchestration boundary as well as the storage boundary.
         available=[e for e in req.evidence if e.publish_ts<=req.decision_ts]
         if not available:
             raise ValueError("no evidence available at decision_ts")
         statuses["PIT Validation"]="PASS"
 
-        # A complete research run may not smuggle future or untraceable values through the
-        # convenience ``facts`` mapping. Every input fact must equal the latest evidence
-        # version that was public at decision_ts.
         latest_by_fact={}
         for e in sorted(available,key=lambda x:(x.publish_ts,x.revision_no)):
             latest_by_fact[e.source_table or e.evidence_id]=e
@@ -138,8 +138,6 @@ class ResearchOS:
                 raise ValueError(f"fact {fact!r} is not supported by as-of evidence")
         statuses["Evidence Lineage"]="PASS"
 
-        # Financial sanity is a hard prerequisite for semantic analysis when the caller opts
-        # into the v1.2 safety contract. It must run before valuation and decision generation.
         if safety is not None:
             financial_result=self.financial.validate_fact_mapping(req.facts,unit=safety.financial_unit)
             if safety.financial_observations:
@@ -171,7 +169,7 @@ class ResearchOS:
         capital_efficiency=self.capital.calculate(capital_facts)
         funding_loop=self.capital.funding_loop(capital_facts)
         statuses["Capital Efficiency"]=self._capital_status(metrics,capital_efficiency)
-        statuses["Funding Loop"]="PASS" if any(capital_facts.get(k) is not None for k in ("delta_nwc","delta_revenue","delta_debt","delta_equity","operating_cash_flow")) else "INSUFFICIENT_EVIDENCE"
+        statuses["Funding Loop"]=self._funding_status(funding_loop)
 
         drivers=DriverGraph.build(req.company_id,[p.pack_id for p in packs],available)
         statuses["Driver Graph"]="PASS"
@@ -224,8 +222,6 @@ class ResearchOS:
         if thesis_state not in {"STRENGTHENING","ACTIVE","WEAKENING","FALSIFIED"}:
             thesis_state="ACTIVE"
 
-        # A hard valuation execution failure has already raised above. Only now may a legal
-        # decision state be generated and validated against the canonical enum.
         decision=self.decision.evaluate(DecisionContext(
             company_id=req.company_id,fundamental_state=req.fundamental_state,valuation_state=req.valuation_state,
             expectation_state=req.expectation_state,thesis_state=thesis_state,
