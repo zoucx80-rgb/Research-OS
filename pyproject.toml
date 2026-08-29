@@ -20,6 +20,7 @@ dependencies = [
 test = [
   "pytest>=8,<10",
   "httpx2>=2,<3",
+  "alembic>=1.13,<2",
 ]
 
 [tool.setuptools.packages.find]
