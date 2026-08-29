@@ -16,6 +16,12 @@ dependencies = [
   "scikit-learn>=1.5",
 ]
 
+[project.optional-dependencies]
+test = [
+  "pytest>=8,<10",
+  "httpx2>=2,<3",
+]
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
