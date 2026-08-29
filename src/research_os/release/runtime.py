@@ -25,6 +25,7 @@ CHECKS: dict[str,str]={
     "temporal_consistency":"tests/unit/events/test_temporal_validation.py",
     "distributor_kpi_safety":"tests/unit/kpi/test_distributor_safety_metrics.py",
     "research_completion_integration":"tests/integration/test_research_safety_context.py",
+    "migration_lineage":"tests/integration/storage/test_v1_2_lineage_migration.py",
 }
 
 ROOT=Path(__file__).resolve().parents[3]

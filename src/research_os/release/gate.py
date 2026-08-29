@@ -22,6 +22,7 @@ REQUIRED=(
     "temporal_consistency",
     "distributor_kpi_safety",
     "research_completion_integration",
+    "migration_lineage",
 )
 
 
