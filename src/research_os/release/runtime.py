@@ -26,6 +26,11 @@ CHECKS: dict[str,str]={
     "distributor_kpi_safety":"tests/unit/kpi/test_distributor_safety_metrics.py",
     "research_completion_integration":"tests/integration/test_research_safety_context.py",
     "migration_lineage":"tests/integration/storage/test_v1_2_lineage_migration.py",
+    "period_semantics":"tests/unit/kpi/test_period_sensitive_packs.py",
+    "missing_value_semantics":"tests/unit/capital/test_engine.py::test_negative_ocf_without_funding_inputs_does_not_invent_funding_state",
+    "kpi_applicability":"tests/unit/kpi/test_applicability.py",
+    "completion_consistency":"tests/unit/completion/test_consistency.py",
+    "version_consistency":"tests/unit/test_version_consistency_v1_2_1.py",
 }
 
 ROOT=Path(__file__).resolve().parents[3]

@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.2.1 — 2026-08-29
+
+### Fixed
+Interim balance/flow KPIs now use explicit reporting-period semantics instead of silently assuming 365 days. Missing funding facts remain missing rather than being coerced to zero. A generic CorePack no longer counts as specialized KPI support for an unsupported routed business model. Reporting now propagates the authoritative `ResearchCompletionResult` instead of applying a second completion policy. Runtime and public version surfaces now share one `RESEARCH_OS_VERSION` source.
+
+### Changed
+Distributor and Manufacturing period-sensitive metrics share one period contract. Distributor inventory turnover exposes both period turns and annualized turns where the reporting period is known. Funding-loop classification can return `unknown`, which maps to `INSUFFICIENT_EVIDENCE`. KPI Pack completion requires specialized support for the routed primary model. Claim capabilities are normalized before completion-policy evaluation so expectation, valuation and decision claims are not conflated.
+
+### Validation
+Release Gate adds five v1.2.1 semantic checks: `period_semantics`, `missing_value_semantics`, `kpi_applicability`, `completion_consistency`, and `version_consistency`. CI runs an anonymous cross-cutting v1.2.1 regression before migration smoke, the full test suite and the release gate.
+
+### Migration
+No database or Alembic migration is required for v1.2.1. The reversible v1.2 Evidence-lineage migration remains the current schema baseline. Historical tags and versioned research snapshots remain immutable.
+
+### Compatibility
+This is a PATCH release. Existing v1.2 request shapes remain accepted, including `facts: dict`, optional `safety=None`, and free-text claimed conclusions. Missing or unsupported evidence may now correctly produce `INSUFFICIENT_EVIDENCE` where older behavior could produce a false PASS.
+
 ## 1.2.0 — 2026-08-29
 
 ### Added

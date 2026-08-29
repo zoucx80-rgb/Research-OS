@@ -23,6 +23,11 @@ REQUIRED=(
     "distributor_kpi_safety",
     "research_completion_integration",
     "migration_lineage",
+    "period_semantics",
+    "missing_value_semantics",
+    "kpi_applicability",
+    "completion_consistency",
+    "version_consistency",
 )
 
 

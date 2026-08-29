@@ -44,7 +44,7 @@ The final research report must record at least:
 - Research OS version;
 - `decision_ts`.
 
-`latest main` is used only to discover the starting SHA. Once frozen, later changes to `main` do not enter the run.
+`latest main` is used only to discover the starting SHA. Once frozen, later changes to `main` do not enter the run. For a latest-run baseline on v1.2.1 or later, the runtime, package and public metadata version surfaces must agree; version drift is a validation failure.
 
 ## Company Evidence Isolation
 
@@ -65,7 +65,8 @@ Prioritize primary sources:
 Strictly enforce:
 
 - **No Time Travel** — material evidence must satisfy `publish_ts <= decision_ts`.
-- **No Fabricated Data** — missing facts remain missing.
+- **No Fabricated Data** — missing facts remain missing; `None` is not economic zero.
+- **Period Truthfulness** — period-sensitive balance/flow metrics must use the actual or explicitly resolved reporting period. Interim periods must not silently assume 365 days. Distinguish within-period turns from annualized turns where both are presented.
 - **Facts ≠ Calculations ≠ Statistical Evidence ≠ Assumptions**.
 - **Everything Has Lineage** — preserve raw value, normalized value, unit, period, scope, version, source and formula/assumption lineage where applicable.
 - **Models Beat Simple Benchmarks** before production promotion.
@@ -75,7 +76,7 @@ If reliable evidence cannot be obtained, use `INSUFFICIENT_EVIDENCE` rather than
 
 ## Machine-Enforced Safety Gates
 
-Use the pinned Research OS implementation as the source of truth. Where the v1.2 safety context is available, the run must pass the applicable machine contracts before a completed report may be emitted:
+Use the pinned Research OS implementation as the source of truth. Where the safety context is available, the run must pass the applicable machine contracts before a completed report may be emitted:
 
 - Repository Preflight
 - PIT Validation
@@ -93,13 +94,21 @@ Use the pinned Research OS implementation as the source of truth. Where the v1.2
 
 Financial sanity is a hard prerequisite: unit, scale, arithmetic or cross-report consistency failures block downstream valuation/decision completion. Expectation claims such as beat/miss/priced-in require auditable expectation evidence. The selected valuation model must equal the executed model and retain scenario, assumption, lineage, and driver-bridge evidence. Only legal `ResearchDecisionState` values may appear as decision states.
 
+For v1.2.1 correctness semantics:
+
+- Interim day-based KPIs require a known reporting-period length or derivable dates. If period length is unavailable, keep the metric missing with an explicit reason rather than substituting 365.
+- Funding-loop inputs such as working-capital change, debt/equity funding and operating cash flow remain missing when not evidenced. An unclassifiable loop is `unknown` and maps to `INSUFFICIENT_EVIDENCE`.
+- CorePack is generic infrastructure only. `KPI Pack = PASS` requires specialized support for the routed primary business model; unsupported primary models remain visible.
+- `ResearchCompletionGate` is the single completion-policy authority. Reporting must propagate the same `ResearchCompletionResult` (`final_status`, `blocking_modules`, `module_statuses`) and must not independently promote or demote completion.
+- Claim-capability normalization must not treat a decision-state claim as an automatic valuation or target-price claim.
+
 ## Required Research Order
 
 Do not begin with a preferred valuation template. Preserve the causal order implemented by the pinned Research OS. At minimum:
 
 1. Evidence ingestion and PIT filtering
-2. Business Model Router and KPI Pack
-3. Financial sanity, capital efficiency, funding loop, growth quality
+2. Business Model Router and KPI Pack applicability
+3. Financial sanity, period semantics, capital efficiency, funding loop, growth quality
 4. Driver Graph and key-driver ranking
 5. Thesis / Anti-Thesis / Falsifiers
 6. Expectations / surprise / expectation-gap analysis
@@ -120,9 +129,9 @@ The report should include, where supported by evidence:
 - module validation/completion status for material gates
 - Research Decision State
 - Thesis / Anti-Thesis / Falsifiers
-- Business Model classification and KPI Pack
+- Business Model classification and specialized KPI Pack applicability
 - Key operating drivers
-- Financial quality, capital efficiency and funding loop
+- Financial quality, period-aware operating KPIs, capital efficiency and funding loop
 - Market expectations and expectation gap, or explicit `INSUFFICIENT_EVIDENCE`
 - Forecast evidence / limitations
 - Valuation Model Fitness and executed valuation lineage
@@ -132,7 +141,7 @@ The report should include, where supported by evidence:
 - Evidence that would increase conviction
 - Evidence that would weaken or break the thesis
 
-A tool or browsing workflow ending successfully does **not** imply research completion. `FINAL_STATUS=COMPLETE` may be emitted only when the Research Completion Gate returns COMPLETE. Otherwise report `FINAL_STATUS=INCOMPLETE` and identify blocking modules.
+A tool or browsing workflow ending successfully does **not** imply research completion. `FINAL_STATUS=COMPLETE` may be emitted only when the Research Completion Gate returns COMPLETE. Otherwise report `FINAL_STATUS=INCOMPLETE` and identify blocking modules. The report's completion fields must come from the same completion result used by the runtime.
 
 ## Research vs. Repository Modification
 

@@ -8,6 +8,14 @@ jobs:
       - uses: actions/setup-python@v5
         with: {python-version: '3.12'}
       - run: pip install -e ".[test]"
+      - run: >
+          pytest -q
+          tests/regression/research_patterns/test_v1_2_1_correctness_patterns.py
+          tests/unit/kpi/test_period_sensitive_packs.py
+          tests/unit/capital/test_engine.py
+          tests/unit/kpi/test_applicability.py
+          tests/unit/completion/test_consistency.py
+          tests/unit/test_version_consistency_v1_2_1.py
       - run: pytest -q tests/integration/storage/test_v1_2_lineage_migration.py
       - run: pytest -q
       - run: python scripts/release_gate_v1_1.py
