@@ -105,7 +105,7 @@ def test_reporting_propagates_the_same_completion_result(canonical_report_result
 def test_public_and_runtime_version_surfaces_are_equal():
     project = tomllib.loads(Path("pyproject.toml").read_text())
     metadata = json.loads(Path("research_os_version.json").read_text())
-    assert RESEARCH_OS_VERSION == "1.2.1"
+    assert RESEARCH_OS_VERSION == "1.4.0"
     assert research_os.__version__ == RESEARCH_OS_VERSION
     assert project["project"]["version"] == RESEARCH_OS_VERSION
     assert metadata["research_os_version"] == RESEARCH_OS_VERSION
