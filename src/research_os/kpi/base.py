@@ -51,6 +51,8 @@ class KpiPackResolution:
 
 
 class KpiPackRegistry:
+    """Deprecated v1.x compatibility facade; v1.3 runtime resolves industry plugins."""
+
     MODEL_TO_PACK = {
         "manufacturer": "manufacturing",
         "manufacturing": "manufacturing",
