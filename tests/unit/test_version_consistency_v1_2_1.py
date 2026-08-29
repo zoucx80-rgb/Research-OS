@@ -19,20 +19,8 @@ def test_all_runtime_and_public_version_surfaces_are_1_2_1():
     assert DecisionStateRecord.model_fields["research_os_version"].default == RESEARCH_OS_VERSION
 
 
-def test_reporting_default_uses_runtime_version():
-    summary = DecisionSummaryBuilder().build({
-        "company_id": "synthetic",
-        "business_model": "distributor",
-        "primary_thesis": "synthetic thesis",
-        "thesis_state": "ACTIVE",
-        "fundamental_state": "STABLE",
-        "expectation_state": "MIXED",
-        "valuation_state": "FAIR",
-        "evidence_confidence": .8,
-        "top_drivers": [],
-        "top_risks": [],
-        "next_verification_event": "next disclosure",
-    })
+def test_reporting_uses_canonical_run_version(canonical_report_result_factory):
+    summary = DecisionSummaryBuilder().build(canonical_report_result_factory())
     assert summary.research_os_version == RESEARCH_OS_VERSION
 
 
