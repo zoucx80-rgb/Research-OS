@@ -11,6 +11,7 @@ from .context import (
     ResearchContext,
     ResearchOptions,
 )
+from .inputs import ResearchInputs
 
 __all__ = [
     "BaselineFingerprint",
@@ -21,5 +22,6 @@ __all__ = [
     "LegacyEvidenceView",
     "LegacyFactView",
     "ResearchContext",
+    "ResearchInputs",
     "ResearchOptions",
 ]
