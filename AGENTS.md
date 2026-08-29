@@ -99,24 +99,32 @@ Public keys, credential placeholders, environment-variable names, and documented
 
 If a secret appears in working context, do not copy it into source files, logs, fixtures, documentation, issues, commits, or pull requests.
 
-## Change Workflow
+## Single-Branch Development Workflow
+
+`main` is the only long-lived development branch for this repository.
 
 Default development workflow:
 
-1. Read/fetch the latest `main` state.
-2. Create a dedicated feature or maintenance branch.
+1. Read/fetch the latest `main` state before every change.
+2. Work directly from the current `main` state; do not create feature, maintenance, or release branches by default.
 3. Make the smallest change necessary for the approved task.
 4. Add or update tests when behavior changes.
 5. Run relevant targeted tests.
 6. Run the full Research OS validation/release gate when research semantics, architecture, PIT behavior, valuation logic, decision logic, migrations, or public interfaces change.
 7. Update `CHANGELOG.md`, migration notes, and version metadata only when SemVer rules require it.
-8. Push the verified branch to GitHub.
-9. Open a Pull Request against `main` by default.
-10. Merge only after the required review/validation state is satisfied, unless the user explicitly requests direct publication.
+8. Commit verified changes directly to `main`.
+9. Push the verified `main` commit to GitHub.
+10. Re-read the remote `main` state after push when verification is needed.
+
+Do not create additional branches unless the user explicitly requests one for a specific task.
+
+Do not require Pull Requests for normal development unless the user explicitly requests review through a PR.
 
 Do not force-push `main`.
 
 Do not rewrite or delete historical release tags or versioned research snapshots.
+
+If `main` has changed remotely since the task began, reconcile against the latest remote state before publishing rather than overwriting newer work.
 
 ## Versioning Discipline
 
@@ -151,11 +159,14 @@ Before claiming completion, verify as applicable:
 - required tests/validation passed;
 - no secret material was introduced;
 - PIT and evidence-lineage invariants remain intact;
-- the branch was pushed successfully when push was requested;
-- the Pull Request accurately describes the change and its validation.
+- the verified commit exists on remote `main` when push was requested;
+- no extra branch was created unless explicitly requested;
+- release tags and historical research snapshots remain unchanged unless the task explicitly authorizes a new version artifact.
 
 ## Repository Identity
 
 Repository: `zoucx80-rgb/Research-OS`
+
+Long-lived branch: `main`
 
 This file governs only this repository tree.
