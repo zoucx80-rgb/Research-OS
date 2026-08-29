@@ -20,11 +20,11 @@ class ThesisService:
             f=[Falsifier(metric="cfo",operator="<",threshold=0)]
             t=Thesis(thesis_id=f"{company_id}:cash-quality",company_id=company_id,title="Growth converts to cash",
                 statement="Growth should improve cash generation rather than depend indefinitely on external funding.",
-                mechanism="Revenue growth must translate through working-capital efficiency into operating cash flow.",status="active",
+                mechanism="Revenue growth must translate through working-capital efficiency into operating cash flow.",anti_thesis="Growth remains dependent on inventory, receivables and external financing, so cash quality deteriorates.",status="active",
                 supporting_drivers=[n.driver_id for n in drivers.nodes if n.driver_type in {"working_capital","financing"}],
                 supporting_evidence=[e.evidence_id for e in evidence],falsifiers=f,verification_metrics=["cfo","ccc_days"],next_check_date=next_date,confidence=.7)
             return [self.evaluate_existing(t,evidence)]
         return [Thesis(thesis_id=f"{company_id}:fundamentals",company_id=company_id,title="Fundamentals improve",
-            statement="Operating fundamentals improve.",mechanism="Revenue and margins translate into cash.",status="active",
+            statement="Operating fundamentals improve.",mechanism="Revenue and margins translate into cash.",anti_thesis="Reported growth fails to convert into sustainable cash returns.",status="active",
             supporting_evidence=[e.evidence_id for e in evidence],falsifiers=[Falsifier(metric="cfo",operator="<",threshold=0)],
             verification_metrics=["cfo"],next_check_date=next_date,confidence=.6)]

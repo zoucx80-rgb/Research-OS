@@ -37,3 +37,14 @@ class CapitalEfficiencyEngine:
         else: state="mixed"
         if (ocf or 0)<0 and dd>max(dnwc,0)*1.2 and dd>0: state="stressed"
         return FundingLoopResult(funding_state=state,incremental_revenue=f.get("delta_revenue"),incremental_nwc=f.get("delta_nwc"),incremental_debt=f.get("delta_debt"),incremental_equity=f.get("delta_equity"),operating_cash_flow=ocf,reason_codes=reasons)
+
+    def growth_quality_components(self,f):
+        return {
+            "growth":f.get("revenue_growth"),
+            "margin":f.get("margin_change"),
+            "roic":f.get("roic"),
+            "cash_conversion":f.get("cash_conversion"),
+            "incremental_nwc_efficiency":f.get("incremental_nwc_efficiency"),
+            "leverage_deterioration":f.get("leverage_deterioration"),
+            "dilution":f.get("dilution"),
+        }

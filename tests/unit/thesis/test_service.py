@@ -9,7 +9,7 @@ def metric(name,value):
        confidence_grade="B",verification_status="PRIMARY_VERIFIED")
 
 def test_triggered_falsifier_moves_active_thesis_to_weakening():
-    t=Thesis(thesis_id="t",company_id="X",title="Cash quality",statement="growth converts to cash",mechanism="m",status="active",
+    t=Thesis(thesis_id="t",company_id="X",title="Cash quality",statement="growth converts to cash",mechanism="m",anti_thesis="counter",status="active",
       falsifiers=[Falsifier(metric="cfo",operator="<",threshold=0)],next_check_date=date(2026,10,31))
     r=ThesisService().evaluate_existing(t,[metric("cfo",-100)])
     assert r.status=="weakening"

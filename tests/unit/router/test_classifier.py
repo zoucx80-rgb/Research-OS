@@ -14,3 +14,15 @@ def test_router_classifies_high_inventory_low_fixed_asset_company_as_distributor
     assert profile.primary_model=="distributor"
     assert profile.confidence>=0.80
     assert profile.evidence_ids
+
+def test_router_recognizes_other_standard_business_models_from_primary_business_description():
+    cases={
+      "subscription software SaaS cloud recurring revenue":"software",
+      "consumer brand retail food beverage":"consumer",
+      "copper mining resource commodity producer":"resource",
+      "EPC engineering project system integration":"project",
+      "commercial bank financial services deposits loans":"financial",
+    }
+    for desc,expected in cases.items():
+        p=BusinessModelRouter().classify("X",[ev("business_description",desc)])
+        assert p.primary_model==expected, (desc,p)

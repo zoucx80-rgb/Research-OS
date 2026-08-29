@@ -6,6 +6,24 @@ def days(avg_balance,flow):
 
 class DistributorPack:
     pack_id="distributor"; pack_version="distributor@1.0.0"; formula_version="distributor-core@1.0.0"
+    eligible_business_models=("distributor",)
+    required_facts=frozenset({"revenue","cogs","avg_ar","avg_inventory","avg_ap"})
+    optional_facts=frozenset({"ar","inventory","ap","delta_nwc","delta_revenue","short_debt","equity","gross_profit","interest_expense","ocf","net_profit","nopat","avg_invested_capital"})
+    missing_policy="preserve_missing"
+    valuation_preferences=("pe","pb","ev_ebitda","dcf")
+    metric_dependencies={
+        "dso_days":["avg_ar","revenue"],
+        "dio_days":["avg_inventory","cogs"],
+        "dpo_days":["avg_ap","cogs"],
+        "ccc_days":["avg_ar","revenue","avg_inventory","cogs","avg_ap"],
+        "nwc_intensity":["ar","inventory","ap","revenue"],
+        "incremental_nwc_intensity":["delta_nwc","delta_revenue"],
+        "short_debt_to_inventory":["short_debt","inventory"],
+        "short_debt_to_equity":["short_debt","equity"],
+        "interest_to_gross_profit":["interest_expense","gross_profit"],
+        "cash_conversion":["ocf","net_profit"],
+        "roic":["nopat","avg_invested_capital"],
+    }
     def calculate(self,f):
         dso=days(f.get("avg_ar"),f.get("revenue")); dio=days(f.get("avg_inventory"),f.get("cogs")); dpo=days(f.get("avg_ap"),f.get("cogs"))
         ccc=None if None in (dso,dio,dpo) else dso+dio-dpo

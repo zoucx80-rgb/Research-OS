@@ -15,6 +15,7 @@ class Claim(BaseModel):
     falsifiers: list[str]=Field(default_factory=list)
     valid_from: datetime=Field(default_factory=lambda:datetime.now(timezone.utc))
     valid_until: datetime|None=None
+    next_verification_event: str|None=None
     status: str="active"
 
 class EvidenceLedger:
@@ -22,6 +23,8 @@ class EvidenceLedger:
     def validate_claim(self,claim:Claim):
         if claim.claim_type in {"risk","thesis","valuation","statistical","calculation","fact"} and not claim.evidence_ids:
             raise ClaimValidationError("material claim requires evidence")
+        if claim.claim_type in {"risk","thesis","valuation","statistical"} and (claim.valid_until is None or not claim.next_verification_event):
+            raise ClaimValidationError("research conclusion requires validity horizon and next verification event")
         return True
     def add_claim(self,claim:Claim): self.validate_claim(claim); self._claims.append(claim); return claim
     def current_claims(self,company_id:str,as_of:datetime):

@@ -7,3 +7,13 @@ def test_decision_summary_contains_required_front_page_fields():
       "next_verification_event":"2026Q3","research_os_version":"1.1.0","supporting_claim_ids":["c1"]})
     assert s.business_model=="distributor" and len(s.top_drivers)==3 and len(s.top_risks)==3
     assert s.research_os_version=="1.1.0"
+
+def test_standard_deep_research_report_has_all_v1_1_sections_in_order():
+    from research_os.reporting.summary import ResearchReportModel
+    report=ResearchReportModel.standard()
+    assert report.sections[0]=="Executive Decision Summary"
+    assert "Anti-Thesis" in report.sections
+    assert "Falsifiers" in report.sections
+    assert "Evidence Ledger" in report.sections
+    assert report.sections[-1]=="Version & Data Snapshot"
+    assert len(report.sections)==18

@@ -15,6 +15,7 @@ class Thesis(BaseModel):
     title: str
     statement: str
     mechanism: str
+    anti_thesis: str | None=None
     status: Literal["new","active","strengthening","weakening","falsified","expired"]="new"
     time_horizon: str|None=None
     supporting_drivers: list[str]=Field(default_factory=list)
@@ -26,6 +27,8 @@ class Thesis(BaseModel):
     triggered_falsifiers: list[str]=Field(default_factory=list)
     @model_validator(mode="after")
     def validate_active(self):
+        if not self.anti_thesis:
+            raise ValueError("thesis requires explicit anti-thesis")
         if self.status in {"active","strengthening","weakening"} and (not self.falsifiers or self.next_check_date is None):
             raise ValueError("active thesis requires falsifier and next check")
         return self

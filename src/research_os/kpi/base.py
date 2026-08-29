@@ -13,10 +13,20 @@ class MetricResult(BaseModel):
 class KpiPack(Protocol):
     pack_id: str
     pack_version: str
+    eligible_business_models: tuple[str, ...]
+    required_facts: frozenset[str]
+    optional_facts: frozenset[str]
+    missing_policy: str
+    valuation_preferences: tuple[str, ...]
     def calculate(self,facts: Mapping[str,float|None])->list[MetricResult]: ...
 
 class CorePack:
     pack_id="core"; pack_version="core@1.0.0"
+    eligible_business_models=("all",)
+    required_facts=frozenset()
+    optional_facts=frozenset()
+    missing_policy="preserve_missing"
+    valuation_preferences=()
     def calculate(self,facts): return []
 
 class KpiPackRegistry:

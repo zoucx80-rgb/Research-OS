@@ -1,0 +1,33 @@
+{
+  "company_id":"001287.SZ",
+  "decision_ts":"2026-08-29T08:00:00+00:00",
+  "consensus_net_profit":6.0,
+  "facts":{
+    "business_description":"electronic component distribution",
+    "inventory_to_revenue":0.28,
+    "fixed_asset_to_assets":0.01,
+    "gross_margin":0.03,
+    "revenue":735.56,
+    "cogs":713.49,
+    "avg_ar":188.17,
+    "avg_inventory":153.02,
+    "avg_ap":80.0,
+    "ar":261.12,
+    "inventory":183.48,
+    "ap":90.0,
+    "delta_nwc":160.0,
+    "delta_revenue":250.0,
+    "short_debt":300.38,
+    "equity":58.15,
+    "gross_profit":22.07,
+    "interest_expense":6.0,
+    "ocf":-175.0,
+    "cfo":-175.0,
+    "net_profit":5.13,
+    "nopat":5.0,
+    "avg_invested_capital":400.0
+  },
+  "versions":{
+    "research_os_version":"1.1.0","dataset_version":"2026-08-29.1","parser_version":"parser@1.0.0","formula_version":"finance-core@2.0.0","router_version":"router@1.0.0","kpi_pack_version":"distributor@1.0.0","driver_model_version":"drivers@1.0.0","forecast_version":"forecast@1.0.0","valuation_version":"valuation@2.0.0","report_version":"report@3.0.0"
+  }
+}

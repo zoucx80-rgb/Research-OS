@@ -23,3 +23,28 @@ class DecisionSummaryBuilder:
             thesis_state=c["thesis_state"],fundamental_state=c["fundamental_state"],expectation_state=c["expectation_state"],valuation_state=c["valuation_state"],
             evidence_confidence=c["evidence_confidence"],top_drivers=list(c.get("top_drivers",[]))[:3],top_risks=list(c.get("top_risks",[]))[:3],
             next_verification_event=c["next_verification_event"],research_os_version=c.get("research_os_version","1.1.0"),core_contradiction=contradiction,sections=self.SECTIONS)
+
+class ResearchReportModel(BaseModel):
+    sections: list[str]
+    @classmethod
+    def standard(cls):
+        return cls(sections=[
+            "Executive Decision Summary",
+            "Business Model Classification",
+            "Core Driver Tree",
+            "Industry / Competitive Context",
+            "Financial Quality",
+            "Capital Efficiency & Funding Loop",
+            "Segment / Product / Unit Economics",
+            "Thesis",
+            "Anti-Thesis",
+            "Falsifiers",
+            "Expectation Gap",
+            "Forecast & Statistical Validation",
+            "Valuation Router & Model Fitness",
+            "Scenario Analysis",
+            "Risk Register",
+            "Monitoring Checklist",
+            "Evidence Ledger",
+            "Version & Data Snapshot",
+        ])

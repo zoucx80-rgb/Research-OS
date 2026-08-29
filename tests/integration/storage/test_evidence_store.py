@@ -34,3 +34,10 @@ def test_correction_creates_new_revision():
     s.append(make_evidence(evidence_id="rev", revision_no=2, value=12))
     rows=s.as_of("001287.SZ", datetime(2026,12,31,tzinfo=timezone.utc))
     assert [r.value for r in rows if r.evidence_id=="rev"] == [10,12]
+
+def test_latest_as_of_returns_only_latest_known_revision_per_evidence_id():
+    s=store()
+    s.append(make_evidence(evidence_id="rev", revision_no=1, value=10, publish_ts=datetime(2026,8,1,tzinfo=timezone.utc)))
+    s.append(make_evidence(evidence_id="rev", revision_no=2, value=12, publish_ts=datetime(2026,8,20,tzinfo=timezone.utc)))
+    latest=s.latest_as_of("001287.SZ",datetime(2026,8,25,tzinfo=timezone.utc))
+    assert [(x.evidence_id,x.revision_no,x.value) for x in latest]==[("rev",2,12)]

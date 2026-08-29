@@ -63,3 +63,10 @@ class EvidenceStore:
               .where(EvidenceRow.publish_ts<=decision_ts)
               .order_by(EvidenceRow.publish_ts,EvidenceRow.revision_no))
         return [r.to_domain() for r in self.session.scalars(stmt)]
+    def latest_as_of(self,company_id: str,decision_ts: datetime)->list[Evidence]:
+        latest: dict[str,Evidence]={}
+        for e in self.as_of(company_id,decision_ts):
+            prev=latest.get(e.evidence_id)
+            if prev is None or (e.publish_ts,e.revision_no) >= (prev.publish_ts,prev.revision_no):
+                latest[e.evidence_id]=e
+        return sorted(latest.values(),key=lambda e:e.evidence_id)

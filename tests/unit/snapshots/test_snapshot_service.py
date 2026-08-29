@@ -20,3 +20,11 @@ def test_frozen_snapshot_is_not_mutable():
     svc=SnapshotService(); snap=svc.freeze("X", datetime.now(timezone.utc), VERSIONS)
     with pytest.raises(SnapshotFrozenError):
         svc.replace_versions(snap.snapshot_id,{"report_version":"x"})
+
+def test_snapshot_freezes_payload_with_verifiable_hash():
+    svc=SnapshotService()
+    payload={"decision_state":"WAIT_FOR_CONFIRMATION","metrics":{"ccc_days":55.2}}
+    snap=svc.freeze("X",datetime(2026,8,29,8,tzinfo=timezone.utc),VERSIONS,payload=payload)
+    payload["metrics"]["ccc_days"]=999
+    assert snap.payload["metrics"]["ccc_days"]==55.2
+    assert svc.verify(snap.snapshot_id) is True

@@ -10,6 +10,11 @@ class BusinessModelRouter:
         desc=str(values.get("business_description","")).lower()
         if any(x in desc for x in ("distribution","distributor","分销","流通")): scores["distributor"]+=0.5
         if any(x in desc for x in ("manufacturing","manufacturer","制造","生产")): scores["manufacturing"]+=0.5
+        if any(x in desc for x in ("software","saas","subscription","cloud","软件","订阅")): scores["software"]+=0.7
+        if any(x in desc for x in ("consumer","brand","retail","food","beverage","消费","品牌","零售")): scores["consumer"]+=0.7
+        if any(x in desc for x in ("mining","resource","commodity","copper","coal","oil","资源","矿业","煤炭","油气")): scores["resource"]+=0.7
+        if any(x in desc for x in ("epc","engineering project","system integration","工程","项目制","系统集成")): scores["project"]+=0.7
+        if any(x in desc for x in ("bank","insurance","brokerage","financial services","deposits","loans","银行","保险","券商")): scores["financial"]+=0.7
         inv=values.get("inventory_to_revenue")
         fa=values.get("fixed_asset_to_assets")
         gm=values.get("gross_margin")
