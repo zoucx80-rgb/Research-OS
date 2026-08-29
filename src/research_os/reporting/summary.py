@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 
 from research_os.completion.models import FinalStatus, ModuleStatus, ResearchCompletionResult
 from research_os.decision.models import ResearchDecisionState
+from research_os.version import RESEARCH_OS_VERSION
 
 
 class DecisionSummary(BaseModel):
@@ -63,7 +64,7 @@ class DecisionSummaryBuilder:
             top_drivers=list(c.get("top_drivers", []))[:3],
             top_risks=list(c.get("top_risks", []))[:3],
             next_verification_event=c["next_verification_event"],
-            research_os_version=c.get("research_os_version", "1.2.0"),
+            research_os_version=c.get("research_os_version", RESEARCH_OS_VERSION),
             decision_state=c.get("decision_state"),
             final_status=final_status,
             blocking_modules=blocking_modules,

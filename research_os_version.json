@@ -1,8 +1,8 @@
 {
-  "research_os_version":"1.2.0",
+  "research_os_version":"1.2.1",
   "status":"stable",
   "module_versions":{
-    "finance_core":"2.0.0",
+    "finance_core":"2.0.1",
     "router":"1.0.0",
     "driver_engine":"1.0.0",
     "thesis_engine":"1.0.0",
@@ -10,7 +10,10 @@
     "valuation":"2.1.0",
     "evidence_lineage":"2.0.0",
     "safety_gates":"1.0.0",
-    "completion_gate":"1.0.0",
-    "report_template":"3.1.0"
+    "period_semantics":"1.0.0",
+    "missing_value_semantics":"1.0.0",
+    "kpi_applicability":"1.0.0",
+    "completion_gate":"1.1.0",
+    "report_template":"3.1.1"
   }
 }

@@ -27,6 +27,7 @@ from research_os.validation.financial import FinancialMetricObservation, Financi
 from research_os.valuation.execution import ValuationExecution, ValuationExecutionValidator
 from research_os.valuation.fitness import ModelFitnessInputs
 from research_os.valuation.router import ValuationContext, ValuationRouter, ValuationRoutingResult
+from research_os.version import RESEARCH_OS_VERSION
 
 
 GRADE_SCORE = {"A": 1.0, "B": 0.9, "C": 0.75, "D": 0.5, "E": 0.3}
@@ -246,7 +247,7 @@ class ResearchOS:
             evidence_ids=[e.evidence_id for e in available],
             claim_ids=[c.claim_id for c in claims],
             decision_ts=req.decision_ts,
-            research_os_version=req.versions.get("research_os_version", "1.1.0"),
+            research_os_version=req.versions.get("research_os_version", RESEARCH_OS_VERSION),
         ))
         validate_decision_state(decision.state)
         statuses["Decision State"] = "PASS"

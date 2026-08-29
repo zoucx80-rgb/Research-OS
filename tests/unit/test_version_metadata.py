@@ -3,14 +3,15 @@ import tomllib
 from pathlib import Path
 
 import research_os
+from research_os.version import RESEARCH_OS_VERSION
 
 
-def test_all_public_version_metadata_is_1_2_0():
+def test_all_public_version_metadata_matches_runtime_version():
     project = tomllib.loads(Path("pyproject.toml").read_text())
     metadata = json.loads(Path("research_os_version.json").read_text())
-    assert project["project"]["version"] == "1.2.0"
-    assert metadata["research_os_version"] == "1.2.0"
-    assert research_os.__version__ == "1.2.0"
+    assert project["project"]["version"] == RESEARCH_OS_VERSION
+    assert metadata["research_os_version"] == RESEARCH_OS_VERSION
+    assert research_os.__version__ == RESEARCH_OS_VERSION
 
 
 def test_v1_2_release_docs_exist_and_changelog_records_release():

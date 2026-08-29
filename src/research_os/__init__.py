@@ -1,1 +1,3 @@
-__version__ = "1.2.0"
+from .version import RESEARCH_OS_VERSION
+
+__version__ = RESEARCH_OS_VERSION
