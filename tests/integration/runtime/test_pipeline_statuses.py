@@ -74,8 +74,8 @@ def test_dependency_engine_runs_core_router_strategy_kpi_pipeline_deterministica
         IndustryKpiModule(registry=registry),
     ]).run(context)
 
-    assert state.results["core:pit-lineage"].status == "PASS"
-    assert state.results["core:business-model"].status == "PASS"
-    assert state.results["core:strategy-resolution"].status == "PASS"
-    assert state.results["core:industry-kpi"].status == "PASS"
+    assert state.module_results["core:pit-lineage"].status == "PASS"
+    assert state.module_results["core:business-model"].status == "PASS"
+    assert state.module_results["core:strategy-resolution"].status == "PASS"
+    assert state.module_results["core:industry-kpi"].status == "PASS"
     assert state.artifacts["kpi.pack_ids"] == ["manufacturing"]
