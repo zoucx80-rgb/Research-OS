@@ -1,6 +1,6 @@
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field
 
-from research_os.completion.models import FinalStatus, ModuleStatus
+from research_os.completion.models import FinalStatus, ModuleStatus, ResearchCompletionResult
 from research_os.decision.models import ResearchDecisionState
 
 
@@ -19,22 +19,12 @@ class DecisionSummary(BaseModel):
     research_os_version: str
     decision_state: ResearchDecisionState | None = None
     final_status: FinalStatus = "INCOMPLETE"
+    blocking_modules: list[str] = Field(default_factory=list)
+    module_statuses: dict[str, ModuleStatus] = Field(default_factory=dict)
     expectation_evidence_status: ModuleStatus = "INSUFFICIENT_EVIDENCE"
     valuation_execution_status: ModuleStatus = "INSUFFICIENT_EVIDENCE"
     core_contradiction: str | None = None
     sections: list[str] = Field(default_factory=list)
-
-    @model_validator(mode="after")
-    def validate_completed_report(self):
-        if self.final_status != "COMPLETE":
-            return self
-        if self.decision_state is None:
-            raise ValueError("a COMPLETE report requires a legal ResearchDecisionState")
-        if self.expectation_evidence_status != "PASS":
-            raise ValueError("a COMPLETE report requires validated expectation evidence")
-        if self.valuation_execution_status != "PASS":
-            raise ValueError("a COMPLETE report requires validated valuation execution")
-        return self
 
 
 class DecisionSummaryBuilder:
@@ -43,6 +33,24 @@ class DecisionSummaryBuilder:
     def build(self, c: dict) -> DecisionSummary:
         claims = c.get("supporting_claim_ids", [])
         contradiction = c.get("core_contradiction") if claims else None
+        completion_raw = c.get("completion")
+        completion = None
+        if completion_raw is not None:
+            completion = completion_raw if isinstance(completion_raw, ResearchCompletionResult) else ResearchCompletionResult.model_validate(completion_raw)
+
+        if completion is not None:
+            final_status = completion.final_status
+            blocking_modules = list(completion.blocking_modules)
+            module_statuses = dict(completion.module_statuses)
+            expectation_status = module_statuses.get("Expectation Evidence", "INSUFFICIENT_EVIDENCE")
+            valuation_execution_status = module_statuses.get("Valuation Execution", "INSUFFICIENT_EVIDENCE")
+        else:
+            final_status = c.get("final_status", "INCOMPLETE")
+            blocking_modules = list(c.get("blocking_modules", []))
+            module_statuses = dict(c.get("module_statuses", {}))
+            expectation_status = c.get("expectation_evidence_status", "INSUFFICIENT_EVIDENCE")
+            valuation_execution_status = c.get("valuation_execution_status", "INSUFFICIENT_EVIDENCE")
+
         return DecisionSummary(
             company_id=c["company_id"],
             business_model=c["business_model"],
@@ -57,9 +65,11 @@ class DecisionSummaryBuilder:
             next_verification_event=c["next_verification_event"],
             research_os_version=c.get("research_os_version", "1.2.0"),
             decision_state=c.get("decision_state"),
-            final_status=c.get("final_status", "INCOMPLETE"),
-            expectation_evidence_status=c.get("expectation_evidence_status", "INSUFFICIENT_EVIDENCE"),
-            valuation_execution_status=c.get("valuation_execution_status", "INSUFFICIENT_EVIDENCE"),
+            final_status=final_status,
+            blocking_modules=blocking_modules,
+            module_statuses=module_statuses,
+            expectation_evidence_status=expectation_status,
+            valuation_execution_status=valuation_execution_status,
             core_contradiction=contradiction,
             sections=self.SECTIONS,
         )
