@@ -1,6 +1,7 @@
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field
 
+
 class ConsensusVintage(BaseModel):
     model_config=ConfigDict(frozen=True)
     company_id: str
@@ -14,8 +15,22 @@ class ConsensusVintage(BaseModel):
     source_count: int|None=None
     source_quality: float|None=Field(default=None,ge=0,le=1)
 
+
 class ExpectationSnapshot(ConsensusVintage):
     decision_ts: datetime
+
+
+class ExpectationEvidence(BaseModel):
+    model_config=ConfigDict(frozen=True)
+    expectation_source: str
+    expectation_publish_ts: datetime
+    expectation_period: str
+    metric: str
+    expected_value: float
+    actual_value: float
+    surprise: float
+    vintage: str
+
 
 class ExpectationService:
     def __init__(self): self._items=[]
