@@ -177,7 +177,7 @@ class FinancialSanityModule:
 class BusinessModelModule:
     spec = ModuleSpec(
         module_id="core:business-model",
-        module_version="1.0.0",
+        module_version="1.1.0",
         requires={"evidence.pit"},
         provides={"business_model.profile"},
     )
@@ -195,12 +195,18 @@ class BusinessModelModule:
                 None,
             )
         profile = self.router.classify(context.company.company_id, list(evidence))
+        status = "PASS" if profile.classification_status == "classified" else "INSUFFICIENT_EVIDENCE"
         return _status_artifact(
             self.spec.module_id,
-            "PASS",
+            status,
             "business_model.profile",
             profile,
             evidence_ids=profile.evidence_ids,
+            diagnostics=(
+                []
+                if status == "PASS"
+                else [profile.classification_reason or "business model unresolved"]
+            ),
         )
 
 
@@ -415,8 +421,13 @@ class FundingLoopModule:
 class DriverThesisModule:
     spec = ModuleSpec(
         module_id="core:driver-thesis",
-        module_version="1.0.0",
-        requires={"evidence.pit", "kpi.pack_ids"},
+        module_version="1.1.0",
+        requires={
+            "evidence.pit",
+            "business_model.profile",
+            "strategy.resolution",
+            "kpi.pack_ids",
+        },
         provides={
             "drivers.graph",
             "thesis.items",
@@ -433,8 +444,28 @@ class DriverThesisModule:
         self.theses = theses or ThesisService()
         self.ledger = ledger or EvidenceLedger()
 
+    @staticmethod
+    def _primary_coverage_limited(profile, resolution) -> bool:
+        if profile is None or resolution is None:
+            return True
+        relevant = {
+            "industry_strategy",
+            "business_model_taxonomy",
+            "business_model_evidence",
+        }
+        return any(
+            gap.gap_type in relevant
+            and (
+                gap.business_model == profile.primary_model
+                or profile.primary_model == "unknown"
+            )
+            for gap in resolution.coverage_gaps
+        )
+
     def run(self, context: ResearchContext, state: ResearchStateView) -> ModuleResult:
         evidence = list(state.get("evidence.pit", []) or [])
+        profile = state.get("business_model.profile")
+        resolution = state.get("strategy.resolution")
         pack_ids = list(state.get("kpi.pack_ids", []) or [])
         if not evidence:
             return ModuleResult(
@@ -453,6 +484,31 @@ class DriverThesisModule:
             pack_ids,
             evidence,
         )
+        if self._primary_coverage_limited(profile, resolution):
+            reason = "primary industry strategy coverage is unavailable; generic drivers are informational fallback only"
+            drivers = drivers.model_copy(
+                update={
+                    "coverage_scope": "generic",
+                    "coverage_limited": True,
+                    "coverage_reason": reason,
+                }
+            )
+            return ModuleResult(
+                module_id=self.spec.module_id,
+                status="INSUFFICIENT_EVIDENCE",
+                artifacts={
+                    "drivers.graph": drivers,
+                    "thesis.items": [],
+                    "claims.items": [],
+                    "validation.thesis": {
+                        "status": "INSUFFICIENT_EVIDENCE",
+                        "reason_code": "PRIMARY_INDUSTRY_COVERAGE_REQUIRED",
+                    },
+                },
+                evidence_ids=[item.evidence_id for item in evidence],
+                diagnostics=[reason],
+            )
+
         theses = self.theses.evaluate(
             context.company.company_id,
             evidence,
@@ -504,8 +560,12 @@ class DriverThesisModule:
 class ExpectationModule:
     spec = ModuleSpec(
         module_id="core:expectation",
-        module_version="1.0.0",
-        provides={"expectation.snapshot", "validation.expectation"},
+        module_version="1.1.0",
+        provides={
+            "expectation.snapshot",
+            "expectation.quality",
+            "validation.expectation",
+        },
     )
 
     def __init__(
@@ -520,12 +580,17 @@ class ExpectationModule:
 
     def run(self, context: ResearchContext, state: ResearchStateView) -> ModuleResult:
         vintage = self.inputs.expectation_vintage
+        quality = self.validator.assess_consensus_quality(
+            vintage=vintage,
+            decision_ts=context.decision_ts,
+        )
         if vintage is None:
             return ModuleResult(
                 module_id=self.spec.module_id,
                 status="INSUFFICIENT_EVIDENCE",
                 artifacts={
                     "expectation.snapshot": None,
+                    "expectation.quality": quality,
                     "validation.expectation": {"status": "INSUFFICIENT_EVIDENCE"},
                 },
             )
@@ -546,7 +611,12 @@ class ExpectationModule:
             status=assessment.status,
             artifacts={
                 "expectation.snapshot": snapshot,
-                "validation.expectation": {"status": assessment.status},
+                "expectation.quality": quality,
+                "validation.expectation": {
+                    "status": assessment.status,
+                    "quality_status": quality.status,
+                    "quality_reason_codes": list(quality.reason_codes),
+                },
             },
             diagnostics=list(assessment.errors),
         )
@@ -637,13 +707,14 @@ class ValuationModule:
 class DecisionModule:
     spec = ModuleSpec(
         module_id="core:decision",
-        module_version="1.0.0",
+        module_version="1.1.0",
         requires={
             "evidence.pit",
             "thesis.items",
             "claims.items",
             "expectation.snapshot",
             "valuation.routing",
+            "capital.funding_loop",
         },
         provides={"decision.record", "validation.decision"},
     )
@@ -665,10 +736,24 @@ class DecisionModule:
             for item in evidence
         ) / len(evidence)
 
+    @staticmethod
+    def _funding_material_risk(funding) -> bool:
+        if funding is None:
+            return False
+        state = getattr(funding, "funding_state", None)
+        reasons = set(getattr(funding, "reason_codes", []) or [])
+        if state == "stressed":
+            return True
+        return (
+            state == "debt_funded"
+            and {"DEBT_FUNDS_NWC", "NEGATIVE_OCF"}.issubset(reasons)
+        )
+
     def run(self, context: ResearchContext, state: ResearchStateView) -> ModuleResult:
         theses = list(state.get("thesis.items", []) or [])
         claims = list(state.get("claims.items", []) or [])
         evidence = list(state.get("evidence.pit", []) or [])
+        funding = state.get("capital.funding_loop")
         if not theses:
             return ModuleResult(
                 module_id=self.spec.module_id,
@@ -703,6 +788,7 @@ class DecisionModule:
                     "research_os_version",
                     context.baseline.research_os_version,
                 ),
+                material_risk=self._funding_material_risk(funding),
             )
         )
         validate_decision_state(decision.state)
