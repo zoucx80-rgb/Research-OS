@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+from collections import defaultdict
+
 from research_os.reporting.document import (
     AuditAppendix,
+    CausalBridgeBlock,
     ExpectationGapBlock,
     InvestmentDecisionSnapshot,
     LimitationBlock,
@@ -19,13 +22,42 @@ class ResearchReportComposer:
 
     version = "research-report-composer@1.0.0"
 
+    _BRIDGE_LABELS = {
+        "Revenue": "收入",
+        "Gross Profit": "毛利",
+        "Working Capital": "营运资金",
+        "Financing Requirement": "融资需求",
+        "Financing Cost": "融资成本",
+        "Credit / Inventory Loss": "信用/存货损失",
+        "Net Profit / Cash Economics": "净利润/现金经济性",
+        "Valuation": "估值",
+    }
+
     @staticmethod
-    def _limitations(view: HumanReadableResearchView) -> list[str]:
-        items = list(view.presentation_limitations)
+    def _normalize_limitation(text: str) -> str:
+        if "租赁" in text and any(
+            marker in text for marker in ("使用权资产", "租赁负债", "轻资产", "低资本占用")
+        ):
+            return (
+                "租赁项目具有重要性；当前未进行租赁调整后的资本回报或估值分析，"
+                "资产结构与现金表现需在租赁口径下复核。"
+            )
+        if "没有可用于该模型的专业行业策略插件" in text:
+            return "已识别主要业务模型，但当前版本没有兼容的行业策略插件。"
+        return text
+
+    @classmethod
+    def _limitations(cls, view: HumanReadableResearchView) -> list[str]:
+        items: list[str] = []
+        raw_items = list(view.presentation_limitations)
         for gap in view.coverage_gaps:
             text = gap.reason.explanation or gap.reason.label
-            if text and text not in items:
-                items.append(text)
+            if text:
+                raw_items.append(text)
+        for text in raw_items:
+            normalized = cls._normalize_limitation(text)
+            if normalized and normalized not in items:
+                items.append(normalized)
         return items
 
     @staticmethod
@@ -48,6 +80,63 @@ class ResearchReportComposer:
             ids.extend(view.next_verification_event.evidence_ids)
         return list(dict.fromkeys(item for item in ids if item))
 
+    @staticmethod
+    def _material_risks(view: HumanReadableResearchView):
+        result = []
+        seen: set[str] = set()
+        for item in view.decision_summary.top_risks:
+            key = item.code or item.label
+            if key in seen:
+                continue
+            seen.add(key)
+            result.append(item)
+            if len(result) == 3:
+                break
+        return result
+
+    @classmethod
+    def _valuation_bridge(cls, view: HumanReadableResearchView) -> list[str]:
+        execution = view.valuation_execution
+        if execution is None or not execution.driver_bridge:
+            return []
+        steps = [cls._BRIDGE_LABELS.get(step, step) for step in execution.driver_bridge]
+        return list(dict.fromkeys(step for step in steps if step))
+
+    @staticmethod
+    def _graph_bridge(view: HumanReadableResearchView) -> list[str]:
+        graph = view.driver_graph
+        if graph is None or not graph.edges:
+            return []
+
+        labels = {node.driver_id: node.label for node in graph.nodes}
+        adjacency: dict[str, list[str]] = defaultdict(list)
+        for edge in graph.edges:
+            if edge.from_driver in labels and edge.to_driver in labels:
+                adjacency[edge.from_driver].append(edge.to_driver)
+
+        def longest_from(driver_id: str, visited: frozenset[str]) -> list[str]:
+            best = [driver_id]
+            for target in adjacency.get(driver_id, []):
+                if target in visited:
+                    continue
+                candidate = [driver_id, *longest_from(target, visited | {target})]
+                if len(candidate) > len(best):
+                    best = candidate
+            return best
+
+        best_path: list[str] = []
+        for node in graph.nodes:
+            candidate = longest_from(node.driver_id, frozenset({node.driver_id}))
+            if len(candidate) > len(best_path):
+                best_path = candidate
+        if len(best_path) < 2:
+            return []
+        return [labels[driver_id] for driver_id in best_path]
+
+    @classmethod
+    def _causal_bridge(cls, view: HumanReadableResearchView) -> list[str]:
+        return cls._valuation_bridge(view) or cls._graph_bridge(view)
+
     def _snapshot(self, view: HumanReadableResearchView) -> InvestmentDecisionSnapshot:
         summary = view.decision_summary
         limitations = self._limitations(view)
@@ -62,7 +151,7 @@ class ResearchReportComposer:
             valuation_state=summary.valuation_state,
             primary_thesis=summary.primary_thesis,
             material_drivers=list(summary.top_drivers[:5]),
-            material_risks=list(summary.top_risks[:3]),
+            material_risks=self._material_risks(view),
             evidence_confidence=summary.evidence_confidence,
             next_verification_event=summary.next_verification_event,
             material_limitation_count=len(limitations),
@@ -82,6 +171,15 @@ class ResearchReportComposer:
                             text=view.decision_summary.primary_thesis,
                         )
                     ],
+                )
+            )
+        causal_bridge = self._causal_bridge(view)
+        if causal_bridge:
+            sections.append(
+                ReportSection(
+                    section_id="causal-bridge",
+                    title="关键因果链",
+                    blocks=[CausalBridgeBlock(steps=causal_bridge)],
                 )
             )
         if view.expectation_gap is not None:
