@@ -5,7 +5,9 @@ from collections import defaultdict
 from research_os.reporting.document import (
     AuditAppendix,
     CausalBridgeBlock,
+    EvidenceNoteBlock,
     ExpectationGapBlock,
+    GapClassificationBlock,
     InvestmentDecisionSnapshot,
     LimitationBlock,
     MonitoringBlock,
@@ -32,6 +34,10 @@ class ResearchReportComposer:
         "Net Profit / Cash Economics": "净利润/现金经济性",
         "Valuation": "估值",
     }
+
+    @staticmethod
+    def _dedup(items: list[str]) -> list[str]:
+        return list(dict.fromkeys(item for item in items if item))
 
     @staticmethod
     def _normalize_limitation(text: str) -> str:
@@ -79,6 +85,12 @@ class ResearchReportComposer:
         if view.next_verification_event is not None:
             ids.extend(view.next_verification_event.evidence_ids)
         return list(dict.fromkeys(item for item in ids if item))
+
+    @staticmethod
+    def _assumption_ids(view: HumanReadableResearchView) -> list[str]:
+        if view.valuation_result is None:
+            return []
+        return list(dict.fromkeys(item for item in view.valuation_result.assumption_ids if item))
 
     @staticmethod
     def _material_risks(view: HumanReadableResearchView):
@@ -137,6 +149,62 @@ class ResearchReportComposer:
     def _causal_bridge(cls, view: HumanReadableResearchView) -> list[str]:
         return cls._valuation_bridge(view) or cls._graph_bridge(view)
 
+    @classmethod
+    def _gap_classification(cls, view: HumanReadableResearchView) -> GapClassificationBlock | None:
+        evidence_missing: list[str] = []
+        capability_missing: list[str] = []
+        not_applicable: list[str] = []
+
+        for question in view.question_assessments:
+            code = question.status.code
+            if code == "EVIDENCE_MISSING":
+                evidence_missing.append(question.question)
+            elif code == "CAPABILITY_MISSING":
+                capability_missing.append(question.question)
+            elif code == "NOT_APPLICABLE":
+                not_applicable.append(question.question)
+
+        for gap in view.coverage_gaps:
+            label = gap.reason.label or gap.reason.explanation
+            gap_type = gap.gap_type.code
+            if gap_type == "business_model_evidence":
+                evidence_missing.append(label)
+            else:
+                capability_missing.append(label)
+
+        presentation_or_deferred = [
+            cls._normalize_limitation(item) for item in view.presentation_limitations if item
+        ]
+        block = GapClassificationBlock(
+            evidence_missing=cls._dedup(evidence_missing),
+            capability_missing=cls._dedup(capability_missing),
+            not_applicable=cls._dedup(not_applicable),
+            presentation_or_deferred=cls._dedup(presentation_or_deferred),
+        )
+        if not any(
+            (
+                block.evidence_missing,
+                block.capability_missing,
+                block.not_applicable,
+                block.presentation_or_deferred,
+            )
+        ):
+            return None
+        return block
+
+    @staticmethod
+    def _expectation_payload(view: HumanReadableResearchView) -> dict:
+        payload = view.expectation_gap.model_dump(mode="python")
+        payload.pop("evidence_ids", None)
+        return payload
+
+    @staticmethod
+    def _valuation_payload(view: HumanReadableResearchView) -> dict:
+        payload = view.valuation_result.model_dump(mode="python")
+        payload.pop("evidence_ids", None)
+        payload.pop("assumption_ids", None)
+        return payload
+
     def _snapshot(self, view: HumanReadableResearchView) -> InvestmentDecisionSnapshot:
         summary = view.decision_summary
         limitations = self._limitations(view)
@@ -187,7 +255,7 @@ class ResearchReportComposer:
                 ReportSection(
                     section_id="expectation-gap",
                     title="市场预期差",
-                    blocks=[ExpectationGapBlock(payload=view.expectation_gap.model_dump(mode="python"))],
+                    blocks=[ExpectationGapBlock(payload=self._expectation_payload(view))],
                 )
             )
         if view.valuation_result is not None:
@@ -195,7 +263,7 @@ class ResearchReportComposer:
                 ReportSection(
                     section_id="valuation",
                     title="估值与情景",
-                    blocks=[ValuationBlock(payload=view.valuation_result.model_dump(mode="python"))],
+                    blocks=[ValuationBlock(payload=self._valuation_payload(view))],
                 )
             )
         if view.monitoring is not None:
@@ -213,6 +281,15 @@ class ResearchReportComposer:
                     ],
                 )
             )
+        gaps = self._gap_classification(view)
+        if gaps is not None:
+            sections.append(
+                ReportSection(
+                    section_id="research-gaps",
+                    title="研究缺口分类",
+                    blocks=[gaps],
+                )
+            )
         limitations = self._limitations(view)
         if limitations:
             sections.append(
@@ -220,6 +297,19 @@ class ResearchReportComposer:
                     section_id="material-limitations",
                     title="关键研究限制",
                     blocks=[LimitationBlock(items=limitations)],
+                )
+            )
+        if self._evidence_ids(view):
+            sections.append(
+                ReportSection(
+                    section_id="evidence-traceability",
+                    title="证据追溯",
+                    blocks=[
+                        EvidenceNoteBlock(
+                            text="关键结论保留规范化证据追溯；完整证据索引见审计附录。",
+                            evidence_ids=[],
+                        )
+                    ],
                 )
             )
         return [section for section in sections if section.blocks]
@@ -250,6 +340,7 @@ class ResearchReportComposer:
                     for name, status in summary.module_statuses.items()
                 },
                 evidence_ids=self._evidence_ids(view),
+                assumption_ids=self._assumption_ids(view),
             ),
             composition_version=self.version,
         )
