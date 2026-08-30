@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "research-os"
-version = "1.5.7"
+version = "1.5.8"
 requires-python = ">=3.12"
 dependencies = [
   "pydantic>=2",
@@ -21,6 +21,10 @@ test = [
   "pytest>=8,<10",
   "httpx2>=2,<3",
   "alembic>=1.13,<2",
+  "pypdf>=6,<7",
+]
+pdf = [
+  "playwright>=1.62,<1.63",
 ]
 
 [tool.setuptools.packages.find]

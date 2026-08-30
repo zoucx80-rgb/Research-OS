@@ -1,6 +1,6 @@
-# Research OS v1.5.07
+# Research OS v1.5.08
 
-Research OS v1.5.07 (code SemVer `1.5.7`) is a Point-in-Time, evidence-linked investment research operating system built around one canonical, extensible runtime. This PATCH release preserves v1.5.06 research/composition semantics and adds a deterministic Markdown presentation renderer downstream of the canonical `ResearchReportDocument`. The canonical extensible runtime introduced in `1.4.0` remains the architectural baseline.
+Research OS v1.5.08 (code SemVer `1.5.8`) is a Point-in-Time, evidence-linked investment research operating system built around one canonical, extensible runtime. This PATCH release preserves v1.5.05-v1.5.07 research/composition/Markdown semantics and adds a provenance-linked professional HTML/PDF presentation pipeline. The canonical extensible runtime introduced in `1.4.0` remains the architectural baseline.
 
 ## Core invariants
 
@@ -100,6 +100,17 @@ document = ResearchReportComposer().compose(view)
 markdown = ResearchReportMarkdownRenderer().render(document)
 ```
 
+Typed HTML/PDF output uses the optional presentation pipeline:
+
+```python
+from research_os.presentation import ProfessionalPresentationPipeline
+
+bundle = ProfessionalPresentationPipeline().render(document)
+markdown_artifact = bundle.markdown
+html_artifact = bundle.html
+pdf_artifact = bundle.pdf
+```
+
 The canonical direction is strictly one-way:
 
 ```text
@@ -115,10 +126,16 @@ ResearchReportDocument
     ↓
 ResearchReportMarkdownRenderer
     ↓
-Markdown
+MarkdownPresentationArtifact
+    ↓
+HtmlPresentationArtifact
+    ↓
+PdfPresentationArtifact
 ```
 
 For v1.5.07 the full presenter fingerprint remains `professional-research-view@1.3.0`, the report-composition fingerprint remains `research-report-composer@1.1.0`, and the Markdown renderer fingerprint is `professional-markdown-renderer@1.0.0`. Historical v1.5.05 reporting remains associated with `research-report-composer@1.0.0`, and historical v1.5.04 research remains associated with `professional-research-view@1.2.0`.
+
+For v1.5.08 those three fingerprints remain unchanged. The new downstream fingerprints are `professional-html-renderer@1.0.0` and `professional-pdf-adapter@1.0.0`. Playwright is an optional PDF dependency and is not imported by Research Runtime or reporting composition.
 
 `HumanReadableResearchView` remains a read-only projection of canonical research artifacts. `ResearchReportComposer` accepts that view only; it does not accept a raw dictionary as an alternate semantic path and does not calculate or alter completion, decision, thesis, fundamental, expectation, valuation, funding, forecast, or business-model state.
 
@@ -134,6 +151,8 @@ v1.5.06 extends **composition coverage only**. When already present in `HumanRea
 - canonical state provenance under `状态来源`.
 
 v1.5.07 adds **presentation rendering only**. `ResearchReportMarkdownRenderer` accepts `ResearchReportDocument` and deterministically renders headings, tables, supported fields, monitoring conditions, classified gaps, limitations, and an audit appendix. It does not accept `ResearchRunResult`, `HumanReadableResearchView`, or arbitrary dictionaries; it does not recalculate KPI, state, thesis, Funding Loop, expectation, forecast, valuation, decision, completion, or monitoring thresholds.
+
+v1.5.08 adds **HTML/PDF layout and export only**. Each layer accepts only its immediate typed upstream artifact, preserves an auditable SHA-256 chain, and does not fill missing values or reinterpret research semantics. A4 CSS provides print pagination, repeated table headers, Chinese font fallbacks, long-text wrapping, grayscale readability, and a separate Audit Appendix.
 
 Raw evidence IDs, assumption IDs, repository/plugin/module metadata remain in the audit appendix rather than primary investment prose. Distributor factoring remains an economic financing exposure without being relabeled as debt. A coverage-limited Hospitality company without a compatible strategy plugin still does not receive fabricated RevPAR, ADR, OCC, same-store or lease-adjusted economics.
 
@@ -160,6 +179,7 @@ KPI display semantics continue to include formatted values, display units, perio
 - `src/research_os/valuation/` — model fitness, routing, execution validation, and additive valuation results.
 - `src/research_os/decision/` — deterministic research decision-state engine.
 - `src/research_os/reporting/` — semantic projection, report composition/document types, `ResearchReportMarkdownRenderer`, display formatting, and audit separation.
+- `src/research_os/presentation/` — typed Markdown/HTML/PDF artifacts, deterministic HTML/A4 CSS, strict pipeline, and optional Playwright PDF adapter.
 - `src/research_os/version.py` — `RESEARCH_OS_VERSION` and `CORE_API_VERSION`.
 
 ## Local verification
@@ -187,22 +207,23 @@ pytest -q tests/unit/reporting tests/unit/expectations tests/unit/valuation
 pytest -q tests/regression/architecture tests/regression/research_patterns/test_v1_5_05_reporting_patterns.py
 pytest -q tests/regression/architecture tests/unit/reporting/test_composition_coverage_v1_5_06.py
 pytest -q tests/unit/reporting/test_markdown_renderer.py tests/regression/research_patterns/test_v1_5_07_renderer_patterns.py
+RESEARCH_OS_RUN_PDF_INTEGRATION=1 pytest -q tests/unit/presentation tests/integration/presentation tests/regression/research_patterns/test_v1_5_08_presentation_patterns.py
 pytest -q
 python scripts/release_gate_v1_1.py
 ```
 
-CI enforces architecture contracts, correctness regressions, storage migration smoke, reporting/expectation/valuation regressions, v1.5.05 cross-model reporting safeguards, v1.5.06 composition coverage, v1.5.07 Markdown-renderer regressions, the full suite, and the release gate.
+CI enforces architecture contracts, correctness regressions, storage migration smoke, reporting/expectation/valuation regressions, v1.5.05 cross-model reporting safeguards, v1.5.06 composition coverage, v1.5.07 Markdown regressions, v1.5.08 typed HTML/PDF and real Chromium regressions, the full suite, and the release gate.
 
 ## Version governance
 
-`RESEARCH_OS_VERSION = "1.5.7"` and `CORE_API_VERSION = "1.0"`. Package metadata, public version metadata, plugin versions, presenter/composer/renderer fingerprints, and runtime component fingerprints must agree.
+`RESEARCH_OS_VERSION = "1.5.8"` and `CORE_API_VERSION = "1.0"`. Package metadata, public version metadata, plugin versions, presenter/composer/renderer fingerprints, and runtime component fingerprints must agree.
 
 Snapshots separately freeze dataset, parser, formula, router, KPI pack, driver, forecast, valuation, report and OS versions plus payload hash and component fingerprints. Historical release tags and snapshots remain immutable.
 
 ## Migration and deferred scope
 
-No database or Alembic migration is required for v1.5.07. Existing machine integrations may continue consuming canonical `ResearchRunResult` and `DecisionSummary`; complete v1.5.07 professional Markdown output should use `ResearchViewPresenter`, `ResearchReportComposer`, and `ResearchReportMarkdownRenderer` in that order.
+No database or Alembic migration is required for v1.5.08. Existing machine/Markdown integrations remain compatible; HTML/PDF consumers install `research-os[pdf]`, install Chromium, and use the strict typed presentation pipeline.
 
-v1.5.07 deliberately does not add a full Hospitality Plugin, a lease-adjusted valuation engine, HTML/CSS/PDF rendering engine, a second generic-financial Decision state machine, a second Completion Gate, a Forecast subsystem rewrite, automatic trading logic, or company-specific Core logic.
+v1.5.08 deliberately does not add a full Hospitality Plugin, lease-adjusted valuation, a second generic-financial Decision state machine, a second Completion Gate, a Forecast/Evidence Quality rewrite, automatic trading logic, company-specific Core logic, or a second PDF backend.
 
-See `docs/migrations/v1.5.07.md`, `docs/migrations/v1.5.06.md`, `docs/migrations/v1.5.05.md`, `docs/migrations/v1.5.04.md`, `docs/migrations/v1.5.03.md`, `docs/migrations/v1.5.02.md`, `docs/migrations/v1.5.01.md`, `docs/architecture/plugin-authoring-v1.md`, `CHANGELOG.md`, and the v1.5.07 design/implementation plan under `docs/superpowers/`.
+See `docs/migrations/v1.5.08.md`, `docs/migrations/v1.5.07.md`, `docs/migrations/v1.5.06.md`, `docs/migrations/v1.5.05.md`, `docs/migrations/v1.5.04.md`, `docs/migrations/v1.5.03.md`, `docs/migrations/v1.5.02.md`, `docs/migrations/v1.5.01.md`, `docs/architecture/plugin-authoring-v1.md`, `CHANGELOG.md`, and the v1.5.08 design/implementation plan under `docs/superpowers/`.

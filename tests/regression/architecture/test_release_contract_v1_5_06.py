@@ -21,7 +21,7 @@ def test_public_v1_5_06_version_and_reporting_fingerprints_are_consistent():
     assert research_os.__version__ == RESEARCH_OS_VERSION
     assert project["project"]["version"] == RESEARCH_OS_VERSION
     assert metadata["research_os_version"] == RESEARCH_OS_VERSION
-    assert metadata["status"] == "stable"
+    assert metadata["status"] in {"release_candidate", "stable"}
     assert CORE_API_VERSION == "1.0"
     assert metadata["core_api_version"] == "1.0"
     assert tuple(map(int, metadata["module_versions"]["semantic_research_view"].split("."))) >= (1, 3, 0)

@@ -179,7 +179,7 @@ class ResearchReportMarkdownRenderer:
         for label, value in rows:
             if value:
                 lines.append(f"| {label} | {value} |")
-        lines += ["", "### 核心投资逻辑", "", item.primary_thesis]
+        lines += ["", "### 核心投资逻辑", "", cls._display_scalar(item.primary_thesis)]
         if item.material_drivers:
             lines += ["", "### 关键驱动", "", *cls._bullet_list(item.material_drivers)]
         if item.material_risks:
@@ -189,9 +189,9 @@ class ResearchReportMarkdownRenderer:
                 explanation = cls._semantic_explanation(risk)
                 lines.append(f"- **{label}**{f'：{explanation}' if explanation and explanation != label else ''}")
         if item.next_verification_event:
-            lines += ["", f"**下一验证事件**：{item.next_verification_event}"]
+            lines += ["", f"**下一验证事件**：{cls._display_scalar(item.next_verification_event)}"]
         if item.top_limitation:
-            lines += ["", f"**最重要研究限制**：{item.top_limitation}"]
+            lines += ["", f"**最重要研究限制**：{cls._display_scalar(item.top_limitation)}"]
         return lines
 
     @classmethod
@@ -375,7 +375,9 @@ class ResearchReportMarkdownRenderer:
     def _render_monitoring(cls, block: MonitoringBlock) -> list[str]:
         lines: list[str] = []
         if block.next_verification_event:
-            lines.append(f"- **下一验证事件**：{block.next_verification_event}")
+            lines.append(
+                f"- **下一验证事件**：{cls._display_scalar(block.next_verification_event)}"
+            )
         if block.conviction_up_conditions:
             lines += ["", "### Conviction 上升条件", "", *cls._bullet_list(block.conviction_up_conditions)]
         if block.thesis_broken_conditions:
@@ -422,15 +424,17 @@ class ResearchReportMarkdownRenderer:
         if isinstance(block, NarrativeBlock):
             lines = []
             if block.title:
-                lines += [f"### {block.title}", ""]
-            lines.append(block.text)
+                lines += [f"### {cls._display_scalar(block.title)}", ""]
+            lines.append(cls._display_scalar(block.text))
             return lines
         if isinstance(block, FinancialOperatingBlock):
             return cls._render_financial(block)
         if isinstance(block, CapitalFundingBlock):
             return cls._render_capital_funding(block)
         if isinstance(block, CausalBridgeBlock):
-            return [" → ".join(block.steps)] if block.steps else []
+            return [
+                " → ".join(cls._display_scalar(step) for step in block.steps)
+            ] if block.steps else []
         if isinstance(block, ThesisDebateBlock):
             return cls._render_thesis(block)
         if isinstance(block, ExpectationForecastBlock):
@@ -450,7 +454,7 @@ class ResearchReportMarkdownRenderer:
         if isinstance(block, LimitationBlock):
             return cls._bullet_list(block.items)
         if isinstance(block, EvidenceNoteBlock):
-            return [block.text] if block.text else []
+            return [cls._display_scalar(block.text)] if block.text else []
         raise TypeError(f"Unsupported report block: {type(block).__name__}")
 
     @classmethod
@@ -520,7 +524,12 @@ class ResearchReportMarkdownRenderer:
                 rendered_blocks.extend(block_lines)
             if not any(line.strip() for line in rendered_blocks):
                 continue
-            lines += ["", f"## {section.title}", "", *rendered_blocks]
+            lines += [
+                "",
+                f"## {self._display_scalar(section.title)}",
+                "",
+                *rendered_blocks,
+            ]
 
         lines += ["", *self._render_audit_appendix(document)]
 

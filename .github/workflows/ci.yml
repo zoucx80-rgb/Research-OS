@@ -3,11 +3,15 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      RESEARCH_OS_RUN_PDF_INTEGRATION: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: {python-version: '3.12'}
-      - run: pip install -e ".[test]"
+      - run: pip install -e ".[test,pdf]"
+      - run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk poppler-utils
+      - run: python -m playwright install --with-deps chromium
       - run: >
           pytest -q
           tests/unit/runtime
@@ -38,5 +42,26 @@ jobs:
           tests/regression/architecture
           tests/unit/reporting/test_markdown_renderer.py
           tests/regression/research_patterns/test_v1_5_07_renderer_patterns.py
+      - run: >
+          pytest -q
+          tests/unit/presentation
+          tests/integration/presentation/test_playwright_pdf_adapter.py
+          tests/regression/architecture/test_presentation_dependency_boundary.py
+          tests/regression/research_patterns/test_v1_5_08_presentation_patterns.py
+          tests/regression/architecture/test_release_contract_v1_5_08.py
+      - name: Render three-company v1.5.08 field acceptance
+        run: >
+          python scripts/render_field_acceptance_v1_5_08.py
+          --input-dir tests/fixtures/field_acceptance/v1_5_08
+          --output-dir build/field-acceptance-v1.5.08
+          --repository-root .
+          --commit-sha "$GITHUB_SHA"
+      - name: Upload v1.5.08 field acceptance artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: v1.5.08-field-acceptance
+          path: build/field-acceptance-v1.5.08
+          if-no-files-found: error
+          retention-days: 14
       - run: pytest -q
       - run: python scripts/release_gate_v1_1.py

@@ -1,4 +1,5 @@
 from __future__ import annotations
+import os
 import subprocess, sys
 from pathlib import Path
 from collections.abc import Callable, Iterable
@@ -84,18 +85,27 @@ CHECKS: dict[str,str]={
     "composition_coverage_v1_5_06":"tests/unit/reporting/test_composition_coverage_v1_5_06.py",
     "markdown_renderer_v1_5_07":"tests/unit/reporting/test_markdown_renderer.py",
     "renderer_cross_model_v1_5_07":"tests/regression/research_patterns/test_v1_5_07_renderer_patterns.py",
+    "presentation_artifacts_v1_5_08":"tests/unit/presentation",
+    "professional_presentation_pipeline_v1_5_08":"tests/regression/research_patterns/test_v1_5_08_presentation_patterns.py",
+    "presentation_dependency_boundary_v1_5_08":"tests/regression/architecture/test_presentation_dependency_boundary.py",
+    "playwright_pdf_v1_5_08":"tests/integration/presentation/test_playwright_pdf_adapter.py",
+    "field_acceptance_v1_5_08":"tests/integration/presentation/test_field_acceptance_runner.py",
 }
 
 ROOT=Path(__file__).resolve().parents[3]
 
 
 def _pytest_runner(nodeid:str)->bool:
-    result=subprocess.run([sys.executable,"-m","pytest","-q",nodeid],cwd=ROOT,capture_output=True,text=True)
+    env=os.environ.copy()
+    env["RESEARCH_OS_RUN_PDF_INTEGRATION"] = "1"
+    result=subprocess.run([sys.executable,"-m","pytest","-q",nodeid],cwd=ROOT,capture_output=True,text=True,env=env)
     return result.returncode==0
 
 
 def _pytest_batch_runner(nodeids:Iterable[str])->bool:
-    result=subprocess.run([sys.executable,"-m","pytest","-q",*nodeids],cwd=ROOT,capture_output=True,text=True)
+    env=os.environ.copy()
+    env["RESEARCH_OS_RUN_PDF_INTEGRATION"] = "1"
+    result=subprocess.run([sys.executable,"-m","pytest","-q",*nodeids],cwd=ROOT,capture_output=True,text=True,env=env)
     if result.returncode != 0:
         if result.stdout:
             print(result.stdout, file=sys.stderr)

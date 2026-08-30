@@ -1,0 +1,65 @@
+{
+  "schema_version": "field-acceptance-case@1.0.0",
+  "case_id": "301073.SZ",
+  "company": {
+    "company_id": "君亭酒店（301073.SZ）",
+    "security_id": "301073.SZ",
+    "exchange": "SZSE",
+    "display_name": "君亭酒店"
+  },
+  "decision_ts": "2026-08-30T00:00:00Z",
+  "evidence_defaults": {
+    "evidence_type": "filing_fact",
+    "period_end": "2026-06-30",
+    "period": "2026H1",
+    "publish_ts": "2026-08-29T00:00:00Z",
+    "unit": "元",
+    "scope": "consolidated",
+    "version": "2026H1",
+    "source_document_id": "301073.SZ-2026H1-summary",
+    "source_url": "https://static.cninfo.com.cn/finalpage/2026-08-29/1225526939.PDF",
+    "confidence_grade": "A",
+    "verification_status": "PRIMARY_VERIFIED",
+    "dataset_version": "field-acceptance-v1.5.08@1",
+    "parser_version": "manual-primary-source@1"
+  },
+  "evidence": [
+    {"evidence_id": "ev:301073.SZ:business-description", "source_table": "business_description", "value": "酒店、住宿运营与酒店管理", "unit": null},
+    {"evidence_id": "ev:301073.SZ:revenue", "source_table": "revenue", "value": 331023877.63},
+    {"evidence_id": "ev:301073.SZ:revenue-growth", "source_table": "revenue_growth", "value": 0.0141, "unit": "ratio"},
+    {"evidence_id": "ev:301073.SZ:net-profit-parent", "source_table": "net_profit_parent", "value": 9503686.54},
+    {"evidence_id": "ev:301073.SZ:assets-begin", "source_table": "assets_begin", "value": 2337806677.95},
+    {"evidence_id": "ev:301073.SZ:assets-end", "source_table": "assets_end", "value": 2336097717.56},
+    {"evidence_id": "ev:301073.SZ:equity-begin", "source_table": "equity_begin", "value": 878999627.54},
+    {"evidence_id": "ev:301073.SZ:equity-end", "source_table": "equity_end", "value": 888485777.62},
+    {"evidence_id": "ev:301073.SZ:ocf", "source_table": "ocf", "value": 123088375.94},
+    {"evidence_id": "ev:301073.SZ:operating-cash-flow", "source_table": "operating_cash_flow", "value": 123088375.94},
+    {"evidence_id": "ev:301073.SZ:fixed-asset-to-assets", "source_table": "fixed_asset_to_assets", "value": 0.0074135932, "unit": "ratio", "evidence_type": "calculated_metric", "formula_version": "fixed-assets-div-total-assets@1", "source_document_id": "301073.SZ-2026H1-full-report", "source_url": "https://vip.stock.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12572090&stockid=301073", "confidence_grade": "B", "verification_status": "SECONDARY_VERIFIED"},
+    {"evidence_id": "ev:301073.SZ:right-of-use-assets-to-assets", "source_table": "right_of_use_assets_to_assets", "value": 0.4901852266, "unit": "ratio", "evidence_type": "calculated_metric", "formula_version": "right-of-use-assets-div-total-assets@1", "source_document_id": "301073.SZ-2026H1-full-report", "source_url": "https://vip.stock.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12572090&stockid=301073", "confidence_grade": "B", "verification_status": "SECONDARY_VERIFIED"},
+    {"evidence_id": "ev:301073.SZ:lease-liabilities-to-assets", "source_table": "lease_liabilities_to_assets", "value": 0.5110194144, "unit": "ratio", "evidence_type": "calculated_metric", "formula_version": "lease-liabilities-div-total-assets@1", "source_document_id": "301073.SZ-2026H1-full-report", "source_url": "https://vip.stock.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=12572090&stockid=301073", "confidence_grade": "B", "verification_status": "SECONDARY_VERIFIED"},
+    {"evidence_id": "ev:301073.SZ:period-type", "source_table": "period_type", "value": "H1", "unit": null},
+    {"evidence_id": "ev:301073.SZ:period-start", "source_table": "period_start", "value": "2026-01-01", "unit": null},
+    {"evidence_id": "ev:301073.SZ:period-end", "source_table": "period_end", "value": "2026-06-30", "unit": null},
+    {"evidence_id": "ev:301073.SZ:period-days", "source_table": "period_days", "value": 181, "unit": "days"},
+    {"evidence_id": "ev:301073.SZ:is-cumulative", "source_table": "is_cumulative", "value": true, "unit": null}
+  ],
+  "inputs": {
+    "fundamental_state_input": {"value": "UNCERTAIN", "source": "analyst_assumption", "method": "摘要财务证据不能替代专业酒店经营指标"},
+    "valuation_state_input": {"value": "UNRELIABLE", "source": "analyst_assumption", "method": "当前缺少租赁调整后的估值能力"},
+    "expectation_state_input": {"value": "MIXED", "source": "analyst_assumption", "method": "未提供可审计的一致预期快照"},
+    "valuation_models": {
+      "pe": {"data_quality": 0.7, "earnings_stability": 0.4, "cash_flow_visibility": 0.5, "capital_structure_fit": 0.2, "business_model_fit": 0.4, "forecast_stability": 0.2},
+      "pb": {"data_quality": 0.7, "earnings_stability": 0.4, "cash_flow_visibility": 0.4, "capital_structure_fit": 0.2, "business_model_fit": 0.2, "forecast_stability": 0.2},
+      "dcf": {"data_quality": 0.6, "earnings_stability": 0.3, "cash_flow_visibility": 0.4, "capital_structure_fit": 0.1, "business_model_fit": 0.3, "forecast_stability": 0.1}
+    },
+    "next_verification_event": {"event_name": "下一次定期报告与专业酒店能力补齐后的验证", "event_time": "2026-10-31T00:00:00Z"}
+  },
+  "acceptance": {
+    "expected_business_model": "hospitality",
+    "required_body_terms": ["酒店与住宿服务", "租赁项目具有重要性", "当前版本没有兼容的行业策略插件", "估值方法与适用性", "研究缺口分类"],
+    "forbidden_body_terms": ["ev:301073.SZ", "plugin_id"],
+    "forbidden_anywhere_terms": ["RevPAR", "ADR", "OCC", "同店增长", "轻资产", "低资本占用", "lease-adjusted ROIC", "lease-adjusted valuation"],
+    "audit_only_terms": ["ev:301073.SZ"],
+    "required_section_ids": ["investment-decision-snapshot", "financial-operating", "capital-funding", "causal-bridge", "thesis-debate", "expectation-forecast", "valuation-methods", "monitoring", "research-gaps", "audit-appendix"]
+  }
+}

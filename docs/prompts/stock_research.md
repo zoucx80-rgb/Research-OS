@@ -266,6 +266,27 @@ Markdown
 
 Downstream HTML/CSS/PDF tooling may consume canonical Markdown or a future presentation model, but must not feed presentation-derived values back into Research OS semantics.
 
+### v1.5.08 Professional HTML/PDF Presentation
+
+For v1.5.08 the upstream fingerprints remain **`professional-research-view@1.3.0`**, **`research-report-composer@1.1.0`**, and **`professional-markdown-renderer@1.0.0`**. The new downstream fingerprints are **`professional-html-renderer@1.0.0`** and **`professional-pdf-adapter@1.0.0`**.
+
+Required one-way direction:
+
+```text
+ResearchRunResult
+    → HumanReadableResearchView
+    → ResearchReportDocument
+    → MarkdownPresentationArtifact
+    → HtmlPresentationArtifact
+    → PdfPresentationArtifact
+```
+
+HTML accepts typed Markdown only; PDF accepts typed HTML only. Each artifact must carry renderer version, source hash, and exact content hash. The HTML/PDF layers may format, paginate, and export, but may not recalculate KPI, Funding Loop, Driver/Thesis, Expectation Gap, Forecast, Valuation, Decision State, Completion State, or monitoring conditions.
+
+Primary presentation must remain free of raw Python repr, enum/internal fields, plugin IDs, and raw evidence/assumption IDs; those may appear only after the Audit Appendix boundary. Missing data remains missing. Factoring/receivable transfers remain their own financing exposures and must not be relabeled as Debt. Coverage-limited lease-heavy Hospitality must not receive fabricated RevPAR, ADR, OCC, same-store, lease-adjusted ROIC, or lease-adjusted valuation.
+
+When PDF export is requested, actually render the PDF and visually review all pages. Unit tests or successful serialization are not substitutes for checking the first-page snapshot, financial/KPI tables, Funding Loop, Thesis, Valuation, Monitoring, Research Gaps, Audit Appendix, page breaks, overflow, and Chinese glyphs.
+
 ## State Provenance — v1.5.03+
 
 `fundamental_state`, `valuation_state`, and `expectation_state` must retain their source semantics. If legacy string inputs are used, human-facing output must identify them as analyst assumptions rather than claiming they were derived by Research OS.

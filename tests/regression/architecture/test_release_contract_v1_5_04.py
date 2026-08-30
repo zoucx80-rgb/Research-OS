@@ -27,7 +27,7 @@ def test_public_v1_5_04_version_and_component_fingerprints_are_consistent():
     assert research_os.__version__ == RESEARCH_OS_VERSION
     assert project["project"]["version"] == RESEARCH_OS_VERSION
     assert metadata["research_os_version"] == RESEARCH_OS_VERSION
-    assert metadata["status"] == "stable"
+    assert metadata["status"] in {"release_candidate", "stable"}
     assert CORE_API_VERSION == "1.0"
     assert metadata["core_api_version"] == "1.0"
     assert metadata["module_versions"]["period_semantics"] == "1.1.0"

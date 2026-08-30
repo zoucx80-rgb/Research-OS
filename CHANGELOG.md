@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.5.8 — 2026-08-30
+
+### Added
+Immutable provenance-linked `MarkdownPresentationArtifact`, `HtmlPresentationArtifact`, and `PdfPresentationArtifact`; deterministic `ProfessionalHtmlRenderer` with fingerprint `professional-html-renderer@1.0.0`; professional A4 print CSS; and the optional `PlaywrightPdfAdapter` with fingerprint `professional-pdf-adapter@1.0.0`.
+
+### Changed
+The complete professional-output chain is now `ResearchRunResult → HumanReadableResearchView → ResearchReportDocument → MarkdownPresentationArtifact → HtmlPresentationArtifact → PdfPresentationArtifact`. Every presentation layer accepts only its immediate typed upstream artifact. Playwright/Chromium is isolated in the optional `pdf` extra and is not part of the Research Runtime dependency graph.
+
+### Fixed
+Prevents HTML/PDF publishing from becoming a second calculation path, bypassing canonical Markdown, leaking raw provenance into the investment body, filling missing expectation/valuation values, relabeling Factoring as Debt, or inventing Hospitality KPIs and lease-adjusted economics.
+
+### Validation
+Release Gate adds typed-artifact, strict-pipeline, dependency-boundary, cross-model, and real Playwright/Chromium PDF checks. A4 behavior covers first-page snapshot, repeated table headers, heading/page breaks, long-text wrapping, Chinese font fallbacks, grayscale readability, and a separately paginated Audit Appendix. Automated gates do not replace three-company rendered-PDF visual QA.
+
+### Migration
+No database or Alembic migration is required. Install `research-os[pdf]` and Chromium only where PDF export is needed. See `docs/migrations/v1.5.08.md`.
+
+### Compatibility
+`CORE_API_VERSION` remains `1.0`; `professional-research-view@1.3.0`, `research-report-composer@1.1.0`, and `professional-markdown-renderer@1.0.0` remain unchanged. No Hospitality Plugin, lease-adjusted valuation, Forecast/Evidence Quality rewrite, new Decision/Completion/Thesis engine, company-specific Core logic, or trading/portfolio/dashboard feature is introduced.
+
 ## 1.5.7 — 2026-08-30
 
 ### Added

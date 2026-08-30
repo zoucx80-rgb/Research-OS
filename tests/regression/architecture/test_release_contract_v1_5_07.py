@@ -18,15 +18,14 @@ V1_5_07_CHECKS = {
 }
 
 
-def test_public_v1_5_07_version_and_reporting_fingerprints_are_consistent():
+def test_v1_5_07_reporting_fingerprints_remain_stable_across_patch_releases():
     project = tomllib.loads(Path("pyproject.toml").read_text())
     metadata = json.loads(Path("research_os_version.json").read_text())
 
-    assert RESEARCH_OS_VERSION == "1.5.7"
-    assert research_os.__version__ == "1.5.7"
-    assert project["project"]["version"] == "1.5.7"
-    assert metadata["research_os_version"] == "1.5.7"
-    assert metadata["status"] == "stable"
+    assert research_os.__version__ == RESEARCH_OS_VERSION
+    assert project["project"]["version"] == RESEARCH_OS_VERSION
+    assert metadata["research_os_version"] == RESEARCH_OS_VERSION
+    assert metadata["status"] in {"release_candidate", "stable"}
     assert CORE_API_VERSION == "1.0"
     assert metadata["core_api_version"] == "1.0"
     assert metadata["module_versions"]["semantic_research_view"] == "1.3.0"
