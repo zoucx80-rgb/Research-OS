@@ -5,7 +5,7 @@ from pathlib import Path
 import research_os
 from research_os.plugins.builtins import DistributorIndustryPlugin
 from research_os.release.runtime import CHECKS
-from research_os.reporting import ResearchViewPresenter
+from research_os.reporting.research_view import ResearchViewPresenter
 from research_os.version import CORE_API_VERSION, RESEARCH_OS_VERSION
 
 
