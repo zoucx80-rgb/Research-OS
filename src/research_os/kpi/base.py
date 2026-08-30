@@ -11,6 +11,9 @@ class MetricResult(BaseModel):
     formula_version: str
     evidence_ids: list[str] = Field(default_factory=list)
     reason_code: str | None = None
+    period_label: str | None = None
+    period_days: int | None = None
+    annualized: bool | None = None
 
 
 class KpiPack(Protocol):
