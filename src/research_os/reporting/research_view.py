@@ -42,12 +42,28 @@ class HumanReadableReportContribution(BaseModel):
     research_questions: list[str] = Field(default_factory=list)
 
 
+class HumanReadableQuestionAssessment(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    question_id: str
+    question: str
+    status: SemanticValue
+    answer: str | None = None
+    evidence_ids: list[str] = Field(default_factory=list)
+    missing_evidence_keys: list[str] = Field(default_factory=list)
+    missing_capabilities: list[str] = Field(default_factory=list)
+
+
 class HumanReadableMetric(BaseModel):
     model_config = ConfigDict(frozen=True)
     metric_id: str
     label: str
     explanation: str
     value: Any = None
+    formatted_value: str | None = None
+    display_unit: str | None = None
+    period_label: str | None = None
+    period_days: int | None = None
+    annualized: bool | None = None
     status: SemanticValue
     reason: SemanticValue | None = None
     formula_version: str | None = None
@@ -56,6 +72,7 @@ class HumanReadableMetric(BaseModel):
 
 class HumanReadableFundingLoop(BaseModel):
     model_config = ConfigDict(frozen=True)
+    calculation_status: SemanticValue | None = None
     state: SemanticValue
     reasons: list[SemanticValue] = Field(default_factory=list)
     incremental_revenue: float | None = None
@@ -63,6 +80,11 @@ class HumanReadableFundingLoop(BaseModel):
     incremental_debt: float | None = None
     incremental_equity: float | None = None
     operating_cash_flow: float | None = None
+    factoring_balance: float | None = None
+    derecognized_receivables: float | None = None
+    receivable_transfer_balance: float | None = None
+    other_working_capital_financing: float | None = None
+    factoring_to_ar: float | None = None
 
 
 class HumanReadableDriverNode(BaseModel):
@@ -113,6 +135,14 @@ class HumanReadableThesis(BaseModel):
     next_check_date: str | None = None
 
 
+class HumanReadableThesisSignalAssessment(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    state: SemanticValue
+    positive_signals: list[str] = Field(default_factory=list)
+    negative_signals: list[str] = Field(default_factory=list)
+    evidence_ids: list[str] = Field(default_factory=list)
+
+
 class HumanReadableExpectationQuality(BaseModel):
     model_config = ConfigDict(frozen=True)
     state: SemanticValue
@@ -120,6 +150,9 @@ class HumanReadableExpectationQuality(BaseModel):
     source_count: int | None = None
     source_quality: float | None = None
     age_days: int | None = None
+    latest_material_event_ts: datetime | None = None
+    latest_material_event_label: str | None = None
+    post_event_consensus: bool | None = None
 
 
 class HumanReadableValuationModel(BaseModel):
@@ -129,6 +162,26 @@ class HumanReadableValuationModel(BaseModel):
     explanation: str
     score: float
     status: SemanticValue
+
+
+class HumanReadableValuationExecution(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    selected_model: str
+    executed_model: str
+    selection_reason: str
+    scenario_logic: str
+    assumptions: list[dict[str, Any]] = Field(default_factory=list)
+    lineage: dict[str, list[str]] = Field(default_factory=dict)
+    driver_bridge: list[str] = Field(default_factory=list)
+
+
+class HumanReadableStateProvenance(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    dimension: str
+    state: SemanticValue
+    source: SemanticValue
+    evidence_ids: list[str] = Field(default_factory=list)
+    method: str | None = None
 
 
 class HumanReadableResearchView(BaseModel):
@@ -147,20 +200,24 @@ class HumanReadableResearchView(BaseModel):
     methodology_plugins: list[HumanReadablePluginSelection] = Field(default_factory=list)
     coverage_gaps: list[HumanReadableCoverageGap] = Field(default_factory=list)
     report_contributions: list[HumanReadableReportContribution] = Field(default_factory=list)
+    question_assessments: list[HumanReadableQuestionAssessment] = Field(default_factory=list)
     kpi_metrics: list[HumanReadableMetric] = Field(default_factory=list)
     funding_loop: HumanReadableFundingLoop | None = None
     driver_graph: HumanReadableDriverGraph | None = None
     theses: list[HumanReadableThesis] = Field(default_factory=list)
+    thesis_signal_assessment: HumanReadableThesisSignalAssessment | None = None
     expectation_quality: HumanReadableExpectationQuality | None = None
     valuation_models: list[HumanReadableValuationModel] = Field(default_factory=list)
+    valuation_execution: HumanReadableValuationExecution | None = None
+    state_provenance: list[HumanReadableStateProvenance] = Field(default_factory=list)
     decision_summary: HumanReadableDecisionSummary
-    presentation_version: str = "semantic-research-view@1.0.0"
+    presentation_version: str = "professional-research-view@1.1.0"
 
 
 class ResearchViewPresenter:
     """One-way human-readable projection of one canonical ResearchRunResult."""
 
-    version = "semantic-research-view@1.0.0"
+    version = "professional-research-view@1.1.0"
     _SUPPORTED_LOCALE = "zh-CN"
 
     _CLASSIFICATION = {
@@ -186,13 +243,16 @@ class ResearchViewPresenter:
         "INSUFFICIENT_BUSINESS_MODEL_EVIDENCE": ("业务模型证据不足", "当前可用证据不足以支持可靠的业务模型判断。"),
     }
     _PLUGINS = {
-        "industry:manufacturing": ("制造业策略插件", "提供制造业务的通用经营指标与研究结构。"),
+        "industry:manufacturing": ("制造业策略插件", "提供制造业务的经营指标、资本循环和专业问题覆盖结构。"),
         "industry:distributor": ("分销业务策略插件", "提供分销业务的营运资金、周转和融资质量研究结构。"),
     }
     _CAPABILITIES = {
         "industry_strategy": "专业行业策略",
         "business_model.profile": "业务模型识别",
         "kpi.metrics": "关键经营指标",
+        "manufacturing.orders": "制造订单与在手任务研究能力",
+        "manufacturing.capacity": "制造产能与利用率研究能力",
+        "manufacturing.constraints": "制造原料与认证约束研究能力",
     }
     _METRICS = {
         "roe": ("净资产收益率", "衡量股东权益产生利润的效率。"),
@@ -217,7 +277,10 @@ class ResearchViewPresenter:
         "incremental_nwc_intensity": ("增量营运资金强度", "新增营运资金占新增收入的比例。"),
         "short_debt_to_inventory": ("短期债务对存货比", "衡量短期债务相对库存规模的融资压力。"),
         "short_debt_to_equity": ("短期债务对权益比", "衡量短期债务相对股东权益的杠杆程度。"),
-        "interest_to_gross_profit": ("利息费用对毛利比", "衡量融资成本对毛利空间的侵蚀程度。"),
+        "interest_to_gross_profit": ("利息费用对毛利比", "衡量利息费用对毛利空间的侵蚀程度。"),
+        "total_financing_cost_to_gross_profit": ("总融资成本对毛利比", "衡量已披露融资相关成本对毛利空间的侵蚀程度。"),
+        "factoring_to_ar": ("保理暴露对应收比", "衡量已披露保理或终止确认应收相对期末应收账款规模。"),
+        "working_capital_financing_to_gross_profit": ("营运资金融资暴露对毛利比", "衡量保理、应收转让等营运资金融资暴露相对毛利规模。"),
         "credit_impairment_to_gross_profit": ("信用减值对毛利比", "衡量信用损失对毛利的侵蚀程度。"),
         "inventory_impairment_to_gross_profit": ("存货减值对毛利比", "衡量存货跌价损失对毛利的侵蚀程度。"),
         "cash_conversion": ("利润现金转化率", "比较经营现金流与净利润，观察利润的现金质量。"),
@@ -242,6 +305,9 @@ class ResearchViewPresenter:
         "debt_funded": ("债务融资驱动", "营运资金扩张主要依赖新增债务融资。"),
         "stressed": ("融资循环承压", "经营现金流为负且债务融资对营运资金扩张的依赖较高。"),
     }
+    _FUNDING_REASONS = {
+        "MATERIAL_FACTORING_EXPOSURE": ("保理或终止确认应收暴露较大", "已披露保理或终止确认应收相对期末应收规模具有重要性；该暴露不自动等同于债务。"),
+    }
     _DRIVERS = {
         "demand": ("需求", "终端需求与订单活动。"),
         "revenue": ("收入", "收入规模及其增长变化。"),
@@ -251,10 +317,11 @@ class ResearchViewPresenter:
         "ap": ("应付账款", "供应商信用对营运资金的支持。"),
         "nwc": ("净营运资金", "应收、存货与应付共同形成的经营资金占用。"),
         "debt": ("短期债务", "为经营和营运资金提供的短期债务融资。"),
-        "interest": ("利息费用", "债务融资产生的财务成本。"),
+        "interest": ("融资成本", "债务及其他融资安排产生的财务成本。"),
         "net_profit": ("净利润", "经营与融资因素共同形成的最终利润。"),
         "ocf": ("经营现金流", "经营活动形成或消耗的现金。"),
         "margin": ("利润率", "收入转化为利润的经营效率。"),
+        "capex": ("资本开支", "为制造能力与长期资产投入的现金。"),
         "fcf": ("自由现金流", "经营现金流扣除必要资本投入后的现金创造能力。"),
     }
     _RELATIONS = {
@@ -264,18 +331,19 @@ class ResearchViewPresenter:
         "conditional": ("条件关系", "两项关系依赖特定经营或市场条件。"),
     }
     _GRAPH_COVERAGE = {
-        "specialized": ("专业驱动覆盖", "驱动图由已匹配的专业行业策略支持。"),
+        "specialized": ("专业驱动覆盖", "驱动图由已匹配的行业策略支持，但仍只代表当前插件具备的能力范围。"),
         "generic": ("通用驱动，仅供信息参考", "当前缺少专业行业策略覆盖，驱动图只用于保持通用因果结构，不代表完整行业研究。"),
     }
     _EXPECTATION_QUALITY = {
-        "ADEQUATE": ("市场预期证据质量基本充分", "覆盖数量、来源质量与时效性未触发当前质量警示。"),
-        "LOW": ("市场预期证据质量偏低", "覆盖数量、来源质量或时效性至少一项存在明显限制。"),
+        "ADEQUATE": ("市场预期证据质量基本充分", "覆盖数量、来源质量与信息新鲜度未触发当前质量警示。"),
+        "LOW": ("市场预期证据质量偏低", "覆盖数量、来源质量、日历时效或重大事件相对时效至少一项存在明显限制。"),
         "UNKNOWN": ("市场预期证据质量尚不明确", "缺少足够元数据评估市场预期证据质量。"),
     }
     _EXPECTATION_REASONS = {
         "THIN_CONSENSUS": ("覆盖机构数量较少", "当前参与市场预期的独立来源少于3个，应降低对一致预期代表性的确信度。"),
         "LOW_SOURCE_QUALITY": ("预期来源质量偏低", "当前来源质量评分低于既定最低质量阈值。"),
         "STALE_CONSENSUS": ("预期数据距离决策时点较久", "市场预期快照距离决策时点超过90天，可能未吸收最新经营信息。"),
+        "CONSENSUS_PREDATES_MATERIAL_EVENT": ("一致预期尚未吸收最新重大信息", "当前一致预期形成于最近一次重大财报或经营事件之前，应降低其作为当前市场预期基准的权重。"),
         "CONSENSUS_METADATA_MISSING": ("市场预期质量元数据不完整", "缺少覆盖数量或来源质量信息，无法完整评估一致预期质量。"),
         "NO_CONSENSUS_VINTAGE": ("缺少可用市场预期快照", "截至决策时点没有可用于质量评估的市场预期快照。"),
     }
@@ -293,32 +361,51 @@ class ResearchViewPresenter:
         "LOW_CONFIDENCE": ("低置信度估值参考", "该模型适用性较低，只能作为低置信度参考。"),
         "NOT_APPLICABLE": ("当前不适用", "该估值模型在当前业务和证据条件下不适用。"),
     }
-    _CONTRIBUTIONS = {
-        "manufacturing.operating_engine": (
-            "制造经营引擎",
-            "把生产经营、产能投放和产品结构与利润率及现金创造联系起来。",
-            ["订单、在手任务和客户验收节奏如何变化？", "产能、利用率、良率和产品结构如何变化？", "原材料或资格认证约束是否压制利润率修复？"],
-        ),
-        "manufacturing.capital_cycle": (
-            "制造资本循环",
-            "评估营运资金现金转化、资本开支强度和制造资产产生的回报。",
-            ["营运资金是否转化为经营现金？", "资本开支是否形成有效产能和资本回报？", "应收或存货是否持续快于经营活动增长？"],
-        ),
-        "distributor.working_capital": (
-            "分销营运资金引擎",
-            "把应收、存货和应付与现金转换和增长质量联系起来。",
-            ["应收和存货是否快于收入增长？", "应收、存货、应付及现金转换周期如何变化？", "毛利是否足以补偿营运资金占用？"],
-        ),
-        "distributor.financing_quality": (
-            "分销融资质量",
-            "评估营运资金扩张依赖内部现金、债务、保理或其他外部融资的程度。",
-            ["新增营运资金中有多少由债务支持？", "融资成本相对毛利有多高？", "利润对存货或信用减值有多敏感？"],
-        ),
+    _QUESTION_STATUS = {
+        "ANSWERED": ("当前问题具备规范化覆盖", "所需能力和证据已经进入当前研究运行，可结合对应模块查看结论。"),
+        "EVIDENCE_MISSING": ("当前问题缺少必要证据", "已有研究能力，但当前运行缺少回答该问题所需的一个或多个证据字段。"),
+        "CAPABILITY_MISSING": ("当前问题缺少专业研究能力", "即使存在部分证据，当前版本仍缺少回答该专业问题所需的能力。"),
+        "NOT_APPLICABLE": ("当前问题不适用", "该专业研究问题在当前业务或研究范围内不适用。"),
+    }
+    _SIGNAL_STATUS = {
+        "SUPPORTED": ("方向性经营信号得到支持", "至少两个独立正向信号且没有重大反向矛盾支持当前方向判断。"),
+        "MIXED": ("经营信号混合", "正向与反向经营证据同时存在，不应形成单向改善叙事。"),
+        "INSUFFICIENT": ("方向性经营证据不足", "当前缺少足够独立方向性信号形成可靠经营趋势判断。"),
+    }
+    _STATE_SOURCES = {
+        "derived": ("Research OS 推导", "该状态由当前 Research OS 模块根据规范化证据推导。"),
+        "analyst_assumption": ("分析师输入假设", "该状态来自研究输入，Research OS 未把它重新表述为系统自行推导的结论。"),
+        "external_model": ("外部模型输入", "该状态来自外部模型，并保留其方法和证据血缘。"),
+        "manual_override": ("人工覆盖", "该状态由人工明确覆盖，需要结合覆盖原因和证据查看。"),
+    }
+    _MODULE_EXECUTION_STATUS = {
+        "PASS": ("研究模块已完成计算", "该模块已经按当前输入完成规范化计算；这不表示公司经济状态健康。"),
+        "FAIL": ("研究模块执行未通过", "该模块存在执行或一致性问题。"),
+        "INSUFFICIENT_EVIDENCE": ("研究模块证据不足", "当前证据不足以完成该模块要求。"),
+        "NOT_APPLICABLE": ("研究模块不适用", "该模块在当前研究条件下不适用。"),
     }
     _SECTIONS = {
         "Industry / Competitive Context": "行业与竞争环境",
         "Capital Efficiency & Funding Loop": "资本效率与融资循环",
         "Financial Quality": "财务质量",
+    }
+    _CONTRIBUTIONS = {
+        "manufacturing.operating_engine": (
+            "制造经营引擎",
+            "把生产经济性、产能投放和产品结构与利润率及现金创造联系起来。",
+        ),
+        "manufacturing.capital_cycle": (
+            "制造资本循环",
+            "评估营运资金现金转化、资本开支强度和制造资产产生的回报。",
+        ),
+        "distributor.working_capital": (
+            "分销营运资金引擎",
+            "把应收、存货和应付与现金转换和增长质量联系起来。",
+        ),
+        "distributor.financing_quality": (
+            "分销融资质量",
+            "评估营运资金扩张依赖内部现金、债务、保理或其他外部融资的程度。",
+        ),
     }
     _THESIS_TEXT = {
         "Growth converts to cash": "增长转化为现金",
@@ -326,9 +413,13 @@ class ResearchViewPresenter:
         "Revenue growth must translate through working-capital efficiency into operating cash flow.": "收入增长必须通过营运资金效率改善，最终转化为经营现金流。",
         "Growth remains dependent on inventory, receivables and external financing, so cash quality deteriorates.": "增长持续依赖存货、应收和外部融资，导致现金质量恶化。",
         "Fundamentals improve": "基本面改善",
-        "Operating fundamentals improve.": "经营基本面改善。",
-        "Revenue and margins translate into cash.": "收入和利润率改善能够转化为现金。",
-        "Reported growth fails to convert into sustainable cash returns.": "账面增长未能转化为可持续的现金回报。",
+        "Operating fundamentals improve based on multiple directional signals.": "多个独立方向性信号共同支持经营基本面改善。",
+        "Revenue, margin, capital-efficiency or cash signals consistently point toward improving operating quality.": "收入、利润率、资本效率或现金信号一致指向经营质量改善。",
+        "The apparent improvement reverses or fails to convert into sustainable cash returns.": "表面改善出现逆转，或不能转化为可持续现金回报。",
+        "Operating signals mixed": "经营信号混合",
+        "Operating signals are mixed; wait for further confirmation before asserting directional improvement.": "经营信号存在分化，在宣称方向性改善前应等待进一步确认。",
+        "Positive operating or cash signals are offset by contradictory margin or working-capital evidence.": "正向经营或现金信号被利润率或营运资金方面的反向证据抵消。",
+        "The contradictory indicators resolve consistently in one direction and establish a reliable operating trend.": "相互矛盾的指标最终一致指向同一方向，并形成可靠经营趋势。",
     }
 
     def __init__(self):
@@ -359,12 +450,10 @@ class ResearchViewPresenter:
 
     def _plugin(self, item) -> HumanReadablePluginSelection:
         plugin_id = str(self._get(item, "plugin_id", ""))
-        entry = self._PLUGINS.get(plugin_id)
-        if entry is None:
-            label = "扩展研究插件"
-            explanation = "该插件来自可扩展研究插件体系；当前中文名称尚未单独配置。"
-        else:
-            label, explanation = entry
+        label, explanation = self._PLUGINS.get(
+            plugin_id,
+            ("扩展研究插件", "该插件来自可扩展研究插件体系；当前中文名称尚未单独配置。"),
+        )
         return HumanReadablePluginSelection(
             label=label,
             explanation=explanation,
@@ -380,26 +469,15 @@ class ResearchViewPresenter:
         if reason_code in self._GAP_REASONS:
             reason = self._semantic(reason_code, self._GAP_REASONS, "研究覆盖存在限制")
         elif reason_text:
-            reason = SemanticValue(
-                label="研究覆盖存在限制",
-                explanation=reason_text,
-                code=str(reason_code or reason_text),
-            )
+            reason = SemanticValue(label="研究覆盖存在限制", explanation=reason_text, code=str(reason_code or reason_text))
         else:
-            reason = SemanticValue(
-                label="研究覆盖存在限制",
-                explanation="当前研究存在未进一步说明的覆盖限制。",
-                code=str(reason_code or ""),
-            )
+            reason = SemanticValue(label="研究覆盖存在限制", explanation="当前研究存在未进一步说明的覆盖限制。", code=str(reason_code or ""))
         model = self._get(gap, "business_model")
         return HumanReadableCoverageGap(
             gap_type=self._semantic(gap_type, self._GAP_TYPES, "研究覆盖缺口"),
             business_model=self._business_model(model) if model else None,
             reason=reason,
-            affected_capabilities=[
-                self._CAPABILITIES.get(str(item), "其他研究能力")
-                for item in list(self._get(gap, "affected_capabilities", []) or [])
-            ],
+            affected_capabilities=[self._CAPABILITIES.get(str(item), "其他研究能力") for item in list(self._get(gap, "affected_capabilities", []) or [])],
             fallback_available=self._get(gap, "fallback_available"),
             missing_capability=self._get(gap, "missing_capability"),
         )
@@ -407,65 +485,89 @@ class ResearchViewPresenter:
     def _contribution(self, item) -> HumanReadableReportContribution:
         contribution_id = str(self._get(item, "contribution_id", ""))
         mapped = self._CONTRIBUTIONS.get(contribution_id)
-        if mapped is not None:
-            title, description, questions = mapped
-        else:
-            title = str(self._get(item, "title", "") or "研究贡献")
-            description = str(self._get(item, "description", "") or "该扩展提供结构化研究信息。")
-            questions = list(self._get(item, "research_questions", []) or [])
+        title = mapped[0] if mapped else str(self._get(item, "title", "") or "研究贡献")
+        description = mapped[1] if mapped else str(self._get(item, "description", "") or "该扩展提供结构化研究信息。")
         return HumanReadableReportContribution(
             contribution_id=contribution_id,
             section=self._SECTIONS.get(str(self._get(item, "section", "")), "其他研究章节"),
             title=title,
             description=description,
-            research_questions=questions,
+            research_questions=list(self._get(item, "research_questions", []) or []),
         )
+
+    def _question(self, item) -> HumanReadableQuestionAssessment:
+        return HumanReadableQuestionAssessment(
+            question_id=str(self._get(item, "question_id", "")),
+            question=str(self._get(item, "text", "")),
+            status=self._semantic(self._get(item, "status", ""), self._QUESTION_STATUS, "专业问题覆盖状态尚未配置中文说明"),
+            answer=self._get(item, "answer"),
+            evidence_ids=list(self._get(item, "evidence_ids", []) or []),
+            missing_evidence_keys=list(self._get(item, "missing_evidence_keys", []) or []),
+            missing_capabilities=[self._CAPABILITIES.get(str(value), str(value)) for value in list(self._get(item, "missing_capabilities", []) or [])],
+        )
+
+    @staticmethod
+    def _format_metric(value: Any, unit: str | None) -> tuple[str | None, str | None]:
+        if value is None:
+            return None, None
+        if not isinstance(value, (int, float)):
+            return str(value), unit
+        if unit == "percent":
+            return f"{value * 100:.2f}%", "%"
+        if unit == "days":
+            return f"{value:.2f}天", "天"
+        if unit == "x":
+            return f"{value:.2f}x", "x"
+        if unit == "currency":
+            return f"{value:,.2f}元", "元"
+        return f"{value:.4g}", unit
 
     def _metric(self, item) -> HumanReadableMetric:
         metric_id = str(self._get(item, "metric_id", ""))
-        metric = self._METRICS.get(metric_id)
-        if metric is None:
-            label, explanation = "其他研究指标", "当前版本尚未为该扩展指标配置专门中文说明。"
-        else:
-            label, explanation = metric
+        label, explanation = self._METRICS.get(metric_id, ("其他研究指标", "当前版本尚未为该扩展指标配置专门中文说明。"))
         reason_code = self._get(item, "reason_code")
+        value = self._get(item, "value")
+        unit = self._get(item, "unit")
+        formatted, display_unit = self._format_metric(value, unit)
         return HumanReadableMetric(
             metric_id=metric_id,
             label=label,
             explanation=explanation,
-            value=self._get(item, "value"),
-            status=self._semantic(
-                self._get(item, "status", ""),
-                self._METRIC_STATUS,
-                "指标状态尚未配置中文说明",
-            ),
-            reason=(
-                self._semantic(reason_code, self._METRIC_REASONS, "指标缺失原因尚未配置中文说明")
-                if reason_code
-                else None
-            ),
+            value=value,
+            formatted_value=formatted,
+            display_unit=display_unit,
+            period_label=self._get(item, "period_label"),
+            period_days=self._get(item, "period_days"),
+            annualized=self._get(item, "annualized"),
+            status=self._semantic(self._get(item, "status", ""), self._METRIC_STATUS, "指标状态尚未配置中文说明"),
+            reason=(self._semantic(reason_code, self._METRIC_REASONS, "指标缺失原因尚未配置中文说明") if reason_code else None),
             formula_version=self._get(item, "formula_version"),
             evidence_ids=list(self._get(item, "evidence_ids", []) or []),
         )
 
-    def _funding(self, funding) -> HumanReadableFundingLoop | None:
+    def _funding_reason(self, code: Any) -> SemanticValue:
+        raw = str(code)
+        if raw in self._FUNDING_REASONS:
+            return self._semantic(raw, self._FUNDING_REASONS, "融资风险说明")
+        return self._decision.semantic(raw, category="reason")
+
+    def _funding(self, funding, module_status: str | None = None) -> HumanReadableFundingLoop | None:
         if funding is None:
             return None
         return HumanReadableFundingLoop(
-            state=self._semantic(
-                self._get(funding, "funding_state", "unknown"),
-                self._FUNDING_STATES,
-                "融资循环状态尚未配置中文说明",
-            ),
-            reasons=[
-                self._decision.semantic(item, category="reason")
-                for item in list(self._get(funding, "reason_codes", []) or [])
-            ],
+            calculation_status=(self._semantic(module_status, self._MODULE_EXECUTION_STATUS, "融资模块执行状态") if module_status else None),
+            state=self._semantic(self._get(funding, "funding_state", "unknown"), self._FUNDING_STATES, "融资循环状态尚未配置中文说明"),
+            reasons=[self._funding_reason(item) for item in list(self._get(funding, "reason_codes", []) or [])],
             incremental_revenue=self._get(funding, "incremental_revenue"),
             incremental_nwc=self._get(funding, "incremental_nwc"),
             incremental_debt=self._get(funding, "incremental_debt"),
             incremental_equity=self._get(funding, "incremental_equity"),
             operating_cash_flow=self._get(funding, "operating_cash_flow"),
+            factoring_balance=self._get(funding, "factoring_balance"),
+            derecognized_receivables=self._get(funding, "derecognized_receivables"),
+            receivable_transfer_balance=self._get(funding, "receivable_transfer_balance"),
+            other_working_capital_financing=self._get(funding, "other_working_capital_financing"),
+            factoring_to_ar=self._get(funding, "factoring_to_ar"),
         )
 
     def _driver_label(self, driver_id: str, fallback_name: str = "") -> tuple[str, str]:
@@ -485,43 +587,17 @@ class ResearchViewPresenter:
             driver_id = str(self._get(node, "driver_id", ""))
             label, explanation = self._driver_label(driver_id, str(self._get(node, "name", "")))
             labels[driver_id] = label
-            nodes.append(
-                HumanReadableDriverNode(
-                    driver_id=driver_id,
-                    label=label,
-                    explanation=explanation,
-                    critical=bool(self._get(node, "critical", False)),
-                    evidence_ids=list(self._get(node, "evidence_ids", []) or []),
-                )
-            )
+            nodes.append(HumanReadableDriverNode(driver_id=driver_id, label=label, explanation=explanation, critical=bool(self._get(node, "critical", False)), evidence_ids=list(self._get(node, "evidence_ids", []) or [])))
         edges = []
         for edge in list(self._get(graph, "edges", []) or []):
             from_id = str(self._get(edge, "from_driver", ""))
             to_id = str(self._get(edge, "to_driver", ""))
-            edges.append(
-                HumanReadableDriverEdge(
-                    from_driver=from_id,
-                    from_label=labels.get(from_id, self._driver_label(from_id)[0]),
-                    to_driver=to_id,
-                    to_label=labels.get(to_id, self._driver_label(to_id)[0]),
-                    relation=self._semantic(
-                        self._get(edge, "relation", ""),
-                        self._RELATIONS,
-                        "驱动关系尚未配置中文说明",
-                    ),
-                )
-            )
+            edges.append(HumanReadableDriverEdge(from_driver=from_id, from_label=labels.get(from_id, self._driver_label(from_id)[0]), to_driver=to_id, to_label=labels.get(to_id, self._driver_label(to_id)[0]), relation=self._semantic(self._get(edge, "relation", ""), self._RELATIONS, "驱动关系尚未配置中文说明")))
         scope = str(self._get(graph, "coverage_scope", "specialized"))
         reason = self._get(graph, "coverage_reason")
         if reason == "primary industry strategy coverage is unavailable; generic drivers are informational fallback only":
             reason = "主要业务模型缺少专业行业策略覆盖；当前通用驱动图仅用于信息参考。"
-        return HumanReadableDriverGraph(
-            coverage=self._semantic(scope, self._GRAPH_COVERAGE, "驱动覆盖状态尚未配置中文说明"),
-            coverage_limited=bool(self._get(graph, "coverage_limited", False)),
-            coverage_reason=reason,
-            nodes=nodes,
-            edges=edges,
-        )
+        return HumanReadableDriverGraph(coverage=self._semantic(scope, self._GRAPH_COVERAGE, "驱动覆盖状态尚未配置中文说明"), coverage_limited=bool(self._get(graph, "coverage_limited", False)), coverage_reason=reason, nodes=nodes, edges=edges)
 
     def _falsifier(self, item) -> HumanReadableFalsifier:
         metric = str(self._get(item, "metric", ""))
@@ -529,16 +605,15 @@ class ResearchViewPresenter:
             "cfo": "经营现金流",
             "ocf": "经营现金流",
             "ccc_days": "现金转换周期",
+            "funding_loop_debt_share": "新增营运资金的债务融资占比",
+            "revenue_growth": "收入增速",
+            "margin_change": "利润率变化",
         }.get(metric, "其他验证指标")
         operator = str(self._get(item, "operator", ""))
         threshold = float(self._get(item, "threshold", 0.0))
-        return HumanReadableFalsifier(
-            metric=metric,
-            metric_label=metric_label,
-            operator=operator,
-            threshold=threshold,
-            explanation=f"当{metric_label}{operator}{threshold:g}时，触发该证伪条件。",
-        )
+        description = self._get(item, "description")
+        explanation = str(description) if description else f"当{metric_label}{operator}{threshold:g}时，触发该证伪条件。"
+        return HumanReadableFalsifier(metric=metric, metric_label=metric_label, operator=operator, threshold=threshold, explanation=explanation)
 
     def _translate_thesis_text(self, value: Any) -> str:
         text = "" if value is None else str(value)
@@ -552,31 +627,33 @@ class ResearchViewPresenter:
             mechanism=self._translate_thesis_text(self._get(item, "mechanism", "")),
             anti_thesis=self._translate_thesis_text(self._get(item, "anti_thesis", "")),
             status=self._decision.semantic(status, category="thesis_state"),
-            falsifiers=[self._falsifier(f) for f in list(self._get(item, "falsifiers", []) or [])],
+            falsifiers=[self._falsifier(value) for value in list(self._get(item, "falsifiers", []) or [])],
             confidence=self._get(item, "confidence"),
-            next_check_date=(
-                str(self._get(item, "next_check_date"))
-                if self._get(item, "next_check_date") is not None
-                else None
-            ),
+            next_check_date=(str(self._get(item, "next_check_date")) if self._get(item, "next_check_date") is not None else None),
         )
 
-    def _expectation_quality(self, item) -> HumanReadableExpectationQuality | None:
+    def _thesis_signals(self, item) -> HumanReadableThesisSignalAssessment | None:
+        if item is None:
+            return None
+        return HumanReadableThesisSignalAssessment(
+            state=self._semantic(self._get(item, "status", "INSUFFICIENT"), self._SIGNAL_STATUS, "经营信号状态尚未配置中文说明"),
+            positive_signals=list(self._get(item, "positive_signals", []) or []),
+            negative_signals=list(self._get(item, "negative_signals", []) or []),
+            evidence_ids=list(self._get(item, "evidence_ids", []) or []),
+        )
+
+    def _expectation_quality(self, item, latest_material_event_label: str | None = None) -> HumanReadableExpectationQuality | None:
         if item is None:
             return None
         return HumanReadableExpectationQuality(
-            state=self._semantic(
-                self._get(item, "status", "UNKNOWN"),
-                self._EXPECTATION_QUALITY,
-                "市场预期证据质量状态尚未配置中文说明",
-            ),
-            reasons=[
-                self._semantic(code, self._EXPECTATION_REASONS, "市场预期质量限制尚未配置中文说明")
-                for code in list(self._get(item, "reason_codes", []) or [])
-            ],
+            state=self._semantic(self._get(item, "status", "UNKNOWN"), self._EXPECTATION_QUALITY, "市场预期证据质量状态尚未配置中文说明"),
+            reasons=[self._semantic(code, self._EXPECTATION_REASONS, "市场预期质量限制尚未配置中文说明") for code in list(self._get(item, "reason_codes", []) or [])],
             source_count=self._get(item, "source_count"),
             source_quality=self._get(item, "source_quality"),
             age_days=self._get(item, "age_days"),
+            latest_material_event_ts=self._get(item, "latest_material_event_ts"),
+            latest_material_event_label=latest_material_event_label,
+            post_event_consensus=self._get(item, "post_event_consensus"),
         )
 
     def _valuation_models(self, routing) -> list[HumanReadableValuationModel]:
@@ -586,68 +663,67 @@ class ResearchViewPresenter:
         items = values.items() if isinstance(values, dict) else []
         result = []
         for model_id, model in items:
-            identity = self._VALUATION_MODELS.get(str(model_id))
-            if identity is None:
-                label, explanation = "其他估值方法", "当前版本尚未为该扩展估值模型配置专门中文说明。"
-            else:
-                label, explanation = identity
-            result.append(
-                HumanReadableValuationModel(
-                    model_id=str(model_id),
-                    label=label,
-                    explanation=explanation,
-                    score=float(self._get(model, "score", 0.0)),
-                    status=self._semantic(
-                        self._get(model, "status", ""),
-                        self._VALUATION_ROUTES,
-                        "估值模型状态尚未配置中文说明",
-                    ),
-                )
-            )
-        return sorted(result, key=lambda item: item.score, reverse=True)
+            label, explanation = self._VALUATION_MODELS.get(str(model_id), ("其他估值方法", "当前版本尚未为该扩展估值模型配置专门中文说明。"))
+            result.append(HumanReadableValuationModel(model_id=str(model_id), label=label, explanation=explanation, score=float(self._get(model, "score", 0.0)), status=self._semantic(self._get(model, "status", ""), self._VALUATION_ROUTES, "估值模型状态尚未配置中文说明")))
+        return sorted(result, key=lambda value: value.score, reverse=True)
+
+    def _valuation_execution(self, execution) -> HumanReadableValuationExecution | None:
+        if execution is None:
+            return None
+        return HumanReadableValuationExecution(
+            selected_model=str(self._get(execution, "selected_model", "")),
+            executed_model=str(self._get(execution, "executed_model", "")),
+            selection_reason=str(self._get(execution, "selection_reason", "")),
+            scenario_logic=str(self._get(execution, "scenario_logic", "")),
+            assumptions=list(self._get(execution, "assumptions", []) or []),
+            lineage=dict(self._get(execution, "lineage", {}) or {}),
+            driver_bridge=list(self._get(execution, "driver_bridge", []) or []),
+        )
+
+    def _state_provenance(self, items) -> list[HumanReadableStateProvenance]:
+        if not items:
+            return []
+        result = []
+        categories = {"fundamental": "fundamental_state", "valuation": "valuation_state", "expectation": "expectation_state"}
+        labels = {"fundamental": "基本面状态", "valuation": "估值状态", "expectation": "市场预期状态"}
+        for key in ("fundamental", "valuation", "expectation"):
+            item = self._get(items, key)
+            if item is None:
+                continue
+            result.append(HumanReadableStateProvenance(
+                dimension=labels[key],
+                state=self._decision.semantic(self._get(item, "value", ""), category=categories[key]),
+                source=self._semantic(self._get(item, "source", ""), self._STATE_SOURCES, "状态来源尚未配置中文说明"),
+                evidence_ids=list(self._get(item, "evidence_ids", []) or []),
+                method=self._get(item, "method"),
+            ))
+        return result
 
     def _decision_summary(self, result: ResearchRunResult) -> HumanReadableDecisionSummary:
         summary = self._decision.build(result, locale=self._SUPPORTED_LOCALE)
         translated_thesis = self._translate_thesis_text(summary.primary_thesis)
-        translated_drivers = []
-        for name in summary.top_drivers:
-            matched = next(
-                (value[0] for key, value in self._DRIVERS.items() if name in {key, value[0]}),
-                None,
-            )
-            if matched is None:
-                reverse = {
-                    "Revenue": "收入",
-                    "Gross Margin": "毛利率",
-                    "Accounts Receivable": "应收账款",
-                    "Inventory": "存货",
-                    "Accounts Payable": "应付账款",
-                    "Net Working Capital": "净营运资金",
-                    "Short-term Debt": "短期债务",
-                    "Operating Cash Flow": "经营现金流",
-                    "Margin": "利润率",
-                    "Free Cash Flow": "自由现金流",
-                }
-                matched = reverse.get(name, name)
-            translated_drivers.append(matched)
+        reverse = {
+            "Revenue": "收入",
+            "Gross Margin": "毛利率",
+            "Accounts Receivable": "应收账款",
+            "Inventory": "存货",
+            "Accounts Payable": "应付账款",
+            "Net Working Capital": "净营运资金",
+            "Short-term Debt": "短期债务",
+            "Operating Cash Flow": "经营现金流",
+            "Margin": "利润率",
+            "Capital Expenditure": "资本开支",
+            "Free Cash Flow": "自由现金流",
+        }
+        translated_drivers = [reverse.get(name, name) for name in summary.top_drivers]
         event = summary.next_verification_event
         if event.startswith("next check: "):
             event = "下一次验证日期：" + event.removeprefix("next check: ")
         elif event == "next material disclosure":
             event = "下一次重大信息披露"
-        return summary.model_copy(
-            update={
-                "primary_thesis": translated_thesis,
-                "top_drivers": translated_drivers,
-                "next_verification_event": event,
-            }
-        )
+        return summary.model_copy(update={"primary_thesis": translated_thesis, "top_drivers": translated_drivers, "next_verification_event": event})
 
-    def build(
-        self,
-        result: ResearchRunResult,
-        locale: str = _SUPPORTED_LOCALE,
-    ) -> HumanReadableResearchView:
+    def build(self, result: ResearchRunResult, locale: str = _SUPPORTED_LOCALE) -> HumanReadableResearchView:
         if locale != self._SUPPORTED_LOCALE:
             raise ValueError(f"unsupported presentation locale: {locale}")
         if not isinstance(result, ResearchRunResult):
@@ -656,6 +732,7 @@ class ResearchViewPresenter:
         profile = result.business_model
         resolution = result.strategy_resolution
         artifacts = result.artifacts
+        funding_result = result.module_results.get("core:funding-loop")
         classification_reason = profile.classification_reason
         return HumanReadableResearchView(
             company_id=result.company.company_id,
@@ -665,34 +742,23 @@ class ResearchViewPresenter:
             research_os_version=result.baseline.research_os_version,
             core_api_version=result.baseline.core_api_version,
             business_model=self._business_model(profile.primary_model),
-            classification_status=self._semantic(
-                profile.classification_status,
-                self._CLASSIFICATION,
-                "业务模型识别状态尚未配置中文说明",
-            ),
-            classification_reason=(
-                self._semantic(
-                    classification_reason,
-                    self._CLASSIFICATION_REASON,
-                    "业务模型识别原因尚未配置中文说明",
-                )
-                if classification_reason
-                else None
-            ),
+            classification_status=self._semantic(profile.classification_status, self._CLASSIFICATION, "业务模型识别状态尚未配置中文说明"),
+            classification_reason=(self._semantic(classification_reason, self._CLASSIFICATION_REASON, "业务模型识别原因尚未配置中文说明") if classification_reason else None),
             secondary_business_models=[self._business_model(item) for item in profile.secondary_models],
             industry_plugins=[self._plugin(item) for item in resolution.industry_plugins],
             methodology_plugins=[self._plugin(item) for item in resolution.methodology_plugins],
             coverage_gaps=[self._gap(item) for item in resolution.coverage_gaps],
-            report_contributions=[
-                self._contribution(item)
-                for item in list(artifacts.get("report.contributions", []) or [])
-            ],
+            report_contributions=[self._contribution(item) for item in list(artifacts.get("report.contributions", []) or [])],
+            question_assessments=[self._question(item) for item in list(artifacts.get("report.question_assessments", []) or [])],
             kpi_metrics=[self._metric(item) for item in list(artifacts.get("kpi.metrics", []) or [])],
-            funding_loop=self._funding(artifacts.get("capital.funding_loop")),
+            funding_loop=self._funding(artifacts.get("capital.funding_loop"), getattr(funding_result, "status", None)),
             driver_graph=self._driver_graph(artifacts.get("drivers.graph")),
             theses=[self._thesis(item) for item in list(artifacts.get("thesis.items", []) or [])],
-            expectation_quality=self._expectation_quality(artifacts.get("expectation.quality")),
+            thesis_signal_assessment=self._thesis_signals(artifacts.get("thesis.signal_assessment")),
+            expectation_quality=self._expectation_quality(artifacts.get("expectation.quality"), artifacts.get("expectation.latest_material_event_label")),
             valuation_models=self._valuation_models(artifacts.get("valuation.routing")),
+            valuation_execution=self._valuation_execution(artifacts.get("valuation.execution")),
+            state_provenance=self._state_provenance(artifacts.get("decision.state_provenance")),
             decision_summary=self._decision_summary(result),
             presentation_version=self.version,
         )
