@@ -1,11 +1,11 @@
 {
-  "research_os_version":"1.5.1",
+  "research_os_version":"1.5.2",
   "core_api_version":"1.0",
   "status":"stable",
   "module_versions":{
     "finance_core":"2.0.1",
     "router":"1.1.0",
-    "driver_engine":"1.0.0",
+    "driver_engine":"1.1.0",
     "thesis_engine":"1.0.0",
     "expectation_engine":"1.1.0",
     "valuation":"2.1.0",
@@ -16,6 +16,7 @@
     "kpi_applicability":"1.0.0",
     "completion_gate":"1.1.0",
     "report_template":"3.1.1",
-    "semantic_presentation":"1.0.0"
+    "semantic_presentation":"1.0.0",
+    "semantic_research_view":"1.0.0"
   }
 }
