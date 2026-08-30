@@ -113,6 +113,7 @@ class AuditAppendix(BaseModel):
     methodology_plugins: list[dict[str, Any]] = Field(default_factory=list)
     module_statuses: dict[str, dict[str, Any]] = Field(default_factory=dict)
     evidence_ids: list[str] = Field(default_factory=list)
+    assumption_ids: list[str] = Field(default_factory=list)
 
 
 class ResearchReportDocument(BaseModel):
