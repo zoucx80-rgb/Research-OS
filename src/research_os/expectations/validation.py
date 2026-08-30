@@ -21,6 +21,8 @@ class ExpectationQualityAssessment(BaseModel):
     age_days: int | None = None
     source_count: int | None = None
     source_quality: float | None = None
+    latest_material_event_ts: datetime | None = None
+    post_event_consensus: bool | None = None
 
 
 _MARKET_EXPECTATION_TERMS = (
@@ -51,11 +53,13 @@ class ExpectationEvidenceValidator:
         *,
         vintage: ConsensusVintage | None,
         decision_ts: datetime,
+        latest_material_event_ts: datetime | None = None,
     ) -> ExpectationQualityAssessment:
         if vintage is None:
             return ExpectationQualityAssessment(
                 status="UNKNOWN",
                 reason_codes=["NO_CONSENSUS_VINTAGE"],
+                latest_material_event_ts=latest_material_event_ts,
             )
 
         reasons: list[str] = []
@@ -69,8 +73,22 @@ class ExpectationEvidenceValidator:
         if vintage.source_count is None and vintage.source_quality is None:
             reasons.append("CONSENSUS_METADATA_MISSING")
 
+        post_event_consensus: bool | None = None
+        if latest_material_event_ts is not None:
+            post_event_consensus = vintage.as_of >= latest_material_event_ts
+            if not post_event_consensus:
+                reasons.append("CONSENSUS_PREDATES_MATERIAL_EVENT")
+
         status: Literal["ADEQUATE", "LOW", "UNKNOWN"]
-        if any(code in reasons for code in ("THIN_CONSENSUS", "LOW_SOURCE_QUALITY", "STALE_CONSENSUS")):
+        if any(
+            code in reasons
+            for code in (
+                "THIN_CONSENSUS",
+                "LOW_SOURCE_QUALITY",
+                "STALE_CONSENSUS",
+                "CONSENSUS_PREDATES_MATERIAL_EVENT",
+            )
+        ):
             status = "LOW"
         elif "CONSENSUS_METADATA_MISSING" in reasons:
             status = "UNKNOWN"
@@ -82,6 +100,8 @@ class ExpectationEvidenceValidator:
             age_days=age_days,
             source_count=vintage.source_count,
             source_quality=vintage.source_quality,
+            latest_material_event_ts=latest_material_event_ts,
+            post_event_consensus=post_event_consensus,
         )
 
     def assess(
@@ -94,13 +114,21 @@ class ExpectationEvidenceValidator:
         requires_baseline = self._requires_baseline(conclusion)
         if evidence is None:
             if requires_baseline:
-                return ExpectationAssessment(status="FAIL", errors=["expectation conclusion lacks traceable baseline"])
+                return ExpectationAssessment(
+                    status="FAIL",
+                    errors=["expectation conclusion lacks traceable baseline"],
+                )
             return ExpectationAssessment(status="INSUFFICIENT_EVIDENCE")
 
         errors: list[str] = []
         if evidence.expectation_publish_ts > decision_ts:
             errors.append("expectation evidence violates PIT: publish_ts > decision_ts")
-        if not evidence.expectation_source.strip() or not evidence.expectation_period.strip() or not evidence.metric.strip() or not evidence.vintage.strip():
+        if (
+            not evidence.expectation_source.strip()
+            or not evidence.expectation_period.strip()
+            or not evidence.metric.strip()
+            or not evidence.vintage.strip()
+        ):
             errors.append("expectation evidence is missing required lineage fields")
         computed = evidence.actual_value - evidence.expected_value
         if not math.isclose(computed, evidence.surprise, rel_tol=1e-9, abs_tol=1e-9):
@@ -114,4 +142,8 @@ class ExpectationEvidenceValidator:
             if evidence.surprise >= 0:
                 errors.append("miss conclusion is inconsistent with surprise sign")
 
-        return ExpectationAssessment(status="FAIL" if errors else "PASS", errors=errors, surprise=evidence.surprise)
+        return ExpectationAssessment(
+            status="FAIL" if errors else "PASS",
+            errors=errors,
+            surprise=evidence.surprise,
+        )
