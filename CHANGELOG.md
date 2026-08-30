@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.5.5 — 2026-08-30
+
+### Added
+Structured `ExpectationGapResult` missingness/lineage, additive `ValuationResult` scenarios/ranges/sensitivities, `professional-research-view@1.3.0`, and `research-report-composer@1.0.0`. The composer adds a canonical first-page decision snapshot, deterministic causal bridges over existing valuation/Driver Graph edges, structured monitoring, gap classification, concise evidence-traceability notes, and an audit appendix for raw provenance.
+
+### Changed
+Full professional output now follows `ResearchRunResult → HumanReadableResearchView → ResearchReportComposer → ResearchReportDocument`. Material risks are deduplicated by canonical semantic code. Raw evidence/assumption IDs default to the audit appendix rather than the main body. CNY scaling is display-only and never changes machine values. Lease-heavy presentation explicitly surfaces missing lease-adjusted analysis without inferring light-asset or low-capital-intensity economics.
+
+### Fixed
+Missing consensus no longer produces a fabricated expectation gap; presentation does not derive valuation upside/downside merely from price and value fields; Composer does not invent causal edges or monitoring thresholds; evidence, capability, not-applicable, and presentation/deferred gaps remain distinct; repository/plugin/module metadata stays outside primary investment prose.
+
+### Validation
+Release Gate adds `report_composer_one_way`, `expectation_gap_missingness`, `valuation_result_contract`, `composition_dedup`, `lease_heavy_presentation_guard`, and `audit_metadata_separation`, while retaining every historical gate. Permanent synthetic reporting regressions cover Manufacturing, Distributor, and lease-heavy Hospitality/no-plugin patterns.
+
+### Migration
+No database or Alembic migration is required. Existing machine consumers may continue using canonical `ResearchRunResult`; complete v1.5.05 professional output should pass through `ResearchViewPresenter` and `ResearchReportComposer`. See `docs/migrations/v1.5.05.md`.
+
+### Compatibility
+`CORE_API_VERSION` remains `1.0`. No Hospitality Plugin, lease-adjusted valuation engine, second Completion Gate, second Decision Engine, Forecast rewrite, automatic trading logic, or company-specific Core logic is introduced.
+
 ## 1.5.4 — 2026-08-30
 
 ### Fixed
