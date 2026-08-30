@@ -1,7 +1,6 @@
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 
-from research_os.capital.engine import CapitalEfficiencyEngine, FundingLoopResult
-from research_os.decision.models import DecisionStateRecord
+from research_os.capital.engine import CapitalEfficiencyEngine
 from research_os.domain.enums import ConfidenceGrade, EvidenceType, VerificationStatus
 from research_os.domain.evidence import Evidence
 from research_os.drivers.graph import DriverGraph
@@ -12,7 +11,6 @@ from research_os.kpi.distributor import DistributorPack
 from research_os.plugins.builtins import ManufacturingIndustryPlugin
 from research_os.reporting.research_view import ResearchViewPresenter
 from research_os.router.classifier import BusinessModelRouter
-from research_os.runtime.builtin_modules import DecisionModule
 from research_os.runtime.context import (
     BaselineFingerprint,
     CompanyRef,
@@ -21,9 +19,8 @@ from research_os.runtime.context import (
     ResearchContext,
     ResearchOptions,
 )
+from research_os.runtime.factory import ResearchRuntimeFactory
 from research_os.runtime.inputs import ResearchInputs
-from research_os.runtime.state import ResearchStateView
-from research_os.thesis.models import Falsifier, Thesis
 from research_os.thesis.service import ThesisService
 
 
@@ -56,7 +53,7 @@ def _context(evidence: list[Evidence], values: dict | None = None) -> ResearchCo
         baseline=BaselineFingerprint(
             repository_full_name="zoucx80-rgb/Research-OS",
             repository_id=1350382205,
-            branch="feature/v1.5.03-professional-research-integrity",
+            branch="main",
             commit_sha="1" * 40,
             research_os_version="1.5.2",
             core_api_version="1.0",
@@ -68,35 +65,16 @@ def _context(evidence: list[Evidence], values: dict | None = None) -> ResearchCo
 
 
 def test_legacy_high_level_states_are_exposed_as_analyst_assumptions():
-    evidence = [_evidence("revenue", 100.0)]
-    context = _context(evidence)
-    thesis = Thesis(
-        thesis_id="synthetic:v1.5.03:thesis",
-        company_id="synthetic:v1.5.03",
-        title="Cash quality",
-        statement="Growth should convert to cash.",
-        mechanism="Working-capital efficiency supports cash generation.",
-        anti_thesis="Growth remains externally funded.",
-        status="active",
-        falsifiers=[Falsifier(metric="cfo", operator="<", threshold=0)],
-        next_check_date=date(2026, 11, 30),
-    )
-    module = DecisionModule(
-        inputs=ResearchInputs(
+    evidence = [
+        _evidence("business_description", "hotel hospitality lodging operations"),
+        _evidence("revenue", 100.0),
+    ]
+    result = ResearchRuntimeFactory.default().run_context(
+        _context(evidence),
+        ResearchInputs(
             fundamental_state="IMPROVING",
             valuation_state="FAIR",
             expectation_state="IN_LINE",
-        )
-    )
-    result = module.run(
-        context,
-        ResearchStateView(
-            {
-                "thesis.items": [thesis],
-                "claims.items": [],
-                "evidence.pit": evidence,
-                "capital.funding_loop": FundingLoopResult(funding_state="self_funded"),
-            }
         ),
     )
     provenance = result.artifacts["decision.state_provenance"]
