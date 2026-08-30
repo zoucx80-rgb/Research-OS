@@ -11,12 +11,14 @@ Approved implementation direction from the v1.5.01 three-company regression on 2
 
 ## Field-test inputs
 
-The v1.5.01 re-run on 钢研高纳, 中电港 and 君亭酒店 confirmed that period-safe routing and business-model coverage-gap semantics work, but exposed four recurring integrity gaps:
+The v1.5.01 re-run on 钢研高纳, 中电港 and 君亭酒店 confirmed that period-safe routing and business-model coverage-gap semantics work, but exposed recurring integrity gaps:
 
 1. `DecisionSummaryPresenter` translates only the final decision summary. `StrategyResolution`, `CoverageGap`, KPI metrics, Driver Graph, Thesis artifacts and valuation routing remain outside the canonical human-readable surface.
 2. Missing primary industry coverage does not constrain `DriverThesisModule`; a hospitality company without a hospitality plugin can still receive a generic active thesis that looks professionally complete.
 3. Funding-loop stress is not propagated into `DecisionContext.material_risk`, so severe debt-funded working-capital growth can be understated by the decision state.
 4. `ConsensusVintage.source_count` and `source_quality` exist but are not assessed or presented, so thin/stale expectations can look equivalent to strong current consensus.
+5. Primary and secondary industry plugins can both enter the canonical KPI chain, creating cross-pack contamination risk for mixed-business companies.
+6. Completion aggregation can incorrectly promote a coverage-limited fallback Driver Graph to PASS merely because a graph object exists.
 
 These are semantic-integrity and research-boundary problems. They do not justify redesigning `ResearchRuntime`, `ResearchRunResult`, snapshots, or `ResearchCompletionGate`.
 
@@ -47,9 +49,7 @@ It must include human-readable views for:
 - valuation routing status;
 - existing human-readable decision/completion summary.
 
-Raw machine identifiers remain audit metadata. Human-facing labels/explanations are primary.
-
-The presenter must never calculate or change research state.
+Raw machine identifiers remain audit metadata. Human-facing labels/explanations are primary. The presenter must never calculate or change research state.
 
 ### G2 — Coverage-aware narrative
 
@@ -62,6 +62,7 @@ Required behavior:
 - no active Thesis/Claim is produced for the unsupported primary industry;
 - module status is `INSUFFICIENT_EVIDENCE`;
 - Completion remains controlled only by `ResearchCompletionGate`;
+- the completion aggregation layer must preserve the evidence-insufficient Driver Graph status even when the fallback graph object exists;
 - the human-readable view explains that generic drivers are informational fallback, not specialized industry research.
 
 This preserves the existing rule: missing specialized evidence cannot be narratively filled.
@@ -119,6 +120,19 @@ Manufacturing contributions should highlight production/capacity, working capita
 
 This is not a full Manufacturing-depth rewrite and not a Hospitality plugin.
 
+### G7 — Primary industry strategy isolation
+
+The canonical professional research chain must follow the **primary business model only**.
+
+- the resolver may recognize multiple business models;
+- only the primary model's compatible industry plugin is selected into `industry_plugins` for canonical KPI / Driver / Thesis execution;
+- secondary models remain classification and coverage metadata;
+- an unsupported secondary model still emits an `industry_strategy` Coverage Gap;
+- a compatible secondary plugin may be recorded in resolver rationale as available coverage metadata, but is not co-executed automatically;
+- methodology resolution consumes capabilities from the canonical primary industry strategy, not a union of secondary industry packs.
+
+This prevents a secondary Distributor or Manufacturing signal from contaminating the primary KPI and Driver Graph while preserving visibility into mixed-business companies.
+
 ## Human-readable research-view models
 
 Introduce `research_os.reporting.research_view`.
@@ -160,7 +174,8 @@ If the primary business model has an `industry_strategy`, `business_model_taxono
 - set `coverage_limited=True`;
 - set a structured coverage reason;
 - return no theses or claims;
-- return `INSUFFICIENT_EVIDENCE`.
+- return `INSUFFICIENT_EVIDENCE`;
+- completion must keep Driver Graph at `INSUFFICIENT_EVIDENCE` rather than promoting it solely because a graph exists.
 
 If specialized primary coverage exists, preserve current behavior.
 
@@ -183,7 +198,7 @@ Dynamic user/company-specific readable text may pass through unchanged when it i
 
 ## Snapshot/version semantics
 
-No snapshot schema redesign is required. Existing snapshots continue storing canonical machine artifacts. `report_version` becomes `semantic-research-view@1.0.0` so a human presentation revision is auditable.
+No snapshot schema redesign is required. Existing snapshots continue storing canonical machine artifacts. `report_version` becomes `semantic-research-view@1.0.0` so a human presentation revision is auditable. The coverage-aware driver model is fingerprinted as `core:driver-thesis@1.1.0`.
 
 ## Non-goals
 
@@ -205,13 +220,14 @@ v1.5.02 adds regression gates for:
 
 1. unresolved business-model classification cannot report Business Model Router `PASS`;
 2. unsupported primary industry coverage cannot produce an active specialized thesis;
-3. generic fallback Driver Graph is explicitly coverage-limited;
+3. generic fallback Driver Graph is explicitly coverage-limited and remains evidence-insufficient in completion;
 4. severe debt-funded negative-OCF Funding Loop propagates material risk into `RISK_REVIEW`;
 5. end-to-end ResearchView renders CoverageGap/KPI/Driver/Thesis/Valuation semantics without raw machine codes as primary labels;
 6. thin/stale consensus is explicitly identified using the existing fields;
 7. built-in industry plugins provide structured report contributions;
-8. v1.5.01 semantic and v1.4 architecture/correctness gates remain green;
-9. full pytest and Release Gate pass.
+8. secondary industry plugins cannot contaminate the primary KPI chain while secondary Coverage Gaps remain visible;
+9. v1.5.01 semantic and v1.4 architecture/correctness gates remain green;
+10. full pytest and Release Gate pass.
 
 ## Compatibility
 
