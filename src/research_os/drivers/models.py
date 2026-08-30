@@ -27,3 +27,6 @@ class DriverGraphResult(BaseModel):
     company_id: str
     nodes: list[DriverNode]
     edges: list[DriverEdge]
+    coverage_scope: Literal["specialized","generic"]="specialized"
+    coverage_limited: bool=False
+    coverage_reason: str|None=None
