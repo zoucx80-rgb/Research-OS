@@ -7,14 +7,18 @@ from pydantic import BaseModel
 
 from research_os.completion.gate import REQUIRED_MODULES, ResearchCompletionGate
 from research_os.completion.models import ResearchCompletionInput
+from research_os.expectations.validation import ExpectationEvidenceValidator
 from research_os.plugins.builtins import BuiltinPluginProvider
 from research_os.plugins.registry import PluginRegistry
+from research_os.reporting.contributions import ResearchQuestionAssessment
 from research_os.runtime.builtin_modules import build_builtin_modules
 from research_os.runtime.context import ResearchContext
 from research_os.runtime.engine import ResearchEngine
 from research_os.runtime.inputs import ResearchInputs
+from research_os.runtime.provenance import resolve_state_input
 from research_os.runtime.result import ComponentFingerprint, ResearchRunResult
 from research_os.snapshots.service import SnapshotService
+from research_os.thesis.service import ThesisService
 
 
 @runtime_checkable
@@ -79,9 +83,7 @@ class ResearchRuntime:
 
         pit = results.get("core:pit-lineage")
         if pit is not None:
-            statuses["PIT Validation"] = (
-                "PASS" if artifacts.get("evidence.pit") else pit.status
-            )
+            statuses["PIT Validation"] = "PASS" if artifacts.get("evidence.pit") else pit.status
             lineage = artifacts.get("validation.lineage") or {}
             statuses["Evidence Lineage"] = lineage.get("status", pit.status)
 
@@ -105,9 +107,7 @@ class ResearchRuntime:
             drivers = artifacts.get("drivers.graph")
             theses = list(artifacts.get("thesis.items") or [])
             statuses["Driver Graph"] = (
-                "PASS"
-                if driver.status == "PASS" and drivers is not None
-                else driver.status
+                "PASS" if driver.status == "PASS" and drivers is not None else driver.status
             )
             statuses["Thesis"] = "PASS" if theses else driver.status
             statuses["Anti-Thesis"] = (
@@ -131,9 +131,7 @@ class ResearchRuntime:
             else:
                 statuses["Valuation Fitness"] = "INSUFFICIENT_EVIDENCE"
             statuses["Valuation Execution"] = (
-                valuation.status
-                if inputs.valuation_execution is not None
-                else "INSUFFICIENT_EVIDENCE"
+                valuation.status if inputs.valuation_execution is not None else "INSUFFICIENT_EVIDENCE"
             )
 
         temporal = results.get("core:temporal")
@@ -200,6 +198,85 @@ class ResearchRuntime:
         )
 
     @staticmethod
+    def _available_capabilities(modules, registry: PluginRegistry, strategy_resolution) -> set[str]:
+        capabilities: set[str] = set()
+        for module in modules:
+            capabilities.update(module.spec.provides)
+        if strategy_resolution is not None:
+            for resolved in [
+                *strategy_resolution.industry_plugins,
+                *strategy_resolution.methodology_plugins,
+            ]:
+                plugin = registry.get(resolved.plugin_id)
+                if plugin is not None:
+                    capabilities.update(plugin.manifest.provides)
+        return capabilities
+
+    @classmethod
+    def _question_assessments(
+        cls,
+        *,
+        context: ResearchContext,
+        contributions,
+        modules,
+        registry: PluginRegistry,
+        strategy_resolution,
+    ) -> list[ResearchQuestionAssessment]:
+        capabilities = cls._available_capabilities(modules, registry, strategy_resolution)
+        assessments: list[ResearchQuestionAssessment] = []
+        for contribution in contributions:
+            for spec in list(getattr(contribution, "question_specs", []) or []):
+                missing_capabilities = [
+                    item for item in spec.required_capabilities if item not in capabilities
+                ]
+                evidence_ids = sorted({
+                    evidence_id
+                    for key in spec.evidence_keys
+                    for evidence_id in context.facts.evidence_ids(key)
+                })
+                missing_evidence = [
+                    key for key in spec.evidence_keys if not context.facts.evidence_ids(key)
+                ]
+                if missing_capabilities:
+                    status = "CAPABILITY_MISSING"
+                    answer = None
+                elif missing_evidence:
+                    status = "EVIDENCE_MISSING"
+                    answer = None
+                else:
+                    status = "ANSWERED"
+                    answer = "所需规范化研究能力与证据已具备；请结合对应指标、驱动或资本模块查看结论。"
+                assessments.append(
+                    ResearchQuestionAssessment(
+                        question_id=spec.question_id,
+                        text=spec.text,
+                        status=status,
+                        answer=answer,
+                        evidence_ids=evidence_ids,
+                        missing_evidence_keys=missing_evidence,
+                        missing_capabilities=missing_capabilities,
+                    )
+                )
+        return assessments
+
+    @staticmethod
+    def _state_provenance(inputs: ResearchInputs) -> dict[str, Any]:
+        return {
+            "fundamental": resolve_state_input(
+                inputs.fundamental_state_input,
+                inputs.fundamental_state,
+            ),
+            "valuation": resolve_state_input(
+                inputs.valuation_state_input,
+                inputs.valuation_state,
+            ),
+            "expectation": resolve_state_input(
+                inputs.expectation_state_input,
+                inputs.expectation_state,
+            ),
+        }
+
+    @staticmethod
     def _version_bundle(
         context: ResearchContext,
         inputs: ResearchInputs,
@@ -227,14 +304,12 @@ class ResearchRuntime:
                 ",".join(selected_plugins) if selected_plugins else "none",
             ),
             "driver_model_version": supplied.get(
-                "driver_model_version", "core:driver-thesis@1.1.0"
+                "driver_model_version", "core:driver-thesis@1.2.0"
             ),
             "forecast_version": supplied.get("forecast_version", "none"),
-            "valuation_version": supplied.get(
-                "valuation_version", "core:valuation@1.0.0"
-            ),
+            "valuation_version": supplied.get("valuation_version", "core:valuation@1.0.0"),
             "report_version": supplied.get(
-                "report_version", "semantic-research-view@1.0.0"
+                "report_version", "professional-research-view@1.1.0"
             ),
             "core_api_version": context.baseline.core_api_version,
         }
@@ -267,10 +342,28 @@ class ResearchRuntime:
         fingerprints = self._fingerprints(modules, strategy_resolution)
         module_results = dict(state.module_results)
         artifacts = dict(state.artifacts)
-        artifacts["report.contributions"] = self._report_contributions(
-            registry,
-            strategy_resolution,
+
+        contributions = self._report_contributions(registry, strategy_resolution)
+        artifacts["report.contributions"] = contributions
+        artifacts["report.question_assessments"] = self._question_assessments(
+            context=context,
+            contributions=contributions,
+            modules=modules,
+            registry=registry,
+            strategy_resolution=strategy_resolution,
         )
+        artifacts["decision.state_provenance"] = self._state_provenance(run_inputs)
+        evidence = list(artifacts.get("evidence.pit", []) or [])
+        artifacts["thesis.signal_assessment"] = ThesisService().assess_signals(evidence)
+        artifacts["expectation.quality"] = ExpectationEvidenceValidator().assess_consensus_quality(
+            vintage=run_inputs.expectation_vintage,
+            decision_ts=context.decision_ts,
+            latest_material_event_ts=run_inputs.latest_material_event_ts,
+        )
+        if run_inputs.latest_material_event_label is not None:
+            artifacts["expectation.latest_material_event_label"] = run_inputs.latest_material_event_label
+        if run_inputs.valuation_execution is not None:
+            artifacts["valuation.execution"] = run_inputs.valuation_execution
 
         payload = {
             "run_id": context.run_id,
