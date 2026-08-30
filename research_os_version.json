@@ -1,7 +1,7 @@
 {
   "research_os_version":"1.5.8",
   "core_api_version":"1.0",
-  "status":"release_candidate",
+  "status":"stable",
   "module_versions":{
     "finance_core":"2.0.1",
     "router":"1.2.0",

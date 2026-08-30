@@ -40,7 +40,7 @@ def test_public_v1_5_08_versions_and_presentation_fingerprints_are_consistent():
     assert research_os.__version__ == "1.5.8"
     assert project["project"]["version"] == "1.5.8"
     assert metadata["research_os_version"] == "1.5.8"
-    assert metadata["status"] in {"release_candidate", "stable"}
+    assert metadata["status"] == "stable"
     assert CORE_API_VERSION == "1.0"
     assert metadata["core_api_version"] == "1.0"
     assert metadata["module_versions"]["semantic_research_view"] == "1.3.0"
