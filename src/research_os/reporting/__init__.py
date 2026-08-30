@@ -1,9 +1,12 @@
 from .composer import ResearchReportComposer
 from .document import (
     AuditAppendix,
+    CapitalFundingBlock,
     CausalBridgeBlock,
     EvidenceNoteBlock,
+    ExpectationForecastBlock,
     ExpectationGapBlock,
+    FinancialOperatingBlock,
     GapClassificationBlock,
     InvestmentDecisionSnapshot,
     LimitationBlock,
@@ -11,7 +14,10 @@ from .document import (
     NarrativeBlock,
     ReportSection,
     ResearchReportDocument,
+    StateProvenanceBlock,
+    ThesisDebateBlock,
     ValuationBlock,
+    ValuationRationaleBlock,
 )
 from .research_view import (
     HumanReadableCoverageGap,
@@ -47,12 +53,15 @@ from .summary import DecisionSummary, DecisionSummaryBuilder, ResearchReportMode
 
 __all__ = [
     "AuditAppendix",
+    "CapitalFundingBlock",
     "CausalBridgeBlock",
     "DecisionSummary",
     "DecisionSummaryBuilder",
     "DecisionSummaryPresenter",
     "EvidenceNoteBlock",
+    "ExpectationForecastBlock",
     "ExpectationGapBlock",
+    "FinancialOperatingBlock",
     "GapClassificationBlock",
     "HumanReadableCoverageGap",
     "HumanReadableDecisionSummary",
@@ -85,5 +94,8 @@ __all__ = [
     "ResearchReportModel",
     "ResearchViewPresenter",
     "SemanticValue",
+    "StateProvenanceBlock",
+    "ThesisDebateBlock",
     "ValuationBlock",
+    "ValuationRationaleBlock",
 ]
