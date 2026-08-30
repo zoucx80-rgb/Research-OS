@@ -116,4 +116,5 @@ class BusinessModelRouter:
             router_version=self.version,
             classification_status=classification_status,
             classification_reason=classification_reason,
+            lease_heavy=lease_heavy,
         )
