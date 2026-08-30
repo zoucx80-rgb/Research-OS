@@ -7,9 +7,9 @@ from research_os.domain.evidence import Evidence
 from research_os.expectations.models import ConsensusVintage
 from research_os.expectations.validation import ExpectationEvidenceValidator
 from research_os.plugins.builtins import DistributorIndustryPlugin, ManufacturingIndustryPlugin
-from research_os.plugins.models import CoverageGap, ResolvedPlugin
+from research_os.plugins.models import CoverageGap
 from research_os.plugins.registry import PluginRegistry
-from research_os.plugins.resolver import StrategyResolution
+from research_os.plugins.resolver import StrategyResolution, StrategyResolver
 from research_os.router.models import BusinessModelProfile
 from research_os.runtime.builtin_modules import (
     BusinessModelModule,
@@ -72,12 +72,7 @@ def _context(evidence: list[Evidence], values: dict | None = None) -> ResearchCo
 def test_unresolved_business_model_does_not_report_router_pass():
     evidence = [_evidence("business_description", "specialized professional advisory services")]
     context = _context(evidence)
-
-    result = BusinessModelModule().run(
-        context,
-        ResearchStateView({"evidence.pit": evidence}),
-    )
-
+    result = BusinessModelModule().run(context, ResearchStateView({"evidence.pit": evidence}))
     assert result.artifacts["business_model.profile"].classification_status == "unsupported_taxonomy"
     assert result.status == "INSUFFICIENT_EVIDENCE"
 
@@ -104,7 +99,6 @@ def test_missing_primary_industry_coverage_keeps_generic_drivers_but_blocks_acti
             )
         ]
     )
-
     result = DriverThesisModule().run(
         context,
         ResearchStateView(
@@ -116,7 +110,6 @@ def test_missing_primary_industry_coverage_keeps_generic_drivers_but_blocks_acti
             }
         ),
     )
-
     graph = result.artifacts["drivers.graph"]
     assert result.status == "INSUFFICIENT_EVIDENCE"
     assert graph is not None
@@ -154,7 +147,6 @@ def test_debt_funded_negative_ocf_is_material_risk_for_decision_state():
             expectation_state="IN_LINE",
         )
     )
-
     result = module.run(
         context,
         ResearchStateView(
@@ -166,7 +158,6 @@ def test_debt_funded_negative_ocf_is_material_risk_for_decision_state():
             }
         ),
     )
-
     record: DecisionStateRecord = result.artifacts["decision.record"]
     assert record.state == "RISK_REVIEW"
     assert "FUNDAMENTAL_RISK" in record.reason_codes
@@ -183,9 +174,7 @@ def test_expectation_quality_uses_existing_consensus_fields_and_age():
         source_count=2,
         source_quality=0.4,
     )
-
     quality = validator.assess_consensus_quality(vintage=vintage, decision_ts=decision_ts)
-
     assert quality.status == "LOW"
     assert "THIN_CONSENSUS" in quality.reason_codes
     assert "LOW_SOURCE_QUALITY" in quality.reason_codes
@@ -226,32 +215,11 @@ def test_secondary_industry_plugin_cannot_contaminate_primary_kpi_pack():
         router_version="router@1.1.0",
     )
     registry = PluginRegistry(core_api_version="1.0", research_os_version="1.5.1")
-    manufacturing = ManufacturingIndustryPlugin()
-    distributor = DistributorIndustryPlugin()
-    registry.register(manufacturing)
-    registry.register(distributor)
-    resolution = StrategyResolution(
-        industry_plugins=[
-            ResolvedPlugin(
-                plugin_id=manufacturing.manifest.plugin_id,
-                plugin_type="industry",
-                plugin_version=manufacturing.manifest.plugin_version,
-                api_version="1.0",
-                priority=100,
-                maturity="stable",
-                applicability_score=1.0,
-            ),
-            ResolvedPlugin(
-                plugin_id=distributor.manifest.plugin_id,
-                plugin_type="industry",
-                plugin_version=distributor.manifest.plugin_version,
-                api_version="1.0",
-                priority=100,
-                maturity="stable",
-                applicability_score=1.0,
-            ),
-        ]
-    )
+    registry.register(ManufacturingIndustryPlugin())
+    registry.register(DistributorIndustryPlugin())
+    resolution = StrategyResolver().resolve(profile, context, registry)
+
+    assert [item.plugin_id for item in resolution.industry_plugins] == ["industry:manufacturing"]
 
     result = IndustryKpiModule(registry=registry).run(
         context,
@@ -262,7 +230,6 @@ def test_secondary_industry_plugin_cannot_contaminate_primary_kpi_pack():
             }
         ),
     )
-
     metric_ids = {item.metric_id for item in result.artifacts["kpi.metrics"]}
     assert result.artifacts["kpi.pack_ids"] == ["manufacturing"]
     assert "roe" in metric_ids
