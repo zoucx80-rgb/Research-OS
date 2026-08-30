@@ -157,7 +157,9 @@ def test_unknown_reason_code_has_readable_fallback():
 
     assert value.label != "SOME_INTERNAL_CODE"
     assert value.code == "SOME_INTERNAL_CODE"
-    assert "尚未配置" in value.explanation
+    assert "尚未" in value.explanation
+    assert "中文解释" in value.explanation
+    assert "技术元数据" in value.explanation
 
 
 def test_common_funding_loop_reason_codes_are_translated():
