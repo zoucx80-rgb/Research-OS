@@ -178,6 +178,24 @@ class ResearchRuntime:
         )
 
     @staticmethod
+    def _report_contributions(registry: PluginRegistry, strategy_resolution) -> list[Any]:
+        contributions: list[Any] = []
+        if strategy_resolution is None:
+            return contributions
+        for resolved in strategy_resolution.industry_plugins:
+            plugin = registry.get(resolved.plugin_id)
+            if plugin is None:
+                continue
+            contributions.extend(list(plugin.report_contributions() or []))
+        return sorted(
+            contributions,
+            key=lambda item: (
+                getattr(item, "order", 0),
+                getattr(item, "contribution_id", ""),
+            ),
+        )
+
+    @staticmethod
     def _version_bundle(
         context: ResearchContext,
         inputs: ResearchInputs,
@@ -243,6 +261,10 @@ class ResearchRuntime:
         fingerprints = self._fingerprints(modules, strategy_resolution)
         module_results = dict(state.module_results)
         artifacts = dict(state.artifacts)
+        artifacts["report.contributions"] = self._report_contributions(
+            registry,
+            strategy_resolution,
+        )
 
         payload = {
             "run_id": context.run_id,
