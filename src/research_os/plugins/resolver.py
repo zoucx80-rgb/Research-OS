@@ -132,52 +132,15 @@ class StrategyResolver:
         methodology: list[ResolvedPlugin] = []
         gaps: list[CoverageGap] = []
         rationale: list[str] = []
-        selected_ids: set[str] = set()
 
         model_gap = self._business_model_gap(profile)
         if model_gap is not None:
             gaps.append(model_gap)
             rationale.append(f"business model unresolved: {model_gap.reason_code}")
-            requested_models = list(profile.secondary_models)
         else:
-            requested_models = [profile.primary_model, *profile.secondary_models]
-
-        override = None if model_gap is not None else self._override_industry(profile, context, registry)
-        if override is not None:
-            plugin, applicability = override
-            industry.append(
-                self._resolved(
-                    plugin,
-                    score=applicability.score,
-                    rationale=applicability.rationale,
-                )
-            )
-            selected_ids.add(plugin.manifest.plugin_id)
-            rationale.append(
-                f"industry override {plugin.manifest.plugin_id}: {context.options.override_rationale}"
-            )
-        else:
-            for index, model in enumerate(requested_models):
-                choice = self._automatic_industry_for_model(model, context, registry)
-                if choice is None:
-                    gaps.append(
-                        CoverageGap(
-                            gap_type="industry_strategy",
-                            business_model=model,
-                            reason=(
-                                "no compatible industry strategy plugin for primary business model"
-                                if model_gap is None and index == 0
-                                else "no compatible industry strategy plugin for secondary business model"
-                            ),
-                            reason_code="NO_COMPATIBLE_INDUSTRY_PLUGIN",
-                            affected_capabilities=["industry_strategy"],
-                            fallback_available=True,
-                        )
-                    )
-                    continue
-                plugin, applicability = choice
-                if plugin.manifest.plugin_id in selected_ids:
-                    continue
+            override = self._override_industry(profile, context, registry)
+            if override is not None:
+                plugin, applicability = override
                 industry.append(
                     self._resolved(
                         plugin,
@@ -185,10 +148,43 @@ class StrategyResolver:
                         rationale=applicability.rationale,
                     )
                 )
-                selected_ids.add(plugin.manifest.plugin_id)
                 rationale.append(
-                    f"auto-selected {plugin.manifest.plugin_id} for business model {model}"
+                    f"industry override {plugin.manifest.plugin_id}: {context.options.override_rationale}"
                 )
+            else:
+                choice = self._automatic_industry_for_model(
+                    profile.primary_model,
+                    context,
+                    registry,
+                )
+                if choice is None:
+                    gaps.append(
+                        CoverageGap(
+                            gap_type="industry_strategy",
+                            business_model=profile.primary_model,
+                            reason="no compatible industry strategy plugin for primary business model",
+                            reason_code="NO_COMPATIBLE_INDUSTRY_PLUGIN",
+                            affected_capabilities=["industry_strategy"],
+                            fallback_available=True,
+                        )
+                    )
+                else:
+                    plugin, applicability = choice
+                    industry.append(
+                        self._resolved(
+                            plugin,
+                            score=applicability.score,
+                            rationale=applicability.rationale,
+                        )
+                    )
+                    rationale.append(
+                        f"auto-selected {plugin.manifest.plugin_id} for primary business model {profile.primary_model}"
+                    )
+
+        if profile.secondary_models:
+            rationale.append(
+                "secondary business models retained as classification metadata; canonical industry strategy follows primary model only"
+            )
 
         available_capabilities = set(self._BASE_CAPABILITIES)
         for resolved in industry:
