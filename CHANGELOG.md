@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.5.2 — 2026-08-30
+
+### Added
+`ResearchViewPresenter` / `HumanReadableResearchView` provide a one-way human-readable zh-CN projection of the canonical `ResearchRunResult`, covering business-model classification, plugin selection, Coverage Gaps, KPI metrics, Funding Loop, Driver Graph, Thesis artifacts, expectation quality, valuation routing and the existing decision/completion summary. Built-in Manufacturing and Distributor plugins now provide structured report contributions. Expectation quality now uses the existing consensus source-count, source-quality and vintage-age metadata.
+
+### Changed
+Canonical industry execution now follows the primary business model only; secondary business models remain classification and coverage metadata so their plugins cannot contaminate the primary KPI / Driver / Thesis chain. `BusinessModelModule` reports PASS only for a classified business model. Coverage-limited generic Driver Graphs remain visible but no longer produce an active Thesis or a false Driver Graph PASS. Severe debt-funded negative-OCF Funding Loops now populate the existing decision material-risk input. The default report version is `semantic-research-view@1.0.0` and the driver model fingerprint is `core:driver-thesis@1.1.0`.
+
+### Fixed
+Prevents unsupported primary industries from receiving a generic active Thesis that looks like specialized research. Prevents secondary industry packs from mixing into the primary KPI set. Prevents the completion aggregation layer from converting a coverage-limited fallback Driver Graph into PASS merely because a graph object exists. Prevents severe working-capital debt funding from being understated by the decision layer when canonical Funding Loop evidence already indicates material financing risk.
+
+### Validation
+Release Gate adds `business_model_status_truth`, `coverage_aware_thesis`, `funding_material_risk`, `expectation_quality`, `industry_report_contributions`, `primary_industry_isolation`, `end_to_end_research_view`, and `coverage_limited_completion` while retaining all v1.5.01, v1.4 and earlier correctness gates.
+
+### Migration
+No database or Alembic migration is required. Existing machine integrations may continue consuming `ResearchRunResult` and `DecisionSummary`; complete human-facing research should use `ResearchViewPresenter`. See `docs/migrations/v1.5.02.md`.
+
+### Compatibility
+`CORE_API_VERSION` remains `1.0`. `ResearchCompletionGate`, `ResearchRunResult`, snapshot architecture, legal decision-state set, Router v1.5.01 period semantics and historical snapshot behavior remain compatible. v1.5.02 does not add a Hospitality plugin or company-specific Core logic.
+
 ## 1.5.1 — 2026-08-30
 
 ### Added
