@@ -24,5 +24,10 @@ jobs:
           tests/unit/completion/test_consistency.py
           tests/unit/test_version_consistency_v1_2_1.py
       - run: pytest -q tests/integration/storage/test_v1_2_lineage_migration.py
+      - run: pytest -q tests/unit/reporting tests/unit/expectations tests/unit/valuation
+      - run: >
+          pytest -q
+          tests/regression/architecture
+          tests/regression/research_patterns/test_v1_5_05_reporting_patterns.py
       - run: pytest -q
       - run: python scripts/release_gate_v1_1.py
