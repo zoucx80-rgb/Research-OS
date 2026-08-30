@@ -19,6 +19,7 @@ from .document import (
     ValuationBlock,
     ValuationRationaleBlock,
 )
+from .markdown_renderer import ResearchReportMarkdownRenderer
 from .research_view import (
     HumanReadableCoverageGap,
     HumanReadableDriverEdge,
@@ -91,6 +92,7 @@ __all__ = [
     "ReportSection",
     "ResearchReportComposer",
     "ResearchReportDocument",
+    "ResearchReportMarkdownRenderer",
     "ResearchReportModel",
     "ResearchViewPresenter",
     "SemanticValue",
