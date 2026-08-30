@@ -4,6 +4,7 @@ from research_os.runtime.builtin_modules import (
     DecisionModule,
     DriverThesisModule,
     ExpectationModule,
+    ValuationModule,
     build_builtin_modules,
 )
 from research_os.runtime.inputs import ResearchInputs
@@ -19,7 +20,12 @@ class ProfessionalDriverThesisModule(DriverThesisModule):
 class ProfessionalExpectationModule(ExpectationModule):
     """Make expectation quality relative to both calendar age and material events."""
 
-    spec = ExpectationModule.spec.model_copy(update={"module_version": "1.2.0"})
+    spec = ExpectationModule.spec.model_copy(
+        update={
+            "module_version": "1.3.0",
+            "provides": set(ExpectationModule.spec.provides) | {"expectation.gap"},
+        }
+    )
 
     def run(self, context, state):
         result = super().run(context, state)
@@ -30,10 +36,33 @@ class ProfessionalExpectationModule(ExpectationModule):
         )
         artifacts = dict(result.artifacts)
         artifacts["expectation.quality"] = quality
+        artifacts["expectation.gap"] = self.inputs.expectation_gap
         validation = dict(artifacts.get("validation.expectation") or {})
         validation["quality_status"] = quality.status
         validation["quality_reason_codes"] = list(quality.reason_codes)
         artifacts["validation.expectation"] = validation
+        return result.model_copy(update={"artifacts": artifacts})
+
+
+class ProfessionalValuationModule(ValuationModule):
+    """Expose explicit execution/result artifacts without deriving valuation values."""
+
+    spec = ValuationModule.spec.model_copy(
+        update={
+            "module_version": "1.2.0",
+            "provides": set(ValuationModule.spec.provides)
+            | {"valuation.execution", "valuation.result"},
+        }
+    )
+
+    def run(self, context, state):
+        result = super().run(context, state)
+        artifacts = dict(result.artifacts)
+        execution = self.inputs.valuation_execution
+        artifacts["valuation.execution"] = execution
+        artifacts["valuation.result"] = (
+            execution.result if execution is not None else None
+        )
         return result.model_copy(update={"artifacts": artifacts})
 
 
@@ -100,6 +129,8 @@ def build_professional_builtin_modules(*, registry, inputs: ResearchInputs | Non
             result.append(ProfessionalDriverThesisModule())
         elif isinstance(module, ExpectationModule):
             result.append(ProfessionalExpectationModule(inputs=run_inputs))
+        elif isinstance(module, ValuationModule):
+            result.append(ProfessionalValuationModule(inputs=run_inputs))
         elif isinstance(module, DecisionModule):
             result.append(ProfessionalDecisionModule(inputs=run_inputs))
         else:
