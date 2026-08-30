@@ -17,14 +17,18 @@ V1_5_01_GATES = {
 }
 
 
-def test_public_v1_5_01_version_and_core_api_are_consistent():
+def _version_tuple(value: str) -> tuple[int, ...]:
+    return tuple(int(part) for part in value.split("."))
+
+
+def test_v1_5_01_semantic_contract_remains_available_in_current_release():
     project = tomllib.loads(Path("pyproject.toml").read_text())
     metadata = json.loads(Path("research_os_version.json").read_text())
 
-    assert RESEARCH_OS_VERSION == "1.5.1"
-    assert research_os.__version__ == "1.5.1"
-    assert project["project"]["version"] == "1.5.1"
-    assert metadata["research_os_version"] == "1.5.1"
+    assert _version_tuple(RESEARCH_OS_VERSION) >= (1, 5, 1)
+    assert research_os.__version__ == RESEARCH_OS_VERSION
+    assert project["project"]["version"] == RESEARCH_OS_VERSION
+    assert metadata["research_os_version"] == RESEARCH_OS_VERSION
     assert CORE_API_VERSION == "1.0"
     assert metadata["core_api_version"] == "1.0"
     assert metadata["module_versions"]["router"] == "1.1.0"
