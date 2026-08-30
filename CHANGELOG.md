@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.5.6 — 2026-08-30
+
+### Added
+Typed report-body blocks for Financial/Operating, Capital/Funding, Thesis Debate, Expectation/Forecast, Valuation Rationale, and State Provenance.
+
+### Changed
+`research-report-composer@1.1.0` now composes material canonical `HumanReadableResearchView` artifacts that v1.5.05 already projected, while remaining downstream and one-way. Financial Sanity/KPIs, Capital Efficiency/Funding Loop, Thesis/Anti-Thesis/Falsifiers, expectation quality/Forecast Discipline, valuation model fitness/execution, and state provenance can now enter the final report body when present. Raw evidence/assumption IDs remain outside primary investment prose.
+
+### Fixed
+Prevents final `ResearchReportDocument` from becoming materially thinner than the professional research view for Manufacturing and Distributor cases, while keeping coverage-limited Hospitality from receiving fabricated hotel KPIs or unsupported lease-adjusted economics.
+
+### Validation
+Release Gate adds `composition_coverage_v1_5_06` while retaining every historical gate. The new regression verifies body coverage, canonical-value preservation, raw-ID separation, view immutability, and Hospitality/no-plugin non-fabrication.
+
+### Migration
+No database or Alembic migration is required. See `docs/migrations/v1.5.06.md`.
+
+### Compatibility
+`CORE_API_VERSION` remains `1.0`; `professional-research-view@1.3.0` remains unchanged. No new research state engine, Hospitality Plugin, lease-adjusted valuation engine, Forecast rewrite, automatic trading logic, or company-specific Core logic is introduced.
+
 ## 1.5.5 — 2026-08-30
 
 ### Added
