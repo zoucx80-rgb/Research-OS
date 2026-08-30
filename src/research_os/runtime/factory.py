@@ -11,10 +11,10 @@ from research_os.expectations.validation import ExpectationEvidenceValidator
 from research_os.plugins.builtins import BuiltinPluginProvider
 from research_os.plugins.registry import PluginRegistry
 from research_os.reporting.contributions import ResearchQuestionAssessment
-from research_os.runtime.builtin_modules import build_builtin_modules
 from research_os.runtime.context import ResearchContext
 from research_os.runtime.engine import ResearchEngine
 from research_os.runtime.inputs import ResearchInputs
+from research_os.runtime.professional_modules import build_professional_builtin_modules
 from research_os.runtime.provenance import resolve_state_input
 from research_os.runtime.result import ComponentFingerprint, ResearchRunResult
 from research_os.snapshots.service import SnapshotService
@@ -321,7 +321,7 @@ class ResearchRuntime:
     ) -> ResearchRunResult:
         run_inputs = inputs or ResearchInputs()
         registry = self._build_registry(context)
-        modules = build_builtin_modules(registry=registry, inputs=run_inputs)
+        modules = build_professional_builtin_modules(registry=registry, inputs=run_inputs)
         state = ResearchEngine(modules).run(context)
 
         business_model = state.get("business_model.profile")
@@ -352,7 +352,9 @@ class ResearchRuntime:
             registry=registry,
             strategy_resolution=strategy_resolution,
         )
-        artifacts["decision.state_provenance"] = self._state_provenance(run_inputs)
+        # Preserve the canonical module artifact and provide a defensive fallback
+        # for legacy/custom runtimes that do not yet emit provenance themselves.
+        artifacts.setdefault("decision.state_provenance", self._state_provenance(run_inputs))
         evidence = list(artifacts.get("evidence.pit", []) or [])
         artifacts["thesis.signal_assessment"] = ThesisService().assess_signals(evidence)
         artifacts["expectation.quality"] = ExpectationEvidenceValidator().assess_consensus_quality(
