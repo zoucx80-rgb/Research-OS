@@ -141,11 +141,14 @@ def test_pdf_adapter_disables_javascript_in_browser_context(monkeypatch):
     class FakeContext:
         def __init__(self):
             self.closed = False
+            self.playwright_stopped = False
 
         def new_page(self):
             return FakePage()
 
         def close(self):
+            if self.playwright_stopped:
+                raise RuntimeError("Event loop is closed! Is Playwright already stopped?")
             self.closed = True
 
     class FakeBrowser:
@@ -174,6 +177,7 @@ def test_pdf_adapter_disables_javascript_in_browser_context(monkeypatch):
             return type("Playwright", (), {"chromium": chromium})()
 
         def __exit__(self, *_args):
+            browser.context.playwright_stopped = True
             return False
 
     playwright = ModuleType("playwright")

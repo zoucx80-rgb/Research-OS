@@ -68,35 +68,42 @@ class PlaywrightPdfAdapter:
         context = None
         try:
             with sync_playwright() as playwright:
-                launch_options: dict[str, object] = {"headless": True}
-                if self._executable_path is not None:
-                    launch_options["executable_path"] = self._executable_path
-                browser = playwright.chromium.launch(**launch_options)
-                context = browser.new_context(
-                    java_script_enabled=False,
-                    service_workers="block",
-                )
-                page = context.new_page()
-                page.set_default_timeout(self._timeout_ms)
-                page.route("**/*", lambda route: route.abort())
-                page.set_content(html.content, wait_until="load")
-                page.emulate_media(media="print")
-                content = page.pdf(
-                    format="A4",
-                    prefer_css_page_size=True,
-                    print_background=True,
-                    display_header_footer=True,
-                    header_template="<span></span>",
-                    footer_template=(
-                        '<div style="width:100%;font-size:8px;color:#666;'
-                        'text-align:center;font-family:sans-serif;">'
-                        '<span class="pageNumber"></span> / '
-                        '<span class="totalPages"></span></div>'
-                    ),
-                )
-                backend_version = (
-                    f"playwright@{self._playwright_version()}/chromium@{browser.version}"
-                )
+                try:
+                    launch_options: dict[str, object] = {"headless": True}
+                    if self._executable_path is not None:
+                        launch_options["executable_path"] = self._executable_path
+                    browser = playwright.chromium.launch(**launch_options)
+                    context = browser.new_context(
+                        java_script_enabled=False,
+                        service_workers="block",
+                    )
+                    page = context.new_page()
+                    page.set_default_timeout(self._timeout_ms)
+                    page.route("**/*", lambda route: route.abort())
+                    page.set_content(html.content, wait_until="load")
+                    page.emulate_media(media="print")
+                    content = page.pdf(
+                        format="A4",
+                        prefer_css_page_size=True,
+                        print_background=True,
+                        display_header_footer=True,
+                        header_template="<span></span>",
+                        footer_template=(
+                            '<div style="width:100%;font-size:8px;color:#666;'
+                            'text-align:center;font-family:sans-serif;">'
+                            '<span class="pageNumber"></span> / '
+                            '<span class="totalPages"></span></div>'
+                        ),
+                    )
+                    backend_version = (
+                        f"playwright@{self._playwright_version()}/"
+                        f"chromium@{browser.version}"
+                    )
+                finally:
+                    if context is not None:
+                        context.close()
+                    if browser is not None and browser.is_connected():
+                        browser.close()
         except Exception as exc:
             message = str(exc)
             if "Executable doesn't exist" in message or "executable" in message.lower():
@@ -105,11 +112,6 @@ class PlaywrightPdfAdapter:
                     "`python -m playwright install chromium`"
                 ) from exc
             raise RuntimeError(f"Playwright PDF rendering failed: {message}") from exc
-        finally:
-            if context is not None:
-                context.close()
-            if browser is not None and browser.is_connected():
-                browser.close()
 
         return PdfPresentationArtifact.from_html(
             html=html,
