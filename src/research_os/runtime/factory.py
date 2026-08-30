@@ -227,13 +227,15 @@ class ResearchRuntime:
                 ",".join(selected_plugins) if selected_plugins else "none",
             ),
             "driver_model_version": supplied.get(
-                "driver_model_version", "core:driver-thesis@1.0.0"
+                "driver_model_version", "core:driver-thesis@1.1.0"
             ),
             "forecast_version": supplied.get("forecast_version", "none"),
             "valuation_version": supplied.get(
                 "valuation_version", "core:valuation@1.0.0"
             ),
-            "report_version": supplied.get("report_version", "semantic-report@1.0.0"),
+            "report_version": supplied.get(
+                "report_version", "semantic-research-view@1.0.0"
+            ),
             "core_api_version": context.baseline.core_api_version,
         }
 
