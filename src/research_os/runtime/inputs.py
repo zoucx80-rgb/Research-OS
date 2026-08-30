@@ -5,7 +5,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from research_os.events.validation import NextVerificationEvent
-from research_os.expectations.models import ConsensusVintage, ExpectationEvidence
+from research_os.expectations.models import ConsensusVintage, ExpectationEvidence, ExpectationGapResult
 from research_os.preflight.models import RepositoryPreflightEvidence
 from research_os.runtime.provenance import StateInput
 from research_os.validation.financial import FinancialMetricObservation
@@ -31,6 +31,7 @@ class ResearchInputs(BaseModel):
     expectation_vintage: ConsensusVintage | None = None
     expectation_evidence: ExpectationEvidence | None = None
     expectation_conclusion: str | None = None
+    expectation_gap: ExpectationGapResult | None = None
     latest_material_event_ts: datetime | None = None
     latest_material_event_label: str | None = None
 
