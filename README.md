@@ -1,6 +1,6 @@
 # Research OS v1.5.06
 
-Research OS v1.5.06 (code SemVer `1.5.6`) is a Point-in-Time, evidence-linked investment research operating system built around one canonical, extensible runtime. This PATCH release preserves the v1.5.05 research semantics and one-way reporting boundary while expanding deterministic report composition so material canonical artifacts already present in the professional research view are no longer dropped from the final report body.
+Research OS v1.5.06 (code SemVer `1.5.6`) is a Point-in-Time, evidence-linked investment research operating system built around one canonical, extensible runtime. This PATCH release preserves the v1.5.05 research semantics and one-way reporting boundary while expanding deterministic report composition so material canonical artifacts already present in the professional research view are no longer dropped from the final report body. The canonical extensible runtime introduced in `1.4.0` remains the architectural baseline.
 
 ## Core invariants
 
