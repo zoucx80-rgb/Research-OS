@@ -93,6 +93,11 @@ def _pytest_runner(nodeid:str)->bool:
 
 def _pytest_batch_runner(nodeids:Iterable[str])->bool:
     result=subprocess.run([sys.executable,"-m","pytest","-q",*nodeids],cwd=ROOT,capture_output=True,text=True)
+    if result.returncode != 0:
+        if result.stdout:
+            print(result.stdout, file=sys.stderr)
+        if result.stderr:
+            print(result.stderr, file=sys.stderr)
     return result.returncode==0
 
 
