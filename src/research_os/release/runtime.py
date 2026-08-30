@@ -82,6 +82,8 @@ CHECKS: dict[str,str]={
     "lease_heavy_presentation_guard":"tests/regression/research_patterns/test_v1_5_05_reporting_patterns.py::test_lease_heavy_hospitality_without_plugin_surfaces_capability_break_and_no_fake_hotel_kpis",
     "audit_metadata_separation":"tests/unit/reporting/test_monitoring_and_evidence.py::test_main_body_evidence_note_is_concise_and_raw_ids_stay_in_audit_appendix",
     "composition_coverage_v1_5_06":"tests/unit/reporting/test_composition_coverage_v1_5_06.py",
+    "markdown_renderer_v1_5_07":"tests/unit/reporting/test_markdown_renderer.py",
+    "renderer_cross_model_v1_5_07":"tests/regression/research_patterns/test_v1_5_07_renderer_patterns.py",
 }
 
 ROOT=Path(__file__).resolve().parents[3]
