@@ -43,6 +43,30 @@ class StrategyResolver:
     def _eligible_maturity(context: ResearchContext, manifest) -> bool:
         return manifest.maturity == "stable" or context.options.allow_experimental_plugins
 
+    @staticmethod
+    def _business_model_gap(profile: BusinessModelProfile) -> CoverageGap | None:
+        if profile.primary_model != "unknown":
+            return None
+        if profile.classification_status == "unsupported_taxonomy":
+            return CoverageGap(
+                gap_type="business_model_taxonomy",
+                business_model="unknown",
+                reason="business description is meaningful but no supported business-model taxonomy matched",
+                reason_code="UNSUPPORTED_BUSINESS_MODEL_TAXONOMY",
+                affected_capabilities=["industry_strategy"],
+                fallback_available=True,
+            )
+        if profile.classification_status == "insufficient_evidence":
+            return CoverageGap(
+                gap_type="business_model_evidence",
+                business_model="unknown",
+                reason="insufficient usable evidence to classify the primary business model",
+                reason_code="INSUFFICIENT_BUSINESS_MODEL_EVIDENCE",
+                affected_capabilities=["industry_strategy"],
+                fallback_available=True,
+            )
+        return None
+
     def _automatic_industry_for_model(
         self,
         model: str,
@@ -110,7 +134,15 @@ class StrategyResolver:
         rationale: list[str] = []
         selected_ids: set[str] = set()
 
-        override = self._override_industry(profile, context, registry)
+        model_gap = self._business_model_gap(profile)
+        if model_gap is not None:
+            gaps.append(model_gap)
+            rationale.append(f"business model unresolved: {model_gap.reason_code}")
+            requested_models = list(profile.secondary_models)
+        else:
+            requested_models = [profile.primary_model, *profile.secondary_models]
+
+        override = None if model_gap is not None else self._override_industry(profile, context, registry)
         if override is not None:
             plugin, applicability = override
             industry.append(
@@ -125,7 +157,6 @@ class StrategyResolver:
                 f"industry override {plugin.manifest.plugin_id}: {context.options.override_rationale}"
             )
         else:
-            requested_models = [profile.primary_model, *profile.secondary_models]
             for index, model in enumerate(requested_models):
                 choice = self._automatic_industry_for_model(model, context, registry)
                 if choice is None:
@@ -135,9 +166,12 @@ class StrategyResolver:
                             business_model=model,
                             reason=(
                                 "no compatible industry strategy plugin for primary business model"
-                                if index == 0
+                                if model_gap is None and index == 0
                                 else "no compatible industry strategy plugin for secondary business model"
                             ),
+                            reason_code="NO_COMPATIBLE_INDUSTRY_PLUGIN",
+                            affected_capabilities=["industry_strategy"],
+                            fallback_available=True,
                         )
                     )
                     continue
