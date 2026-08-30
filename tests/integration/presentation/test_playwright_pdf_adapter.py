@@ -3,12 +3,10 @@ from __future__ import annotations
 from io import BytesIO
 import os
 from pathlib import Path
+import sys
 
 import pytest
 from pypdf import PdfReader
-
-from scripts.render_field_acceptance_v1_5_08 import render_case
-
 
 pytestmark = pytest.mark.skipif(
     os.environ.get("RESEARCH_OS_RUN_PDF_INTEGRATION") != "1",
@@ -18,6 +16,9 @@ pytestmark = pytest.mark.skipif(
 
 def test_playwright_renders_production_pipeline_as_multipage_a4_pdf(tmp_path: Path):
     repository_root = Path(__file__).resolve().parents[3]
+    sys.path.insert(0, str(repository_root))
+    from scripts.render_field_acceptance_v1_5_08 import render_case
+
     case_path = (
         repository_root
         / "tests/fixtures/field_acceptance/v1_5_08/300034.SZ.json"
