@@ -1,6 +1,6 @@
-# Research OS v1.5.04
+# Research OS v1.5.05
 
-Research OS v1.5.04 (code SemVer `1.5.4`) is a Point-in-Time, evidence-linked investment research operating system built around one canonical, extensible runtime. This PATCH release preserves the v1.4.0 runtime/plugin architecture and v1.5.01–v1.5.03 integrity boundaries while hardening field-tested financial, period, thesis, funding, valuation and presentation correctness.
+Research OS v1.5.05 (code SemVer `1.5.5`) is a Point-in-Time, evidence-linked investment research operating system built around one canonical, extensible runtime. This PATCH release preserves the v1.4.0 runtime/plugin architecture and v1.5.01–v1.5.04 correctness boundaries while adding a deterministic professional reporting-composition layer downstream of canonical research semantics.
 
 ## Core invariants
 
@@ -15,8 +15,8 @@ Research OS v1.5.04 (code SemVer `1.5.4`) is a Point-in-Time, evidence-linked in
 - Market-expectation claims require traceable and event-aware expectation evidence.
 - Decision states are research outputs, never automatic trade orders.
 - `ResearchCompletionGate` is the single authority for `COMPLETE` / `INCOMPLETE`.
-- Reporting consumes the same canonical `ResearchRunResult` and cannot redefine completion.
-- Human-facing presentation translates canonical machine semantics without changing them.
+- Reporting consumes canonical research state and cannot redefine completion or decision semantics.
+- Human-facing presentation translates and composes canonical machine semantics without changing them.
 
 ## Canonical runtime
 
@@ -44,15 +44,17 @@ ResearchRunResult + Snapshot
 
 When the primary model has no compatible industry strategy plugin, the Coverage Gap remains explicit; a generic Driver Graph may be produced only as an informational fallback; no active specialized Thesis or Claim is generated; and the final completion state continues to come only from `ResearchCompletionGate`.
 
-v1.5.03 adds structured professional-question coverage. Industry contributions can declare required capabilities and evidence keys, and the runtime records whether each question is supported, partially covered, or missing evidence. Asking a professional-looking question is not treated as professional coverage by itself.
+v1.5.03 added structured professional-question coverage. Industry contributions can declare required capabilities and evidence keys, and the runtime records whether each question is supported or blocked by missing capability/evidence. Asking a professional-looking question is not treated as professional coverage by itself.
+
+v1.5.05 report composition keeps **evidence missing**, **capability missing**, **not applicable**, and **presentation/deferred** limitations distinct instead of collapsing them into one generic gap list.
 
 ## State Provenance
 
-High-level fundamental, valuation, and expectation states now carry explicit provenance. Legacy string inputs remain compatible but are identified as **analyst assumptions** rather than being narrated as Research OS-derived conclusions. Structured state inputs can identify derived, analyst-assumption, external-model, or manual-override sources together with supporting evidence and method metadata.
+High-level fundamental, valuation, and expectation states carry explicit provenance. Legacy string inputs remain compatible but are identified as **analyst assumptions** rather than being narrated as Research OS-derived conclusions. Structured state inputs can identify derived, analyst-assumption, external-model, or manual-override sources together with supporting evidence and method metadata.
 
 ## Evidence-driven Thesis and Driver lineage
 
-The built-in thesis engine no longer defaults to `Fundamentals improve`. Directional operating signals determine whether evidence is improving, mixed, weakening, or insufficient before a thesis is formed. Driver nodes carry fact-specific evidence IDs rather than inheriting the complete run evidence set.
+The built-in thesis engine does not default to `Fundamentals improve`. Directional operating signals determine whether evidence is improving, mixed, weakening, or insufficient before a thesis is formed. Driver nodes carry fact-specific evidence IDs rather than inheriting the complete run evidence set.
 
 Manufacturing Driver Graphs can include supported revenue, margin, receivables, inventory, capex, and cash-generation nodes. Missing order, capacity, utilization, yield, qualification, or product-mix evidence remains an explicit question-level coverage gap rather than being fabricated.
 
@@ -70,21 +72,30 @@ v1.5.04 requires explicit matching `<fact>_comparison_basis` values before delta
 - a distributor PE route is penalized when the canonical Funding Loop is debt-funded with negative operating cash flow;
 - no separate risk, decision or completion engine is introduced.
 
-## Expectation quality
+## Expectation gap and valuation result contracts
 
-Expectation quality continues to use `ConsensusVintage.source_count`, `source_quality`, and calendar age. v1.5.03 adds **event-relative freshness**: when a consensus vintage predates the latest material event supplied to the run, the assessment records that the consensus has not yet absorbed the new information even if its calendar age is short.
+v1.5.05 adds structured expectation-gap and valuation-output contracts without weakening missing-value discipline.
 
-## Professional human-readable research view
+- Missing consensus produces no fabricated expectation gap.
+- Thin, stale, or pre-event consensus retains an explicit qualification.
+- Directional expectation gaps do not invent numeric magnitude.
+- `ValuationResult` can carry explicit Bear/Base/Bull cases, primary ranges, per-share values, sensitivities, evidence and assumption lineage.
+- Presentation does not derive upside/downside merely because current price and a valuation estimate are present.
+
+Expectation quality continues to use `ConsensusVintage.source_count`, `source_quality`, calendar age, and event-relative freshness.
+
+## Professional human-readable research and report composition
 
 Complete human-facing research uses:
 
 ```python
-from research_os.reporting import ResearchViewPresenter
+from research_os.reporting import ResearchReportComposer, ResearchViewPresenter
 
 view = ResearchViewPresenter().build(result, locale="zh-CN")
+document = ResearchReportComposer().compose(view)
 ```
 
-The canonical direction remains one-way:
+The canonical direction is strictly one-way:
 
 ```text
 ResearchRunResult
@@ -92,13 +103,33 @@ ResearchRunResult
 ResearchViewPresenter
     ↓
 HumanReadableResearchView
+    ↓
+ResearchReportComposer
+    ↓
+ResearchReportDocument
+    ↓
+renderer / PDF
 ```
 
-The v1.5.04 presenter fingerprint is `professional-research-view@1.2.0`. It covers baseline/version identity, business-model classification, plugin selections, Coverage Gaps, professional question assessments, financial-sanity scope, KPI values and period semantics, Capital Efficiency, Funding Loop/economic exposures, Driver Graph lineage, Thesis/Anti-Thesis/Falsifiers, expectation quality, Forecast Discipline, valuation routing/execution/assumption lineage, State Provenance, the next verification event, and the existing human-readable decision/completion summary.
+For v1.5.05 the full presenter fingerprint is `professional-research-view@1.3.0` and the report-composition fingerprint is `research-report-composer@1.0.0`. Historical v1.5.04 research remains associated with `professional-research-view@1.2.0`.
 
-KPI display semantics include formatted values, display units, period labels, period days, and annualization flags. Machine values remain unchanged for auditability.
+`HumanReadableResearchView` remains a read-only projection of canonical research artifacts. `ResearchReportComposer` accepts that view only; it does not accept a raw dictionary as an alternate semantic path and does not calculate or alter completion, decision, thesis, fundamental, expectation, valuation, funding, forecast, or business-model state.
 
-`DecisionSummaryPresenter` / `semantic-report@1.0.0` remains available for compatibility. Presentation does **not** calculate or alter completion, decision, thesis, fundamental, expectation, valuation, or funding states.
+The v1.5.05 composer:
+
+- copies canonical Decision/Completion semantics into a concise first-page decision snapshot;
+- deduplicates material risks by canonical semantic code;
+- builds causal bridges only from an existing valuation `driver_bridge` or existing Driver Graph edges;
+- never invents a causal edge or monitoring threshold for narrative smoothness;
+- omits empty sections;
+- keeps repository SHA, plugin/module identities, raw evidence IDs, and raw assumption IDs in the audit appendix by default;
+- uses a concise evidence-traceability note in the main body;
+- treats CNY `万元` / `亿元` scaling as display-only formatting and leaves machine values unchanged;
+- surfaces lease-heavy limitations without claiming that lease-adjusted ROIC/valuation exists or describing the company as light-asset solely from owned-PPE ratios.
+
+KPI display semantics continue to include formatted values, display units, period labels, period days, and annualization flags. Machine values remain unchanged for auditability.
+
+`DecisionSummaryPresenter` / `semantic-report@1.0.0` remains available for compatibility.
 
 ## Repository map
 
@@ -115,10 +146,10 @@ KPI display semantics include formatted values, display units, period labels, pe
 - `src/research_os/capital/` — capital efficiency, Funding Loop, and economic financing exposure.
 - `src/research_os/drivers/` — Driver Graph, coverage scope, and driver-specific lineage.
 - `src/research_os/thesis/` — evidence-driven Thesis / Anti-Thesis / Falsifiers.
-- `src/research_os/expectations/` — expectation vintages, validation, calendar and event-relative quality.
-- `src/research_os/valuation/` — model fitness, routing and execution validation.
+- `src/research_os/expectations/` — expectation vintages, validation, quality, and structured expectation gaps.
+- `src/research_os/valuation/` — model fitness, routing, execution validation, and additive valuation results.
 - `src/research_os/decision/` — deterministic research decision-state engine.
-- `src/research_os/reporting/` — canonical summaries plus one-way professional research view.
+- `src/research_os/reporting/` — semantic projection, `ResearchReportComposer`, `ResearchReportDocument`, display formatting, and audit separation.
 - `src/research_os/version.py` — `RESEARCH_OS_VERSION` and `CORE_API_VERSION`.
 
 ## Local verification
@@ -142,22 +173,24 @@ pytest -q \
   tests/unit/test_version_consistency_v1_2_1.py
 
 pytest -q tests/integration/storage/test_v1_2_lineage_migration.py
+pytest -q tests/unit/reporting tests/unit/expectations tests/unit/valuation
+pytest -q tests/regression/architecture tests/regression/research_patterns/test_v1_5_05_reporting_patterns.py
 pytest -q
 python scripts/release_gate_v1_1.py
 ```
 
-CI enforces the same order: architecture contracts → correctness regressions → migration smoke → full suite → release gate.
+CI enforces architecture contracts, correctness regressions, storage migration smoke, full-suite verification, and the release gate. v1.5.05 additionally keeps dedicated reporting/expectation/valuation and cross-model reporting regressions as permanent release evidence.
 
 ## Version governance
 
-`RESEARCH_OS_VERSION = "1.5.4"` and `CORE_API_VERSION = "1.0"`. Package metadata, public version metadata, plugin versions, and runtime component fingerprints must agree.
+`RESEARCH_OS_VERSION = "1.5.5"` and `CORE_API_VERSION = "1.0"`. Package metadata, public version metadata, plugin versions, presenter/composer fingerprints, and runtime component fingerprints must agree.
 
 Snapshots separately freeze dataset, parser, formula, router, KPI pack, driver, forecast, valuation, report and OS versions plus payload hash and component fingerprints. Historical release tags and snapshots remain immutable.
 
 ## Migration and deferred scope
 
-No database migration is required for v1.5.04. Existing machine integrations may continue consuming canonical `ResearchRunResult` and `DecisionSummary`; delta-ratio callers should add explicit comparison-basis facts and external-equity-financing semantics described in the migration guide.
+No database or Alembic migration is required for v1.5.05. Existing machine integrations may continue consuming canonical `ResearchRunResult` and `DecisionSummary`; complete v1.5.05 professional output should use `ResearchViewPresenter` followed by `ResearchReportComposer`.
 
-v1.5.04 deliberately does not add a full Hospitality Plugin, a second generic-financial Decision state machine, comprehensive lease-adjusted valuation, or a Forecast subsystem rewrite.
+v1.5.05 deliberately does not add a full Hospitality Plugin, a lease-adjusted valuation engine, a second generic-financial Decision state machine, a second Completion Gate, a Forecast subsystem rewrite, automatic trading logic, or company-specific Core logic.
 
-See `docs/migrations/v1.5.04.md`, `docs/migrations/v1.5.03.md`, `docs/migrations/v1.5.02.md`, `docs/migrations/v1.5.01.md`, `docs/architecture/plugin-authoring-v1.md`, `CHANGELOG.md`, and the v1.5.04 field-correctness design/plan under `docs/superpowers/`.
+See `docs/migrations/v1.5.05.md`, `docs/migrations/v1.5.04.md`, `docs/migrations/v1.5.03.md`, `docs/migrations/v1.5.02.md`, `docs/migrations/v1.5.01.md`, `docs/architecture/plugin-authoring-v1.md`, `CHANGELOG.md`, and the v1.5.05 design/implementation plan under `docs/superpowers/`.
