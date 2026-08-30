@@ -9,6 +9,7 @@ Implement v1.5.02 / SemVer 1.5.2 directly on `main`, preserving the v1.4/v1.5.01
 - `ResearchCompletionGate` remains the only COMPLETE/INCOMPLETE authority.
 - `ResearchRunResult` remains the canonical machine result.
 - Presentation is one-way and read-only.
+- Canonical professional KPI / Driver / Thesis execution follows the primary business model only; secondary models remain classification and coverage metadata.
 - No Hotel/Hospitality plugin in this release.
 - No company-specific logic.
 - No fabricated data or missing-value coercion.
@@ -24,26 +25,33 @@ Add focused tests for:
 3. severe debt-funded negative-OCF funding loop drives DecisionEngine through `material_risk` into `RISK_REVIEW`;
 4. end-to-end research view renders coverage gaps, KPI metrics, funding loop, drivers, thesis and valuation states human-readably;
 5. expectation quality flags thin and stale consensus using existing `ConsensusVintage` fields;
-6. built-in industry plugins return structured non-empty report contributions.
+6. built-in industry plugins return structured non-empty report contributions;
+7. a secondary compatible industry plugin cannot contaminate the primary KPI chain;
+8. a coverage-limited fallback Driver Graph cannot be promoted to completion PASS merely because the graph object exists.
 
 Commit tests first and verify CI fails for the intended missing behavior.
 
-## Task 2 — Business-model and narrative coverage correctness
+## Task 2 — Business-model, strategy-isolation and narrative correctness
 
 Files:
 
 - `src/research_os/runtime/builtin_modules.py`
+- `src/research_os/runtime/factory.py`
+- `src/research_os/plugins/resolver.py`
 - `src/research_os/drivers/models.py`
 - tests added in Task 1
 
 Changes:
 
 - Business Model module status derives from `classification_status`.
+- StrategyResolver executes only the primary business model's industry plugin in the canonical chain.
+- Secondary business models remain classification/coverage metadata; unsupported secondary models retain Coverage Gaps, compatible secondary plugins are not co-executed.
 - DriverThesisModule consumes `strategy.resolution`.
 - Unsupported primary specialized coverage produces a generic, explicitly coverage-limited Driver Graph and no Thesis/Claim.
-- Specialized covered paths remain unchanged.
+- Completion aggregation preserves Driver Graph `INSUFFICIENT_EVIDENCE` for coverage-limited fallback graphs.
+- Specialized primary-covered paths remain unchanged.
 
-Verify targeted tests green.
+Verify targeted tests green and old resolver/correctness regressions remain compatible.
 
 ## Task 3 — Funding-loop material-risk bridge
 
@@ -77,7 +85,7 @@ Add a read-only `ExpectationQualityAssessment` with deterministic quality state 
 - `source_quality`
 - consensus age relative to decision timestamp.
 
-Store it as an artifact such as `expectation.quality`. Do not replace existing expectation evidence validation.
+Store it as `expectation.quality`. Do not replace existing expectation evidence validation.
 
 Verify thin/stale/adequate cases.
 
@@ -87,9 +95,10 @@ Files:
 
 - `src/research_os/reporting/contributions.py`
 - `src/research_os/plugins/builtins.py`
+- `src/research_os/runtime/factory.py`
 - plugin contract tests
 
-Add optional metadata to `ReportContribution` and non-empty built-in Manufacturing/Distributor contributions. Preserve protocol compatibility.
+Add optional metadata to `ReportContribution` and non-empty built-in Manufacturing/Distributor contributions. Preserve protocol compatibility. Persist selected contributions into canonical runtime artifacts before snapshot so presentation does not reconstruct plugin state independently.
 
 Verify both plugins satisfy `IndustryStrategyPack` runtime protocol and contribution content is structured.
 
@@ -108,12 +117,12 @@ Required sections:
 
 - baseline/version identity;
 - business model and classification status;
-- plugin selections;
+- primary plugin selections and secondary coverage metadata;
 - coverage gaps;
 - report contributions;
 - KPIs;
 - funding loop;
-- driver graph;
+- driver graph and coverage scope;
 - thesis/anti-thesis/falsifiers;
 - expectation quality;
 - valuation routing;
@@ -132,6 +141,7 @@ Files:
 - `research_os_version.json`
 - `src/research_os/release/runtime.py`
 - new `tests/regression/architecture/test_release_contract_v1_5_02.py`
+- forward-compatible `tests/regression/architecture/test_release_contract_v1_5_01.py`
 - `README.md`
 - `CHANGELOG.md`
 - `docs/migrations/v1.5.02.md`
@@ -142,9 +152,10 @@ Set:
 - public version `1.5.2`
 - display name `v1.5.02`
 - report version `semantic-research-view@1.0.0`
+- driver model `core:driver-thesis@1.1.0`
 - Core API `1.0`
 
-Add release gates for the new correctness properties.
+Add release gates for all new correctness properties while retaining earlier v1.5.01/v1.4/correctness gates.
 
 ## Task 8 — Verification
 
@@ -158,4 +169,4 @@ Fresh verification on final remote `main`:
 6. inspect remote `main` HEAD and CI logs;
 7. confirm no unrelated repositories/files changed and no secrets introduced.
 
-Do not claim release completion unless the final commit has fresh green evidence.
+Do not claim release completion unless the exact final remote commit has fresh green evidence.
