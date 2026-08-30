@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.5.3 — 2026-08-30
+
+### Added
+State Provenance for high-level fundamental, valuation and expectation states; structured professional-question coverage with capability/evidence requirements; event-relative consensus freshness; quantitative display semantics with formatted value, unit and reporting-period context; valuation-execution and assumption-lineage fields in the professional research view; and explicit factoring / receivable-transfer / working-capital-financing exposure metrics for distributor research.
+
+### Changed
+`BusinessModelRouter` is now `router@1.2.0` and suppresses the low-PPE distributor heuristic when right-of-use assets or lease liabilities show a lease-heavy operating model. Driver lineage is fact-specific rather than attaching the complete run evidence set to every node. Manufacturing Driver Graphs use available revenue, margin, working-capital, capex and cash evidence instead of the generic Revenue/Margin/FCF-only graph. The thesis engine no longer defaults to `Fundamentals improve`; directional evidence determines whether operating evidence is improving, mixed, weakening or insufficient. Complete human-facing research now uses `professional-research-view@1.1.0`. Built-in Manufacturing and Distributor plugin manifests are `1.1.0`.
+
+### Fixed
+Prevents analyst-supplied high-level states from being narrated as Research OS-derived conclusions. Prevents mixed manufacturing evidence from producing an unsupported positive thesis. Prevents lease-heavy hotels, retailers and similar operators from receiving a distributor signal solely because owned PPE is low. Prevents a calendar-fresh consensus that predates a material new disclosure from being treated as information-fresh. Prevents professional-looking plugin questions from being mistaken for answered professional coverage. Preserves factoring and receivable-transfer exposures as economic financing information without automatically relabeling them as debt.
+
+### Validation
+Release Gate adds `state_provenance`, `driver_specific_lineage`, `evidence_driven_thesis`, `professional_question_coverage`, `event_relative_expectations`, `lease_aware_router`, `working_capital_financing_exposure`, and `quantitative_presentation_semantics`, while retaining all v1.5.02, v1.5.01, v1.4 and earlier correctness gates.
+
+### Migration
+No database or Alembic migration is required. Existing machine integrations may continue consuming canonical `ResearchRunResult` and `DecisionSummary`; complete human-facing research should use `ResearchViewPresenter`. See `docs/migrations/v1.5.03.md`.
+
+### Compatibility
+`CORE_API_VERSION` remains `1.0`. `ResearchCompletionGate` remains the sole source of `COMPLETE` / `INCOMPLETE`; no second decision or completion system is introduced. v1.5.03 deliberately does not add a full Hospitality Plugin, comprehensive lease-adjusted valuation, or a Forecast subsystem rewrite.
+
 ## 1.5.2 — 2026-08-30
 
 ### Added
@@ -69,7 +89,7 @@ Interim balance/flow KPIs now use explicit reporting-period semantics instead of
 Distributor and Manufacturing period-sensitive metrics share one period contract. Distributor inventory turnover exposes both period turns and annualized turns where the reporting period is known. Funding-loop classification can return `unknown`, which maps to `INSUFFICIENT_EVIDENCE`. KPI Pack completion requires specialized support for the routed primary model. Claim capabilities are normalized before completion-policy evaluation so expectation, valuation and decision claims are not conflated.
 
 ### Validation
-Release Gate adds five v1.2.1 semantic checks: `period_semantics`, `missing_value_semantics`, `kpi_applicability`, `completion_consistency`, and `version_consistency`. CI runs an anonymous cross-cutting v1.2.1 regression before migration smoke, the full test suite and the release gate.
+Release Gate adds five v1.2.1 semantic checks: `period_semantics`, `missing_value_semantics`, `kpi_applicability`, `completion_consistency`, and `version_consistency`. CI runs an anonymous cross-cutting v1.2.1 regression before migration smoke, the full suite and the release gate.
 
 ### Migration
 No database or Alembic migration is required for v1.2.1. The reversible v1.2 Evidence-lineage migration remains the current schema baseline. Historical tags and versioned research snapshots remain immutable.
