@@ -4,7 +4,7 @@
   "status":"stable",
   "module_versions":{
     "finance_core":"2.0.1",
-    "router":"1.1.0",
+    "router":"1.2.0",
     "driver_engine":"1.1.0",
     "thesis_engine":"1.0.0",
     "expectation_engine":"1.1.0",
