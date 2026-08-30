@@ -169,4 +169,4 @@ class ResearchReportDocument(BaseModel):
     decision_snapshot: InvestmentDecisionSnapshot
     sections: list[ReportSection] = Field(default_factory=list)
     audit_appendix: AuditAppendix
-    composition_version: str = "research-report-composer@1.0.0"
+    composition_version: str = "research-report-composer@1.1.0"
