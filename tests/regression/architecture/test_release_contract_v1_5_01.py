@@ -43,9 +43,13 @@ def test_v1_5_01_release_documentation_exists():
     migration = Path("docs/migrations/v1.5.01.md")
     readme = Path("README.md").read_text()
     changelog = Path("CHANGELOG.md").read_text()
+    protocol = Path("docs/prompts/stock_research.md").read_text()
 
     assert migration.exists()
     assert "v1.5.01" in readme
     assert "1.5.1" in changelog
     assert "DecisionSummaryPresenter" in migration.read_text()
     assert "ResearchCompletionGate" in migration.read_text()
+    assert "DecisionSummaryPresenter" in protocol
+    assert "machine code → localized label → localized explanation" in protocol
+    assert "must not be the primary research conclusion" in protocol
