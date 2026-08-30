@@ -1,12 +1,9 @@
 from datetime import datetime, timezone
 
 from research_os.reporting import (
-    HumanReadableCapitalEfficiency,
     HumanReadableCoverageGap,
     HumanReadableDecisionSummary,
     HumanReadableExpectationQuality,
-    HumanReadableFinancialSanity,
-    HumanReadableForecastDiscipline,
     HumanReadableFundingLoop,
     HumanReadableMetric,
     HumanReadableResearchView,
@@ -17,6 +14,11 @@ from research_os.reporting import (
     HumanReadableValuationModel,
     ResearchReportComposer,
     SemanticValue,
+)
+from research_os.reporting.research_view import (
+    HumanReadableCapitalEfficiency,
+    HumanReadableFinancialSanity,
+    HumanReadableForecastDiscipline,
 )
 
 
