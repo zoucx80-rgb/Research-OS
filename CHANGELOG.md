@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.5.7 — 2026-08-30
+
+### Added
+Public `ResearchReportMarkdownRenderer` with fingerprint `professional-markdown-renderer@1.0.0`. It deterministically renders one canonical `ResearchReportDocument` into zh-CN Markdown with an investment-decision snapshot, typed research sections, monitoring, classified research gaps, limitations, and a separate audit appendix.
+
+### Changed
+The complete professional-output chain is now `ResearchRunResult → HumanReadableResearchView → ResearchReportComposer → ResearchReportDocument → ResearchReportMarkdownRenderer → Markdown`. The renderer is presentation-only: it selects and formats fields already present in the document and does not recalculate research semantics.
+
+### Fixed
+Prevents downstream report production from falling back to ad-hoc dictionary/Python-repr dumping. Raw evidence IDs, raw assumption IDs, repository/plugin/module metadata remain outside primary investment prose. Distributor financing/factoring semantics remain visible without relabeling factoring as debt, and lease-heavy Hospitality/no-plugin output remains capability-limited without fabricated RevPAR/ADR/OCC or lease-adjusted economics.
+
+### Validation
+Release Gate adds `markdown_renderer_v1_5_07` and `renderer_cross_model_v1_5_07` while retaining every historical gate. Permanent renderer regressions cover Manufacturing, Distributor, and lease-heavy Hospitality/no-plugin patterns in addition to deterministic/type-bound rendering and audit separation.
+
+### Migration
+No database or Alembic migration is required. See `docs/migrations/v1.5.07.md`.
+
+### Compatibility
+`CORE_API_VERSION` remains `1.0`; `professional-research-view@1.3.0` and `research-report-composer@1.1.0` remain unchanged. No HTML/CSS/PDF engine, Hospitality Plugin, lease-adjusted valuation engine, Forecast rewrite, automatic trading logic, or company-specific Core logic is introduced.
+
 ## 1.5.6 — 2026-08-30
 
 ### Added
@@ -106,7 +126,7 @@ No database or Alembic migration is required. Existing machine integrations may 
 Business-model classification semantics that distinguish successful classification, unsupported taxonomy, and insufficient evidence; `hospitality` as a representable standard business-model taxonomy; structured CoverageGap metadata (`reason_code`, `affected_capabilities`, `fallback_available`); and `DecisionSummaryPresenter` / `HumanReadableDecisionSummary` for canonical zh-CN human-facing presentation.
 
 ### Changed
-`BusinessModelRouter` is now `router@1.1.0`. Its period-sensitive `inventory_to_revenue` feature only contributes when the Evidence period is explicitly annual, preventing interim balance/flow ratios from silently biasing cross-company classification. `StrategyResolver` now distinguishes business-model taxonomy/evidence gaps from the normal case of a represented business model lacking an industry plugin. The default report version is `semantic-report@1.0.0`.
+`BusinessModelRouter` is now `router@1.1.0`. Its period-sensitive `inventory_to_revenue` feature only contributes when its Evidence period is explicitly annual, preventing interim balance/flow ratios from silently biasing cross-company classification. `StrategyResolver` now distinguishes business-model taxonomy/evidence gaps from the normal case of a represented business model lacking an industry plugin. The default report version is `semantic-report@1.0.0`.
 
 ### Fixed
 Prevents `unknown` business-model output from collapsing unsupported taxonomy and missing evidence into the same misleading industry-plugin gap. Prevents internal enum/reason-code strings from being the primary human-facing research conclusion by introducing an explicit machine-code → zh-CN label → zh-CN explanation contract. The presenter preserves raw codes only as technical metadata and does not recalculate research states.
