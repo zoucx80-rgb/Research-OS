@@ -181,9 +181,31 @@ class StrategyResolver:
                         f"auto-selected {plugin.manifest.plugin_id} for primary business model {profile.primary_model}"
                     )
 
+        for secondary_model in profile.secondary_models:
+            choice = self._automatic_industry_for_model(
+                secondary_model,
+                context,
+                registry,
+            )
+            if choice is None:
+                gaps.append(
+                    CoverageGap(
+                        gap_type="industry_strategy",
+                        business_model=secondary_model,
+                        reason="no compatible industry strategy plugin for secondary business model",
+                        reason_code="NO_COMPATIBLE_INDUSTRY_PLUGIN",
+                        affected_capabilities=["industry_strategy"],
+                        fallback_available=True,
+                    )
+                )
+            else:
+                plugin, _ = choice
+                rationale.append(
+                    f"compatible secondary industry plugin {plugin.manifest.plugin_id} retained as coverage metadata only"
+                )
         if profile.secondary_models:
             rationale.append(
-                "secondary business models retained as classification metadata; canonical industry strategy follows primary model only"
+                "secondary business models retained as classification and coverage metadata; canonical industry strategy follows primary model only"
             )
 
         available_capabilities = set(self._BASE_CAPABILITIES)
