@@ -69,6 +69,12 @@ CHECKS: dict[str,str]={
     "lease_aware_router":"tests/regression/research_patterns/test_v1_5_03_professional_integrity.py::test_material_right_of_use_assets_suppress_low_ppe_distributor_heuristic",
     "working_capital_financing_exposure":"tests/regression/research_patterns/test_v1_5_03_professional_integrity.py::test_distributor_pack_exposes_factoring_and_total_financing_burden_without_relabeling_as_debt",
     "quantitative_presentation_semantics":"tests/regression/research_patterns/test_v1_5_03_professional_integrity.py::test_human_readable_metric_formats_percentage_days_and_period_semantics",
+    "reported_yoy_rounding":"tests/regression/research_patterns/test_v1_5_04_field_correctness.py::test_reported_yoy_rounding_does_not_fail_financial_sanity",
+    "canonical_ocf_falsifier":"tests/regression/research_patterns/test_v1_5_04_field_correctness.py::test_negative_ocf_triggers_cash_thesis_falsifier_and_limits_lineage",
+    "explicit_equity_financing":"tests/regression/research_patterns/test_v1_5_04_field_correctness.py::test_book_equity_change_is_not_external_financing_or_dilution",
+    "delta_comparison_basis":"tests/regression/research_patterns/test_v1_5_04_field_correctness.py::test_incomparable_delta_bases_do_not_produce_incremental_ratios",
+    "funding_aware_pe_fitness":"tests/regression/research_patterns/test_v1_5_04_field_correctness.py::test_debt_funded_negative_ocf_distributor_cannot_route_pe_as_primary",
+    "material_artifact_projection":"tests/regression/research_patterns/test_v1_5_04_field_correctness.py::test_professional_view_projects_material_canonical_artifacts",
 }
 
 ROOT=Path(__file__).resolve().parents[3]

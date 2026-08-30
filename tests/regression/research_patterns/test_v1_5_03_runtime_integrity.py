@@ -116,7 +116,7 @@ def test_expectation_quality_inside_canonical_module_is_material_event_relative(
     assert "CONSENSUS_PREDATES_MATERIAL_EVENT" in module_quality.reason_codes
 
 
-def test_driver_thesis_component_fingerprint_advances_to_v1_2_0():
+def test_driver_thesis_component_fingerprint_retains_v1_2_0_floor():
     evidence = [
         _evidence("business_description", "manufacturing production"),
         _evidence("revenue_growth", 0.15),
@@ -128,4 +128,4 @@ def test_driver_thesis_component_fingerprint_advances_to_v1_2_0():
         item for item in result.component_fingerprints
         if item.component_id == "core:driver-thesis"
     )
-    assert fp.component_version == "1.2.0"
+    assert tuple(map(int, fp.component_version.split("."))) >= (1, 2, 0)

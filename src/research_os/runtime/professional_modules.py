@@ -11,9 +11,9 @@ from research_os.runtime.provenance import resolve_state_input
 
 
 class ProfessionalDriverThesisModule(DriverThesisModule):
-    """v1.5.03 driver/thesis contract under the canonical module identity."""
+    """Professional driver/thesis contract under the canonical module identity."""
 
-    spec = DriverThesisModule.spec.model_copy(update={"module_version": "1.2.0"})
+    spec = DriverThesisModule.spec.model_copy(update={"module_version": "1.3.0"})
 
 
 class ProfessionalExpectationModule(ExpectationModule):
@@ -90,7 +90,7 @@ class ProfessionalDecisionModule(DecisionModule):
 
 
 def build_professional_builtin_modules(*, registry, inputs: ResearchInputs | None = None):
-    """Compose v1.5.03 behavior without duplicating the canonical pipeline."""
+    """Compose professional behavior without duplicating the canonical pipeline."""
 
     run_inputs = inputs or ResearchInputs()
     modules = build_builtin_modules(registry=registry, inputs=run_inputs)

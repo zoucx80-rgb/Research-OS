@@ -139,9 +139,9 @@ Presentation must never calculate, promote, demote or otherwise modify completio
 
 Complete human-facing stock research uses `ResearchViewPresenter`, not only the narrow `DecisionSummaryPresenter`.
 
-### v1.5.03 Professional Research View
+### v1.5.04 Professional Research View
 
-For v1.5.03, the canonical full human presentation fingerprint is **`professional-research-view@1.1.0`**.
+For v1.5.04, the canonical full human presentation fingerprint is **`professional-research-view@1.2.0`**. Historical v1.5.03 snapshots retain their recorded `professional-research-view@1.1.0` fingerprint.
 
 Required one-way direction:
 
@@ -159,13 +159,17 @@ The professional view should expose, from the same canonical result where availa
 - business-model classification and classification status;
 - primary industry and methodology plugin selections;
 - Coverage Gaps and professional-question assessments;
+- Financial Sanity scope and process status without implying economic health;
 - KPI values and validity;
+- Capital Efficiency and comparison-basis limitations;
 - Funding Loop and economic financing exposures;
 - Driver Graph nodes/relations, coverage scope and driver-specific lineage;
 - Thesis / Anti-Thesis / Falsifiers and thesis-signal assessment;
 - market-expectation quality, including event-relative freshness;
+- Forecast Discipline and the reason a forecast is not promoted;
 - valuation routing and valuation execution/assumption lineage;
 - high-level state provenance;
+- the canonical next-verification event;
 - the same canonical Decision/Completion result.
 
 The presenter is a read-only projection. It does not become a second research engine.
@@ -183,6 +187,8 @@ A statement such as “基本面改善” must not be followed by “当前证�
 Driver lineage should be fact-specific. Do not attach the complete evidence set to every driver merely to satisfy a formal lineage requirement. A critical driver should identify the evidence supporting that driver or explicitly remain under-supported.
 
 The built-in Thesis layer must not assume `Fundamentals improve` solely because a supported industry plugin is present. Directional evidence must support the thesis. Mixed or weakening evidence must remain mixed/weakening/insufficient rather than being forced into a positive statement.
+
+For v1.5.04+, `cfo`, `ocf`, and `operating_cash_flow` are aliases when evaluating operating-cash-flow falsifiers; newly created built-in falsifiers use canonical `ocf`. Thesis support must come from the evidence attached to the drivers/signals actually used, not from the complete PIT evidence set.
 
 Manufacturing research should connect supported operating evidence such as revenue, margin, receivables, inventory, capex and cash generation. Specialized drivers such as backlog, utilization, yield, qualification or product mix may enter only when corresponding capabilities/evidence exist.
 
@@ -213,6 +219,14 @@ For lease-heavy operating models, low owned PPE is not sufficient evidence of a 
 For distributor/working-capital research, expose factoring, derecognized receivables, receivable transfers and other working-capital financing when evidenced. These are economic financing exposures but must **not automatically be relabeled as debt**. Preserve their accounting/legal nature and analyze financing burden separately.
 
 Comprehensive lease-adjusted ROIC/DCF is not implied by v1.5.03 unless a compatible methodology explicitly implements it.
+
+### v1.5.04 delta and equity-financing semantics
+
+Before calculating a ratio between delta facts, require matching non-empty `<fact>_comparison_basis` facts. Missing or unequal comparison bases preserve a missing metric and an explicit limitation; do not combine H1-over-H1 flow changes with year-end-to-H1 balance changes.
+
+Treat `delta_equity` as reported book-equity change only. External equity funding requires `external_equity_financing`; dilution language requires `equity_dilution=True`. Do not infer financing or dilution from retained earnings or other accounting equity movements.
+
+For a distributor whose canonical Funding Loop is debt-funded and includes negative operating cash flow, the existing Valuation Router must prevent PE from becoming the primary method solely through generic analyst fitness scores. This is a model-fitness overlay, not a second decision or risk engine.
 
 ## Machine-Enforced Safety Gates
 

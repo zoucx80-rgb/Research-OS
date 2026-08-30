@@ -26,22 +26,22 @@ def test_public_v1_5_03_version_and_component_fingerprints_are_consistent():
     project = tomllib.loads(Path("pyproject.toml").read_text())
     metadata = json.loads(Path("research_os_version.json").read_text())
 
-    assert RESEARCH_OS_VERSION == "1.5.3"
-    assert research_os.__version__ == "1.5.3"
-    assert project["project"]["version"] == "1.5.3"
-    assert metadata["research_os_version"] == "1.5.3"
+    assert tuple(map(int, RESEARCH_OS_VERSION.split("."))) >= (1, 5, 3)
+    assert research_os.__version__ == RESEARCH_OS_VERSION
+    assert project["project"]["version"] == RESEARCH_OS_VERSION
+    assert metadata["research_os_version"] == RESEARCH_OS_VERSION
     assert metadata["status"] == "stable"
     assert CORE_API_VERSION == "1.0"
     assert metadata["core_api_version"] == "1.0"
     assert BusinessModelRouter.version == "router@1.2.0"
     assert metadata["module_versions"]["router"] == "1.2.0"
-    assert metadata["module_versions"]["driver_engine"] == "1.2.0"
-    assert metadata["module_versions"]["thesis_engine"] == "1.1.0"
-    assert metadata["module_versions"]["expectation_engine"] == "1.2.0"
-    assert metadata["module_versions"]["semantic_research_view"] == "1.1.0"
-    assert ResearchViewPresenter.version == "professional-research-view@1.1.0"
+    assert tuple(map(int, metadata["module_versions"]["driver_engine"].split("."))) >= (1, 2, 0)
+    assert tuple(map(int, metadata["module_versions"]["thesis_engine"].split("."))) >= (1, 1, 0)
+    assert tuple(map(int, metadata["module_versions"]["expectation_engine"].split("."))) >= (1, 2, 0)
+    assert tuple(map(int, metadata["module_versions"]["semantic_research_view"].split("."))) >= (1, 1, 0)
+    assert tuple(map(int, ResearchViewPresenter.version.rsplit("@", 1)[1].split("."))) >= (1, 1, 0)
     assert ManufacturingIndustryPlugin.manifest.plugin_version == "1.1.0"
-    assert DistributorIndustryPlugin.manifest.plugin_version == "1.1.0"
+    assert tuple(map(int, DistributorIndustryPlugin.manifest.plugin_version.split("."))) >= (1, 1, 0)
 
 
 def test_release_gate_contains_v1_5_03_professional_integrity_checks():

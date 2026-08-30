@@ -79,12 +79,43 @@ class HumanReadableFundingLoop(BaseModel):
     incremental_nwc: float | None = None
     incremental_debt: float | None = None
     incremental_equity: float | None = None
+    reported_equity_change: float | None = None
     operating_cash_flow: float | None = None
     factoring_balance: float | None = None
     derecognized_receivables: float | None = None
     receivable_transfer_balance: float | None = None
     other_working_capital_financing: float | None = None
     factoring_to_ar: float | None = None
+    comparison_basis_status: SemanticValue | None = None
+    comparison_basis_limitations: list[SemanticValue] = Field(default_factory=list)
+
+
+class HumanReadableFinancialSanity(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    status: SemanticValue
+    explanation: str
+
+
+class HumanReadableCapitalEfficiency(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    calculation_status: SemanticValue
+    roic: float | None = None
+    incremental_roic: float | None = None
+    iwcr: float | None = None
+    iwcr_limitation: SemanticValue | None = None
+
+
+class HumanReadableForecastDiscipline(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    status: SemanticValue
+    reason: str
+
+
+class HumanReadableNextVerificationEvent(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    event_name: str
+    event_time: datetime | None = None
+    evidence_ids: list[str] = Field(default_factory=list)
 
 
 class HumanReadableDriverNode(BaseModel):
@@ -162,6 +193,7 @@ class HumanReadableValuationModel(BaseModel):
     explanation: str
     score: float
     status: SemanticValue
+    reasons: list[SemanticValue] = Field(default_factory=list)
 
 
 class HumanReadableValuationExecution(BaseModel):
@@ -201,23 +233,27 @@ class HumanReadableResearchView(BaseModel):
     coverage_gaps: list[HumanReadableCoverageGap] = Field(default_factory=list)
     report_contributions: list[HumanReadableReportContribution] = Field(default_factory=list)
     question_assessments: list[HumanReadableQuestionAssessment] = Field(default_factory=list)
+    financial_sanity: HumanReadableFinancialSanity | None = None
     kpi_metrics: list[HumanReadableMetric] = Field(default_factory=list)
+    capital_efficiency: HumanReadableCapitalEfficiency | None = None
     funding_loop: HumanReadableFundingLoop | None = None
     driver_graph: HumanReadableDriverGraph | None = None
     theses: list[HumanReadableThesis] = Field(default_factory=list)
     thesis_signal_assessment: HumanReadableThesisSignalAssessment | None = None
     expectation_quality: HumanReadableExpectationQuality | None = None
+    forecast_discipline: HumanReadableForecastDiscipline | None = None
     valuation_models: list[HumanReadableValuationModel] = Field(default_factory=list)
     valuation_execution: HumanReadableValuationExecution | None = None
     state_provenance: list[HumanReadableStateProvenance] = Field(default_factory=list)
+    next_verification_event: HumanReadableNextVerificationEvent | None = None
     decision_summary: HumanReadableDecisionSummary
-    presentation_version: str = "professional-research-view@1.1.0"
+    presentation_version: str = "professional-research-view@1.2.0"
 
 
 class ResearchViewPresenter:
     """One-way human-readable projection of one canonical ResearchRunResult."""
 
-    version = "professional-research-view@1.1.0"
+    version = "professional-research-view@1.2.0"
     _SUPPORTED_LOCALE = "zh-CN"
 
     _CLASSIFICATION = {
@@ -296,6 +332,13 @@ class ResearchViewPresenter:
     }
     _METRIC_REASONS = {
         "PERIOD_LENGTH_REQUIRED": ("缺少报告期长度", "该期间敏感指标需要明确的报告期长度，当前不会默认使用365天。"),
+        "COMPARISON_BASIS_REQUIRED": ("缺少可比期间基准", "增量指标需要为分子和分母提供明确且一致的比较期间，当前不会混用未声明基准的增量。"),
+        "COMPARISON_BASIS_MISMATCH": ("比较期间基准不一致", "增量指标的分子和分母来自不同比较期间，当前不会形成该比率。"),
+    }
+    _COMPARISON_STATUS = {
+        "PASS": ("比较期间基准一致", "用于当前融资判断的增量事实具有一致的比较期间基准。"),
+        "INSUFFICIENT_EVIDENCE": ("比较期间证据不足", "一个或多个增量事实缺少比较期间基准，或基准彼此不一致。"),
+        "NOT_APPLICABLE": ("当前无增量比较", "当前融资结果没有使用需要比较期间基准的增量比率。"),
     }
     _FUNDING_STATES = {
         "unknown": ("融资循环状态尚不明确", "当前证据不足以可靠判断营运资金的融资方式。"),
@@ -360,6 +403,12 @@ class ResearchViewPresenter:
         "SANITY_CHECK": ("估值合理性校验", "该模型仅用于检查主要估值结果是否明显失真。"),
         "LOW_CONFIDENCE": ("低置信度估值参考", "该模型适用性较低，只能作为低置信度参考。"),
         "NOT_APPLICABLE": ("当前不适用", "该估值模型在当前业务和证据条件下不适用。"),
+    }
+    _VALUATION_REASONS = {
+        "CASH_FUNDING_RISK_PE_PENALTY": ("现金与融资风险限制PE适用性", "该分销业务的营运资金由债务驱动且经营现金流为负，PE不能作为主要估值方法。"),
+    }
+    _FORECAST_REASONS = {
+        "no promoted forecast methodology": "当前没有通过样本外证据与基准检验后获准进入生产链的预测方法，因此不形成系统预测。",
     }
     _QUESTION_STATUS = {
         "ANSWERED": ("当前问题具备规范化覆盖", "所需能力和证据已经进入当前研究运行，可结合对应模块查看结论。"),
@@ -545,6 +594,35 @@ class ResearchViewPresenter:
             evidence_ids=list(self._get(item, "evidence_ids", []) or []),
         )
 
+    def _financial_sanity(self, item, module_status: str | None) -> HumanReadableFinancialSanity | None:
+        if item is None and module_status is None:
+            return None
+        status = module_status or self._get(item, "status", "INSUFFICIENT_EVIDENCE")
+        return HumanReadableFinancialSanity(
+            status=self._semantic(status, self._MODULE_EXECUTION_STATUS, "财务一致性校验状态尚未配置中文说明"),
+            explanation="该状态仅表示财务口径、单位、比例与已声明关系的一致性校验结果，不代表经营状况健康。",
+        )
+
+    def _capital_efficiency(self, item, module_status: str | None) -> HumanReadableCapitalEfficiency | None:
+        if item is None:
+            return None
+        limitation = self._get(item, "iwcr_reason_code")
+        return HumanReadableCapitalEfficiency(
+            calculation_status=self._semantic(
+                module_status or "INSUFFICIENT_EVIDENCE",
+                self._MODULE_EXECUTION_STATUS,
+                "资本效率模块状态尚未配置中文说明",
+            ),
+            roic=self._get(item, "roic"),
+            incremental_roic=self._get(item, "incremental_roic"),
+            iwcr=self._get(item, "iwcr"),
+            iwcr_limitation=(
+                self._semantic(limitation, self._METRIC_REASONS, "增量营运资金指标限制尚未配置中文说明")
+                if limitation
+                else None
+            ),
+        )
+
     def _funding_reason(self, code: Any) -> SemanticValue:
         raw = str(code)
         if raw in self._FUNDING_REASONS:
@@ -562,12 +640,22 @@ class ResearchViewPresenter:
             incremental_nwc=self._get(funding, "incremental_nwc"),
             incremental_debt=self._get(funding, "incremental_debt"),
             incremental_equity=self._get(funding, "incremental_equity"),
+            reported_equity_change=self._get(funding, "reported_equity_change"),
             operating_cash_flow=self._get(funding, "operating_cash_flow"),
             factoring_balance=self._get(funding, "factoring_balance"),
             derecognized_receivables=self._get(funding, "derecognized_receivables"),
             receivable_transfer_balance=self._get(funding, "receivable_transfer_balance"),
             other_working_capital_financing=self._get(funding, "other_working_capital_financing"),
             factoring_to_ar=self._get(funding, "factoring_to_ar"),
+            comparison_basis_status=self._semantic(
+                self._get(funding, "comparison_basis_status", "NOT_APPLICABLE"),
+                self._COMPARISON_STATUS,
+                "比较期间状态尚未配置中文说明",
+            ),
+            comparison_basis_limitations=[
+                self._semantic(item, self._METRIC_REASONS, "比较期间限制尚未配置中文说明")
+                for item in list(self._get(funding, "comparison_basis_errors", []) or [])
+            ],
         )
 
     def _driver_label(self, driver_id: str, fallback_name: str = "") -> tuple[str, str]:
@@ -664,8 +752,40 @@ class ResearchViewPresenter:
         result = []
         for model_id, model in items:
             label, explanation = self._VALUATION_MODELS.get(str(model_id), ("其他估值方法", "当前版本尚未为该扩展估值模型配置专门中文说明。"))
-            result.append(HumanReadableValuationModel(model_id=str(model_id), label=label, explanation=explanation, score=float(self._get(model, "score", 0.0)), status=self._semantic(self._get(model, "status", ""), self._VALUATION_ROUTES, "估值模型状态尚未配置中文说明")))
+            result.append(HumanReadableValuationModel(
+                model_id=str(model_id),
+                label=label,
+                explanation=explanation,
+                score=float(self._get(model, "score", 0.0)),
+                status=self._semantic(self._get(model, "status", ""), self._VALUATION_ROUTES, "估值模型状态尚未配置中文说明"),
+                reasons=[
+                    self._semantic(item, self._VALUATION_REASONS, "估值适用性限制尚未配置中文说明")
+                    for item in list(self._get(model, "reason_codes", []) or [])
+                ],
+            ))
         return sorted(result, key=lambda value: value.score, reverse=True)
+
+    def _forecast_discipline(self, item, module_status: str | None) -> HumanReadableForecastDiscipline | None:
+        if item is None:
+            return None
+        reason = str(self._get(item, "reason", "") or "")
+        return HumanReadableForecastDiscipline(
+            status=self._semantic(
+                module_status or self._get(item, "status", "NOT_APPLICABLE"),
+                self._MODULE_EXECUTION_STATUS,
+                "预测纪律状态尚未配置中文说明",
+            ),
+            reason=self._FORECAST_REASONS.get(reason, reason or "当前没有可展示的预测纪律说明。"),
+        )
+
+    def _next_verification_event(self, item) -> HumanReadableNextVerificationEvent | None:
+        if item is None:
+            return None
+        return HumanReadableNextVerificationEvent(
+            event_name=str(self._get(item, "event_name", "")),
+            event_time=self._get(item, "event_time"),
+            evidence_ids=list(self._get(item, "evidence_ids", []) or []),
+        )
 
     def _valuation_execution(self, execution) -> HumanReadableValuationExecution | None:
         if execution is None:
@@ -732,7 +852,10 @@ class ResearchViewPresenter:
         profile = result.business_model
         resolution = result.strategy_resolution
         artifacts = result.artifacts
+        financial_result = result.module_results.get("core:financial-sanity")
+        capital_result = result.module_results.get("core:capital-efficiency")
         funding_result = result.module_results.get("core:funding-loop")
+        forecast_result = result.module_results.get("core:forecast-discipline")
         classification_reason = profile.classification_reason
         return HumanReadableResearchView(
             company_id=result.company.company_id,
@@ -750,15 +873,28 @@ class ResearchViewPresenter:
             coverage_gaps=[self._gap(item) for item in resolution.coverage_gaps],
             report_contributions=[self._contribution(item) for item in list(artifacts.get("report.contributions", []) or [])],
             question_assessments=[self._question(item) for item in list(artifacts.get("report.question_assessments", []) or [])],
+            financial_sanity=self._financial_sanity(
+                artifacts.get("validation.financial"),
+                getattr(financial_result, "status", None),
+            ),
             kpi_metrics=[self._metric(item) for item in list(artifacts.get("kpi.metrics", []) or [])],
+            capital_efficiency=self._capital_efficiency(
+                artifacts.get("capital.efficiency"),
+                getattr(capital_result, "status", None),
+            ),
             funding_loop=self._funding(artifacts.get("capital.funding_loop"), getattr(funding_result, "status", None)),
             driver_graph=self._driver_graph(artifacts.get("drivers.graph")),
             theses=[self._thesis(item) for item in list(artifacts.get("thesis.items", []) or [])],
             thesis_signal_assessment=self._thesis_signals(artifacts.get("thesis.signal_assessment")),
             expectation_quality=self._expectation_quality(artifacts.get("expectation.quality"), artifacts.get("expectation.latest_material_event_label")),
+            forecast_discipline=self._forecast_discipline(
+                artifacts.get("forecast.discipline"),
+                getattr(forecast_result, "status", None),
+            ),
             valuation_models=self._valuation_models(artifacts.get("valuation.routing")),
             valuation_execution=self._valuation_execution(artifacts.get("valuation.execution")),
             state_provenance=self._state_provenance(artifacts.get("decision.state_provenance")),
+            next_verification_event=self._next_verification_event(artifacts.get("temporal.event")),
             decision_summary=self._decision_summary(result),
             presentation_version=self.version,
         )

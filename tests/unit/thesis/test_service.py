@@ -14,3 +14,18 @@ def test_triggered_falsifier_moves_active_thesis_to_weakening():
     r=ThesisService().evaluate_existing(t,[metric("cfo",-100)])
     assert r.status=="weakening"
     assert r.triggered_falsifiers==["cfo < 0.0"]
+
+
+def test_legacy_cfo_falsifier_resolves_canonical_ocf_evidence():
+    t=Thesis(thesis_id="t:legacy",company_id="X",title="Cash quality",statement="growth converts to cash",mechanism="m",anti_thesis="counter",status="active",
+      falsifiers=[Falsifier(metric="cfo",operator="<",threshold=0)],next_check_date=date(2026,10,31))
+    r=ThesisService().evaluate_existing(t,[metric("ocf",-100)])
+    assert r.status=="weakening"
+    assert r.triggered_falsifiers==["cfo < 0.0"]
+
+
+def test_canonical_ocf_wins_when_legacy_alias_conflicts():
+    t=Thesis(thesis_id="t:alias-priority",company_id="X",title="Cash quality",statement="growth converts to cash",mechanism="m",anti_thesis="counter",status="active",
+      falsifiers=[Falsifier(metric="cfo",operator="<",threshold=0)],next_check_date=date(2026,10,31))
+    r=ThesisService().evaluate_existing(t,[metric("cfo",100),metric("ocf",-100)])
+    assert r.status=="weakening"

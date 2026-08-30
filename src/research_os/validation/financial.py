@@ -97,7 +97,11 @@ class FinancialSanityValidator:
         if previous == 0:
             return FinancialSanityResult(status="FAIL", errors=["YoY previous-period denominator is zero"])
         expected = float(current) / float(previous) - 1.0
-        return _result(expected, float(declared_growth), "YoY growth", rel_tol=1e-6, abs_tol=1e-9)
+        # Public filings commonly display growth rounded to two decimal
+        # percentage points. Half of that display unit is 0.00005 in ratio
+        # form; accept ordinary presentation rounding without masking a
+        # materially different reported rate.
+        return _result(expected, float(declared_growth), "YoY growth", rel_tol=1e-6, abs_tol=5e-5)
 
     def check_market_cap(
         self,

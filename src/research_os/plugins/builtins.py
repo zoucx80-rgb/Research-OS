@@ -145,7 +145,7 @@ class DistributorIndustryPlugin:
     manifest = PluginManifest(
         plugin_id="industry:distributor",
         plugin_type="industry",
-        plugin_version="1.1.0",
+        plugin_version="1.2.0",
         api_version="1.0",
         min_research_os_version="1.3.0",
         provides={"kpi.metrics"},

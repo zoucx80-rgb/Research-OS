@@ -95,6 +95,11 @@ def test_distributor_research_view_humanizes_end_to_end_machine_artifacts():
         "net_profit": 15.0,
         "delta_debt": 90.0,
         "delta_equity": 0.0,
+        "external_equity_financing": 0.0,
+        "delta_nwc_comparison_basis": "2026H1_vs_2025H1",
+        "delta_revenue_comparison_basis": "2026H1_vs_2025H1",
+        "delta_debt_comparison_basis": "2026H1_vs_2025H1",
+        "external_equity_financing_comparison_basis": "2026H1_vs_2025H1",
         "period_type": "H1",
         "period_days": 181,
     }
@@ -147,7 +152,10 @@ def test_distributor_research_view_humanizes_end_to_end_machine_artifacts():
         "预期数据距离决策时点较久",
     }
     assert view.valuation_models[0].label == "市盈率（PE）"
-    assert view.valuation_models[0].status.label == "主要估值方法"
+    assert view.valuation_models[0].status.label != "主要估值方法"
+    assert {item.label for item in view.valuation_models[0].reasons} == {
+        "现金与融资风险限制PE适用性"
+    }
     assert view.decision_summary.decision_state is not None
     assert view.decision_summary.decision_state.label == "进入风险复核"
     assert view.decision_summary.final_status.label != view.decision_summary.final_status.code

@@ -14,7 +14,8 @@ def test_missing_ap_keeps_dpo_and_ccc_missing():
 def test_distributor_pack_calculates_funding_metrics():
     v=mmap(DistributorPack().calculate({"revenue":1000,"cogs":900,"avg_ar":100,"avg_inventory":200,"avg_ap":150,
         "ar":110,"inventory":210,"ap":160,"delta_nwc":30,"delta_revenue":100,"short_debt":120,"equity":200,
-        "gross_profit":100,"interest_expense":10,"ocf":20,"net_profit":25,"nopat":20,"avg_invested_capital":250}))
+        "gross_profit":100,"interest_expense":10,"ocf":20,"net_profit":25,"nopat":20,"avg_invested_capital":250,
+        "delta_nwc_comparison_basis":"2026_vs_2025","delta_revenue_comparison_basis":"2026_vs_2025"}))
     assert v["nwc_intensity"]==pytest.approx(.16)
     assert v["incremental_nwc_intensity"]==pytest.approx(.30)
     assert v["interest_to_gross_profit"]==pytest.approx(.10)

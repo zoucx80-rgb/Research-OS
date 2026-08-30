@@ -141,7 +141,7 @@ class PITLineageModule:
 class FinancialSanityModule:
     spec = ModuleSpec(
         module_id="core:financial-sanity",
-        module_version="1.0.0",
+        module_version="1.1.0",
         requires={"evidence.pit"},
         provides={"validation.financial"},
     )
@@ -348,7 +348,7 @@ class IndustryKpiModule:
 class CapitalEfficiencyModule:
     spec = ModuleSpec(
         module_id="core:capital-efficiency",
-        module_version="1.0.0",
+        module_version="1.1.0",
         requires={"kpi.metrics"},
         provides={"capital.efficiency", "validation.capital"},
     )
@@ -390,7 +390,7 @@ class CapitalEfficiencyModule:
 class FundingLoopModule:
     spec = ModuleSpec(
         module_id="core:funding-loop",
-        module_version="1.0.0",
+        module_version="1.1.0",
         requires={"kpi.metrics"},
         provides={"capital.funding_loop", "validation.funding"},
     )
@@ -644,8 +644,8 @@ class ForecastDisciplineModule:
 class ValuationModule:
     spec = ModuleSpec(
         module_id="core:valuation",
-        module_version="1.0.0",
-        requires={"business_model.profile"},
+        module_version="1.1.0",
+        requires={"business_model.profile", "capital.funding_loop"},
         provides={"valuation.routing", "validation.valuation"},
     )
 
@@ -661,6 +661,7 @@ class ValuationModule:
 
     def run(self, context: ResearchContext, state: ResearchStateView) -> ModuleResult:
         profile = state.get("business_model.profile")
+        funding = state.get("capital.funding_loop")
         models = self.inputs.valuation_models
         if profile is None or not models:
             return ModuleResult(
@@ -676,6 +677,8 @@ class ValuationModule:
             ValuationContext(
                 business_model=profile.primary_model,
                 models=models,
+                funding_state=getattr(funding, "funding_state", None),
+                funding_reason_codes=list(getattr(funding, "reason_codes", []) or []),
             )
         )
         status = "PASS" if routing.primary_models else "INSUFFICIENT_EVIDENCE"
@@ -806,9 +809,9 @@ class DecisionModule:
 class TemporalModule:
     spec = ModuleSpec(
         module_id="core:temporal",
-        module_version="1.0.0",
+        module_version="1.1.0",
         requires={"decision.record"},
-        provides={"temporal.result", "validation.temporal"},
+        provides={"temporal.event", "temporal.result", "validation.temporal"},
     )
 
     def __init__(
@@ -826,6 +829,7 @@ class TemporalModule:
                 module_id=self.spec.module_id,
                 status="INSUFFICIENT_EVIDENCE",
                 artifacts={
+                    "temporal.event": None,
                     "temporal.result": None,
                     "validation.temporal": {"status": "INSUFFICIENT_EVIDENCE"},
                 },
@@ -844,6 +848,7 @@ class TemporalModule:
             module_id=self.spec.module_id,
             status=result.status,
             artifacts={
+                "temporal.event": event,
                 "temporal.result": result,
                 "validation.temporal": {"status": result.status},
             },

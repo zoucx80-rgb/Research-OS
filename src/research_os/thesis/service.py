@@ -15,6 +15,12 @@ OPS = {
 
 
 class ThesisService:
+    _METRIC_ALIASES = {
+        "cfo": ("ocf", "operating_cash_flow", "cfo"),
+        "ocf": ("ocf", "operating_cash_flow", "cfo"),
+        "operating_cash_flow": ("ocf", "operating_cash_flow", "cfo"),
+    }
+
     @staticmethod
     def _values(evidence):
         return {e.source_table or e.evidence_id: e.value for e in evidence}
@@ -26,6 +32,22 @@ class ThesisService:
             for item in evidence
             if (item.source_table or item.evidence_id) in keys
         ]
+
+    @classmethod
+    def _value_for_metric(cls, values, metric: str):
+        for key in cls._METRIC_ALIASES.get(metric, (metric,)):
+            if key in values:
+                return values[key]
+        return None
+
+    @staticmethod
+    def _driver_evidence_ids(nodes) -> list[str]:
+        result: list[str] = []
+        for node in nodes:
+            for evidence_id in node.evidence_ids:
+                if evidence_id not in result:
+                    result.append(evidence_id)
+        return result
 
     def assess_signals(self, evidence) -> ThesisSignalAssessment:
         vals = self._values(evidence)
@@ -89,7 +111,7 @@ class ThesisService:
         vals = self._values(evidence)
         triggered = []
         for falsifier in thesis.falsifiers:
-            value = vals.get(falsifier.metric)
+            value = self._value_for_metric(vals, falsifier.metric)
             if isinstance(value, (int, float)) and OPS[falsifier.operator](value, falsifier.threshold):
                 triggered.append(falsifier.label())
         if not triggered:
@@ -105,7 +127,7 @@ class ThesisService:
         ) + timedelta(days=100)
 
         if any(node.driver_type == "financing" for node in drivers.nodes):
-            falsifiers = [Falsifier(metric="cfo", operator="<", threshold=0)]
+            falsifiers = [Falsifier(metric="ocf", operator="<", threshold=0)]
             if "funding_loop_debt_share" in vals:
                 falsifiers.append(
                     Falsifier(
@@ -115,6 +137,11 @@ class ThesisService:
                         description="新增营运资金对债务融资依赖较高",
                     )
                 )
+            supporting_nodes = [
+                node
+                for node in drivers.nodes
+                if node.driver_type in {"working_capital", "financing"}
+            ]
             thesis = Thesis(
                 thesis_id=f"{company_id}:cash-quality",
                 company_id=company_id,
@@ -125,12 +152,11 @@ class ThesisService:
                 status="active",
                 supporting_drivers=[
                     node.driver_id
-                    for node in drivers.nodes
-                    if node.driver_type in {"working_capital", "financing"}
+                    for node in supporting_nodes
                 ],
-                supporting_evidence=[e.evidence_id for e in evidence],
+                supporting_evidence=self._driver_evidence_ids(supporting_nodes),
                 falsifiers=falsifiers,
-                verification_metrics=["cfo", "ccc_days", "funding_loop_debt_share"],
+                verification_metrics=["ocf", "ccc_days", "funding_loop_debt_share"],
                 next_check_date=next_date,
                 confidence=0.7,
             )
@@ -150,8 +176,8 @@ class ThesisService:
                 status="weakening",
                 supporting_drivers=[node.driver_id for node in drivers.nodes],
                 supporting_evidence=signals.evidence_ids,
-                falsifiers=[Falsifier(metric="cfo", operator="<", threshold=0)],
-                verification_metrics=["revenue_growth", "margin_change", "cfo"],
+                falsifiers=[Falsifier(metric="ocf", operator="<", threshold=0)],
+                verification_metrics=["revenue_growth", "margin_change", "ocf"],
                 next_check_date=next_date,
                 confidence=0.5,
             )
@@ -167,8 +193,8 @@ class ThesisService:
             status="active",
             supporting_drivers=[node.driver_id for node in drivers.nodes],
             supporting_evidence=signals.evidence_ids,
-            falsifiers=[Falsifier(metric="cfo", operator="<", threshold=0)],
-            verification_metrics=["revenue_growth", "margin_change", "cfo"],
+            falsifiers=[Falsifier(metric="ocf", operator="<", threshold=0)],
+            verification_metrics=["revenue_growth", "margin_change", "ocf"],
             next_check_date=next_date,
             confidence=0.65,
         )

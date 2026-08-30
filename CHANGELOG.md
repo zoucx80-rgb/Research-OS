@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.5.4 — 2026-08-30
+
+### Fixed
+Financial Sanity now accepts ordinary filing YoY rounding to two decimal percentage points without accepting a materially different growth rate. Thesis falsifiers resolve `cfo`, `ocf`, and `operating_cash_flow` consistently, newly emit canonical `ocf`, and financing theses retain only supporting-driver evidence. Reported book-equity change no longer implies external equity financing or dilution. Incremental capital/funding ratios require explicit comparable-period bases. Distributor PE fitness is constrained when the canonical Funding Loop is debt-funded with negative OCF.
+
+### Added
+Additive comparison-basis diagnostics for Capital Efficiency, Funding Loop and Distributor KPIs; explicit `external_equity_financing` / `equity_dilution` fact semantics; routed-valuation reason codes; and one-way human-readable projections for Financial Sanity, Capital Efficiency, Forecast Discipline and the canonical next verification event.
+
+### Changed
+The Distributor Pack is `distributor@1.3.0`, built-in Distributor Plugin is `1.2.0`, professional Driver/Thesis module is `1.3.0`, and the complete presentation fingerprint is `professional-research-view@1.2.0`. Presentation distinguishes process-validation status from economic health.
+
+### Validation
+Release Gate adds `reported_yoy_rounding`, `canonical_ocf_falsifier`, `explicit_equity_financing`, `delta_comparison_basis`, `funding_aware_pe_fitness`, and `material_artifact_projection`, while retaining every historical gate.
+
+### Migration
+No database or Alembic migration is required. Delta-ratio callers must provide matching `<fact>_comparison_basis` facts. `delta_equity` is now informational; provide explicit `external_equity_financing` and `equity_dilution` where evidenced. See `docs/migrations/v1.5.04.md`.
+
+### Compatibility
+`CORE_API_VERSION` remains `1.0`. New model fields are additive. Conservative missing results replace v1.5.03 outputs only where period or financing semantics were ambiguous. No Hospitality Plugin, lease-adjusted valuation framework, Forecast rewrite, second Completion Gate, second Decision Engine, or company-specific Core logic is added.
+
 ## 1.5.3 — 2026-08-30
 
 ### Added

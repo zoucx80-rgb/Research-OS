@@ -42,9 +42,14 @@ def test_classified_funding_loop_is_pass():
         _context({
             "delta_nwc": 10.0,
             "delta_revenue": 20.0,
-            "delta_debt": 8.0,
-            "delta_equity": 0.0,
-            "operating_cash_flow": 2.0,
+                "delta_debt": 8.0,
+                "delta_equity": 0.0,
+                "external_equity_financing": 0.0,
+                "delta_nwc_comparison_basis": "2026_vs_2025",
+                "delta_revenue_comparison_basis": "2026_vs_2025",
+                "delta_debt_comparison_basis": "2026_vs_2025",
+                "external_equity_financing_comparison_basis": "2026_vs_2025",
+                "operating_cash_flow": 2.0,
         }),
         ResearchStateView({"kpi.metrics": []}),
     )

@@ -1,6 +1,6 @@
-# Research OS v1.5.03
+# Research OS v1.5.04
 
-Research OS v1.5.03 (code SemVer `1.5.3`) is a Point-in-Time, evidence-linked investment research operating system built around one canonical, extensible runtime. This release preserves the v1.4.0 runtime/plugin architecture and the v1.5.01–v1.5.02 semantic-integrity boundaries while extending them into **Professional Research Integrity**.
+Research OS v1.5.04 (code SemVer `1.5.4`) is a Point-in-Time, evidence-linked investment research operating system built around one canonical, extensible runtime. This PATCH release preserves the v1.4.0 runtime/plugin architecture and v1.5.01–v1.5.03 integrity boundaries while hardening field-tested financial, period, thesis, funding, valuation and presentation correctness.
 
 ## Core invariants
 
@@ -60,6 +60,16 @@ Manufacturing Driver Graphs can include supported revenue, margin, receivables, 
 
 Severe Funding Loop evidence continues to feed the existing `DecisionContext.material_risk` boundary. Distributor analytics additionally expose factoring, derecognized receivables, receivable transfers, other working-capital financing, and total financing burden relative to gross profit. These exposures remain economically visible without being automatically relabeled as debt.
 
+v1.5.04 requires explicit matching `<fact>_comparison_basis` values before delta facts form incremental ratios. Reported book-equity change (`delta_equity`) is informational; only explicit `external_equity_financing` drives equity-funding math, and only `equity_dilution=True` emits dilution risk. Missing or mismatched semantics remain missing rather than becoming professional-looking ratios.
+
+## Field-correctness hardening
+
+- filing YoY values rounded to two decimal percentage points pass ordinary financial-sanity validation while material discrepancies still fail;
+- `cfo`, `ocf`, and `operating_cash_flow` are canonical aliases for falsifier evaluation, and new theses emit `ocf`;
+- financing theses cite the evidence attached to their actual working-capital/financing drivers rather than the complete evidence set;
+- a distributor PE route is penalized when the canonical Funding Loop is debt-funded with negative operating cash flow;
+- no separate risk, decision or completion engine is introduced.
+
 ## Expectation quality
 
 Expectation quality continues to use `ConsensusVintage.source_count`, `source_quality`, and calendar age. v1.5.03 adds **event-relative freshness**: when a consensus vintage predates the latest material event supplied to the run, the assessment records that the consensus has not yet absorbed the new information even if its calendar age is short.
@@ -84,7 +94,7 @@ ResearchViewPresenter
 HumanReadableResearchView
 ```
 
-The v1.5.03 presenter fingerprint is `professional-research-view@1.1.0`. It covers baseline/version identity, business-model classification, plugin selections, Coverage Gaps, professional question assessments, KPI values and period semantics, Funding Loop/economic exposures, Driver Graph lineage, Thesis/Anti-Thesis/Falsifiers, expectation quality, valuation routing/execution/assumption lineage, State Provenance, and the existing human-readable decision/completion summary.
+The v1.5.04 presenter fingerprint is `professional-research-view@1.2.0`. It covers baseline/version identity, business-model classification, plugin selections, Coverage Gaps, professional question assessments, financial-sanity scope, KPI values and period semantics, Capital Efficiency, Funding Loop/economic exposures, Driver Graph lineage, Thesis/Anti-Thesis/Falsifiers, expectation quality, Forecast Discipline, valuation routing/execution/assumption lineage, State Provenance, the next verification event, and the existing human-readable decision/completion summary.
 
 KPI display semantics include formatted values, display units, period labels, period days, and annualization flags. Machine values remain unchanged for auditability.
 
@@ -140,14 +150,14 @@ CI enforces the same order: architecture contracts → correctness regressions �
 
 ## Version governance
 
-`RESEARCH_OS_VERSION = "1.5.3"` and `CORE_API_VERSION = "1.0"`. Package metadata, public version metadata, plugin versions, and runtime component fingerprints must agree.
+`RESEARCH_OS_VERSION = "1.5.4"` and `CORE_API_VERSION = "1.0"`. Package metadata, public version metadata, plugin versions, and runtime component fingerprints must agree.
 
 Snapshots separately freeze dataset, parser, formula, router, KPI pack, driver, forecast, valuation, report and OS versions plus payload hash and component fingerprints. Historical release tags and snapshots remain immutable.
 
 ## Migration and deferred scope
 
-No database migration is required for v1.5.03. Existing machine integrations may continue consuming canonical `ResearchRunResult` and `DecisionSummary`.
+No database migration is required for v1.5.04. Existing machine integrations may continue consuming canonical `ResearchRunResult` and `DecisionSummary`; delta-ratio callers should add explicit comparison-basis facts and external-equity-financing semantics described in the migration guide.
 
-v1.5.03 deliberately does not add a full Hospitality Plugin, a second generic-financial Decision state machine, comprehensive lease-adjusted valuation, or a Forecast subsystem rewrite.
+v1.5.04 deliberately does not add a full Hospitality Plugin, a second generic-financial Decision state machine, comprehensive lease-adjusted valuation, or a Forecast subsystem rewrite.
 
-See `docs/migrations/v1.5.03.md`, `docs/migrations/v1.5.02.md`, `docs/migrations/v1.5.01.md`, `docs/architecture/plugin-authoring-v1.md`, `CHANGELOG.md`, and the v1.5.03 design/plan under `docs/superpowers/`.
+See `docs/migrations/v1.5.04.md`, `docs/migrations/v1.5.03.md`, `docs/migrations/v1.5.02.md`, `docs/migrations/v1.5.01.md`, `docs/architecture/plugin-authoring-v1.md`, `CHANGELOG.md`, and the v1.5.04 field-correctness design/plan under `docs/superpowers/`.
