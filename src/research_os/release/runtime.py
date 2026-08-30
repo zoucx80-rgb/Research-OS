@@ -61,6 +61,14 @@ CHECKS: dict[str,str]={
     "primary_industry_isolation":"tests/regression/research_patterns/test_v1_5_02_semantic_integrity.py::test_secondary_industry_plugin_cannot_contaminate_primary_kpi_pack",
     "end_to_end_research_view":"tests/unit/reporting/test_research_view.py::test_distributor_research_view_humanizes_end_to_end_machine_artifacts",
     "coverage_limited_completion":"tests/unit/reporting/test_research_view.py::test_hospitality_research_view_exposes_coverage_limit_without_fake_thesis",
+    "state_provenance":"tests/regression/research_patterns/test_v1_5_03_professional_integrity.py::test_legacy_high_level_states_are_exposed_as_analyst_assumptions",
+    "driver_specific_lineage":"tests/regression/research_patterns/test_v1_5_03_professional_integrity.py::test_manufacturing_driver_lineage_is_fact_specific_and_includes_supported_working_capital_nodes",
+    "evidence_driven_thesis":"tests/regression/research_patterns/test_v1_5_03_professional_integrity.py::test_manufacturing_mixed_signals_do_not_assert_fundamentals_improve",
+    "professional_question_coverage":"tests/regression/research_patterns/test_v1_5_03_professional_integrity.py::test_builtin_industry_questions_have_structured_capability_and_evidence_contract",
+    "event_relative_expectations":"tests/regression/research_patterns/test_v1_5_03_professional_integrity.py::test_consensus_predating_material_event_is_low_quality_even_when_calendar_fresh",
+    "lease_aware_router":"tests/regression/research_patterns/test_v1_5_03_professional_integrity.py::test_material_right_of_use_assets_suppress_low_ppe_distributor_heuristic",
+    "working_capital_financing_exposure":"tests/regression/research_patterns/test_v1_5_03_professional_integrity.py::test_distributor_pack_exposes_factoring_and_total_financing_burden_without_relabeling_as_debt",
+    "quantitative_presentation_semantics":"tests/regression/research_patterns/test_v1_5_03_professional_integrity.py::test_human_readable_metric_formats_percentage_days_and_period_semantics",
 }
 
 ROOT=Path(__file__).resolve().parents[3]
