@@ -55,6 +55,15 @@ class EvidenceNoteBlock(BaseModel):
     evidence_ids: list[str] = Field(default_factory=list)
 
 
+class GapClassificationBlock(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    block_type: Literal["gap_classification"] = "gap_classification"
+    evidence_missing: list[str] = Field(default_factory=list)
+    capability_missing: list[str] = Field(default_factory=list)
+    not_applicable: list[str] = Field(default_factory=list)
+    presentation_or_deferred: list[str] = Field(default_factory=list)
+
+
 ReportBlock = (
     NarrativeBlock
     | CausalBridgeBlock
@@ -63,6 +72,7 @@ ReportBlock = (
     | MonitoringBlock
     | LimitationBlock
     | EvidenceNoteBlock
+    | GapClassificationBlock
 )
 
 
