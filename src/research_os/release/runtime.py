@@ -78,7 +78,7 @@ CHECKS: dict[str,str]={
     "report_composer_one_way":"tests/unit/reporting/test_composer.py::test_composer_rejects_raw_objects_instead_of_becoming_second_semantic_path",
     "expectation_gap_missingness":"tests/unit/expectations/test_expectation_gap.py::test_missing_consensus_does_not_fabricate_gap",
     "valuation_result_contract":"tests/unit/valuation/test_result_contract.py::test_valuation_result_carries_scenarios_ranges_and_lineage",
-    "composition_dedup":"tests/unit/reporting/test_composition_rules.py::test_semantic_risks_are_deduplicated_by_canonical_code",
+    "composition_dedup":"tests/unit/reporting/test_composition_rules.py::test_repeated_economic_risks_are_deduplicated_by_semantic_code",
     "lease_heavy_presentation_guard":"tests/regression/research_patterns/test_v1_5_05_reporting_patterns.py::test_lease_heavy_hospitality_without_plugin_surfaces_capability_break_and_no_fake_hotel_kpis",
     "audit_metadata_separation":"tests/unit/reporting/test_monitoring_and_evidence.py::test_main_body_evidence_note_is_concise_and_raw_ids_stay_in_audit_appendix",
 }
