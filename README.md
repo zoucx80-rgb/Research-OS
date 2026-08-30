@@ -1,6 +1,6 @@
-# Research OS v1.5.05
+# Research OS v1.5.06
 
-Research OS v1.5.05 (code SemVer `1.5.5`) is a Point-in-Time, evidence-linked investment research operating system built around one canonical, extensible runtime. This PATCH release preserves the v1.4.0 runtime/plugin architecture and v1.5.01–v1.5.04 correctness boundaries while adding a deterministic professional reporting-composition layer downstream of canonical research semantics.
+Research OS v1.5.06 (code SemVer `1.5.6`) is a Point-in-Time, evidence-linked investment research operating system built around one canonical, extensible runtime. This PATCH release preserves the v1.5.05 research semantics and one-way reporting boundary while expanding deterministic report composition so material canonical artifacts already present in the professional research view are no longer dropped from the final report body.
 
 ## Core invariants
 
@@ -111,21 +111,22 @@ ResearchReportDocument
 renderer / PDF
 ```
 
-For v1.5.05 the full presenter fingerprint is `professional-research-view@1.3.0` and the report-composition fingerprint is `research-report-composer@1.0.0`. Historical v1.5.04 research remains associated with `professional-research-view@1.2.0`.
+For v1.5.06 the full presenter fingerprint remains `professional-research-view@1.3.0` and the report-composition fingerprint is `research-report-composer@1.1.0`. Historical v1.5.05 reporting remains associated with `research-report-composer@1.0.0`, and historical v1.5.04 research remains associated with `professional-research-view@1.2.0`.
 
 `HumanReadableResearchView` remains a read-only projection of canonical research artifacts. `ResearchReportComposer` accepts that view only; it does not accept a raw dictionary as an alternate semantic path and does not calculate or alter completion, decision, thesis, fundamental, expectation, valuation, funding, forecast, or business-model state.
 
-The v1.5.05 composer:
+The v1.5.05 composer established the first-page decision snapshot, semantic risk deduplication, deterministic causal bridges, monitoring, structured gaps, concise evidence notes, audit separation, display-only CNY scaling, and lease-heavy presentation safeguards.
 
-- copies canonical Decision/Completion semantics into a concise first-page decision snapshot;
-- deduplicates material risks by canonical semantic code;
-- builds causal bridges only from an existing valuation `driver_bridge` or existing Driver Graph edges;
-- never invents a causal edge or monitoring threshold for narrative smoothness;
-- omits empty sections;
-- keeps repository SHA, plugin/module identities, raw evidence IDs, and raw assumption IDs in the audit appendix by default;
-- uses a concise evidence-traceability note in the main body;
-- treats CNY `万元` / `亿元` scaling as display-only formatting and leaves machine values unchanged;
-- surfaces lease-heavy limitations without claiming that lease-adjusted ROIC/valuation exists or describing the company as light-asset solely from owned-PPE ratios.
+v1.5.06 extends **composition coverage only**. When already present in `HumanReadableResearchView`, the report body now includes:
+
+- Financial Sanity and KPI metrics under `财务与经营表现`;
+- Capital Efficiency and Funding Loop under `资本效率与融资循环`;
+- Thesis / Anti-Thesis / Falsifiers and thesis-signal assessment under `投资逻辑与反证`;
+- expectation quality and Forecast Discipline under `市场预期与预测纪律`;
+- valuation model fitness and valuation execution under `估值方法与适用性`;
+- canonical state provenance under `状态来源`.
+
+These are typed display blocks copied from existing human-readable artifacts. Empty source artifacts produce no section. Raw evidence IDs, assumption IDs and valuation lineage IDs remain outside the primary body. A coverage-limited Hospitality company without a compatible strategy plugin still does not receive fabricated RevPAR, ADR, OCC, same-store or lease-adjusted economics.
 
 KPI display semantics continue to include formatted values, display units, period labels, period days, and annualization flags. Machine values remain unchanged for auditability.
 
@@ -175,22 +176,23 @@ pytest -q \
 pytest -q tests/integration/storage/test_v1_2_lineage_migration.py
 pytest -q tests/unit/reporting tests/unit/expectations tests/unit/valuation
 pytest -q tests/regression/architecture tests/regression/research_patterns/test_v1_5_05_reporting_patterns.py
+pytest -q tests/regression/architecture tests/unit/reporting/test_composition_coverage_v1_5_06.py
 pytest -q
 python scripts/release_gate_v1_1.py
 ```
 
-CI enforces architecture contracts, correctness regressions, storage migration smoke, full-suite verification, and the release gate. v1.5.05 additionally keeps dedicated reporting/expectation/valuation and cross-model reporting regressions as permanent release evidence.
+CI enforces architecture contracts, correctness regressions, storage migration smoke, reporting/expectation/valuation regressions, v1.5.05 cross-model reporting safeguards, v1.5.06 composition coverage, the full suite, and the release gate.
 
 ## Version governance
 
-`RESEARCH_OS_VERSION = "1.5.5"` and `CORE_API_VERSION = "1.0"`. Package metadata, public version metadata, plugin versions, presenter/composer fingerprints, and runtime component fingerprints must agree.
+`RESEARCH_OS_VERSION = "1.5.6"` and `CORE_API_VERSION = "1.0"`. Package metadata, public version metadata, plugin versions, presenter/composer fingerprints, and runtime component fingerprints must agree.
 
 Snapshots separately freeze dataset, parser, formula, router, KPI pack, driver, forecast, valuation, report and OS versions plus payload hash and component fingerprints. Historical release tags and snapshots remain immutable.
 
 ## Migration and deferred scope
 
-No database or Alembic migration is required for v1.5.05. Existing machine integrations may continue consuming canonical `ResearchRunResult` and `DecisionSummary`; complete v1.5.05 professional output should use `ResearchViewPresenter` followed by `ResearchReportComposer`.
+No database or Alembic migration is required for v1.5.06. Existing machine integrations may continue consuming canonical `ResearchRunResult` and `DecisionSummary`; complete v1.5.06 professional output should use `ResearchViewPresenter` followed by `ResearchReportComposer`.
 
-v1.5.05 deliberately does not add a full Hospitality Plugin, a lease-adjusted valuation engine, a second generic-financial Decision state machine, a second Completion Gate, a Forecast subsystem rewrite, automatic trading logic, or company-specific Core logic.
+v1.5.06 deliberately does not add a full Hospitality Plugin, a lease-adjusted valuation engine, a second generic-financial Decision state machine, a second Completion Gate, a Forecast subsystem rewrite, automatic trading logic, or company-specific Core logic.
 
-See `docs/migrations/v1.5.05.md`, `docs/migrations/v1.5.04.md`, `docs/migrations/v1.5.03.md`, `docs/migrations/v1.5.02.md`, `docs/migrations/v1.5.01.md`, `docs/architecture/plugin-authoring-v1.md`, `CHANGELOG.md`, and the v1.5.05 design/implementation plan under `docs/superpowers/`.
+See `docs/migrations/v1.5.06.md`, `docs/migrations/v1.5.05.md`, `docs/migrations/v1.5.04.md`, `docs/migrations/v1.5.03.md`, `docs/migrations/v1.5.02.md`, `docs/migrations/v1.5.01.md`, `docs/architecture/plugin-authoring-v1.md`, `CHANGELOG.md`, and the v1.5.06 implementation plan under `docs/superpowers/plans/`.
