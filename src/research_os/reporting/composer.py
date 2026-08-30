@@ -29,7 +29,7 @@ from research_os.reporting.research_view_v1_5_05 import HumanReadableResearchVie
 class ResearchReportComposer:
     """Deterministic editorial composition over one human-readable research view."""
 
-    version = "research-report-composer@1.0.0"
+    version = "research-report-composer@1.1.0"
 
     _BRIDGE_LABELS = {
         "Revenue": "收入",
