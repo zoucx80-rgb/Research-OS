@@ -1,21 +1,28 @@
+from research_os.period.models import ReportingPeriod
+from research_os.period.resolver import (
+    annualized_turns,
+    period_turns,
+    resolve_period_days,
+    turnover_days,
+)
+
 from .base import MetricResult
 from .finance_core import safe_ratio
-from research_os.period.models import ReportingPeriod
-from research_os.period.resolver import annualized_turns, period_turns, resolve_period_days, turnover_days
 
 
 class DistributorPack:
     pack_id = "distributor"
-    pack_version = "distributor@1.1.0"
-    formula_version = "distributor-core@1.2.0"
+    pack_version = "distributor@1.2.0"
+    formula_version = "distributor-core@1.3.0"
     eligible_business_models = ("distributor",)
     required_facts = frozenset({"revenue", "cogs", "avg_ar", "avg_inventory", "avg_ap"})
     optional_facts = frozenset({
         "ar", "inventory", "ap", "delta_nwc", "delta_revenue", "short_debt", "equity", "gross_profit",
-        "interest_expense", "ocf", "net_profit", "nopat", "avg_invested_capital", "credit_impairment",
-        "inventory_impairment", "revenue_growth", "working_capital_growth", "delta_nopat", "delta_invested_capital",
-        "delta_debt", "delta_equity", "period_type", "period_start", "period_end", "period_days", "is_cumulative",
-        "reporting_period",
+        "interest_expense", "financing_cost", "ocf", "net_profit", "nopat", "avg_invested_capital",
+        "credit_impairment", "inventory_impairment", "revenue_growth", "working_capital_growth", "delta_nopat",
+        "delta_invested_capital", "delta_debt", "delta_equity", "factoring_balance", "derecognized_receivables",
+        "receivable_transfer_balance", "other_working_capital_financing", "period_type", "period_start", "period_end",
+        "period_days", "is_cumulative", "reporting_period",
     })
     missing_policy = "preserve_missing"
     valuation_preferences = ("pe", "pb", "ev_ebitda", "dcf")
@@ -33,6 +40,12 @@ class DistributorPack:
         "short_debt_to_inventory": ["short_debt", "inventory"],
         "short_debt_to_equity": ["short_debt", "equity"],
         "interest_to_gross_profit": ["interest_expense", "gross_profit"],
+        "total_financing_cost_to_gross_profit": ["financing_cost", "gross_profit"],
+        "factoring_to_ar": ["factoring_balance", "derecognized_receivables", "ar"],
+        "working_capital_financing_to_gross_profit": [
+            "factoring_balance", "derecognized_receivables", "receivable_transfer_balance",
+            "other_working_capital_financing", "gross_profit",
+        ],
         "credit_impairment_to_gross_profit": ["credit_impairment", "gross_profit"],
         "inventory_impairment_to_gross_profit": ["inventory_impairment", "gross_profit"],
         "cash_conversion": ["ocf", "net_profit"],
@@ -43,10 +56,30 @@ class DistributorPack:
         "incremental_roic": ["delta_nopat", "delta_invested_capital"],
     }
 
+    @staticmethod
+    def _period_label(period: ReportingPeriod) -> str | None:
+        if period.period_end is not None:
+            return f"{period.period_end.year}{period.period_type}"
+        return period.period_type or None
+
+    @staticmethod
+    def _working_capital_financing(f) -> float | None:
+        factoring = f.get("factoring_balance")
+        derecognized = f.get("derecognized_receivables")
+        primary_receivable_financing = factoring if factoring is not None else derecognized
+        pieces = [
+            primary_receivable_financing,
+            f.get("receivable_transfer_balance"),
+            f.get("other_working_capital_financing"),
+        ]
+        available = [value for value in pieces if value is not None]
+        return sum(available) if available else None
+
     def calculate(self, f):
         period = ReportingPeriod.from_facts(f)
         period_days = resolve_period_days(period)
         period_reason = "PERIOD_LENGTH_REQUIRED" if period_days is None else None
+        period_label = self._period_label(period)
 
         dso = turnover_days(f.get("avg_ar"), f.get("revenue"), period)
         dio = turnover_days(f.get("avg_inventory"), f.get("cogs"), period)
@@ -57,6 +90,10 @@ class DistributorPack:
         external_funding = None if f.get("delta_debt") is None or f.get("delta_equity") is None else f["delta_debt"] + f["delta_equity"]
         inv_turns_period = period_turns(f.get("cogs"), f.get("avg_inventory"))
         inv_turns_annualized = annualized_turns(f.get("cogs"), f.get("avg_inventory"), period)
+        factoring_exposure = f.get("factoring_balance")
+        if factoring_exposure is None:
+            factoring_exposure = f.get("derecognized_receivables")
+        wc_financing = self._working_capital_financing(f)
 
         vals = {
             "dso_days": dso,
@@ -72,6 +109,9 @@ class DistributorPack:
             "short_debt_to_inventory": safe_ratio(f.get("short_debt"), f.get("inventory")),
             "short_debt_to_equity": safe_ratio(f.get("short_debt"), f.get("equity")),
             "interest_to_gross_profit": safe_ratio(f.get("interest_expense"), f.get("gross_profit")),
+            "total_financing_cost_to_gross_profit": safe_ratio(f.get("financing_cost"), f.get("gross_profit")),
+            "factoring_to_ar": safe_ratio(factoring_exposure, f.get("ar")),
+            "working_capital_financing_to_gross_profit": safe_ratio(wc_financing, f.get("gross_profit")),
             "credit_impairment_to_gross_profit": safe_ratio(f.get("credit_impairment"), f.get("gross_profit")),
             "inventory_impairment_to_gross_profit": safe_ratio(f.get("inventory_impairment"), f.get("gross_profit")),
             "cash_conversion": safe_ratio(f.get("ocf"), f.get("net_profit")) if (f.get("net_profit") or 0) > 0 else None,
@@ -81,14 +121,25 @@ class DistributorPack:
             "roic": safe_ratio(f.get("nopat"), f.get("avg_invested_capital")),
             "incremental_roic": safe_ratio(f.get("delta_nopat"), f.get("delta_invested_capital")),
         }
-        period_sensitive = {"dso_days", "dio_days", "dpo_days", "ccc_days", "inventory_turns_annualized"}
-        return [
-            MetricResult(
-                metric_id=k,
-                value=v,
-                formula_version=self.formula_version,
-                status="valid" if v is not None else "missing",
-                reason_code=(period_reason if v is None and k in period_sensitive else None),
+        day_metrics = {"dso_days", "dio_days", "dpo_days", "ccc_days"}
+        turns_metrics = {"inventory_turns", "inventory_turns_period", "inventory_turns_annualized"}
+        percent_metrics = set(vals) - day_metrics - turns_metrics
+        period_sensitive = day_metrics | {"inventory_turns_annualized"}
+        results = []
+        for metric_id, value in vals.items():
+            unit = "days" if metric_id in day_metrics else "x" if metric_id in turns_metrics else "percent"
+            annualized = True if metric_id == "inventory_turns_annualized" else False
+            results.append(
+                MetricResult(
+                    metric_id=metric_id,
+                    value=value,
+                    unit=unit,
+                    formula_version=self.formula_version,
+                    status="valid" if value is not None else "missing",
+                    reason_code=(period_reason if value is None and metric_id in period_sensitive else None),
+                    period_label=period_label,
+                    period_days=period_days,
+                    annualized=annualized,
+                )
             )
-            for k, v in vals.items()
-        ]
+        return results
