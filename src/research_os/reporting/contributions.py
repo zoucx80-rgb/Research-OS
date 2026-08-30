@@ -11,3 +11,6 @@ class ReportContribution(BaseModel):
     order: int
     artifact_keys: list[str] = Field(default_factory=list)
     required: bool = False
+    title: str = ""
+    description: str = ""
+    research_questions: list[str] = Field(default_factory=list)
