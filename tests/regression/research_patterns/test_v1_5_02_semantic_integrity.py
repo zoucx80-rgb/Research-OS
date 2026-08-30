@@ -7,10 +7,16 @@ from research_os.domain.evidence import Evidence
 from research_os.expectations.models import ConsensusVintage
 from research_os.expectations.validation import ExpectationEvidenceValidator
 from research_os.plugins.builtins import DistributorIndustryPlugin, ManufacturingIndustryPlugin
-from research_os.plugins.models import CoverageGap
+from research_os.plugins.models import CoverageGap, ResolvedPlugin
+from research_os.plugins.registry import PluginRegistry
 from research_os.plugins.resolver import StrategyResolution
 from research_os.router.models import BusinessModelProfile
-from research_os.runtime.builtin_modules import BusinessModelModule, DecisionModule, DriverThesisModule
+from research_os.runtime.builtin_modules import (
+    BusinessModelModule,
+    DecisionModule,
+    DriverThesisModule,
+    IndustryKpiModule,
+)
 from research_os.runtime.context import (
     BaselineFingerprint,
     CompanyRef,
@@ -193,3 +199,71 @@ def test_builtin_industry_plugins_provide_structured_report_contributions():
         assert all(item.title for item in contributions)
         assert all(item.description for item in contributions)
         assert all(item.research_questions for item in contributions)
+
+
+def test_secondary_industry_plugin_cannot_contaminate_primary_kpi_pack():
+    values = {
+        "business_description": "precision manufacturing with distribution channel",
+        "revenue": 1000.0,
+        "net_profit_parent": 80.0,
+        "assets_begin": 800.0,
+        "assets_end": 900.0,
+        "equity_begin": 400.0,
+        "equity_end": 450.0,
+        "cogs": 850.0,
+        "avg_ar": 100.0,
+        "avg_inventory": 120.0,
+        "avg_ap": 90.0,
+    }
+    evidence = [_evidence(key, value) for key, value in values.items()]
+    context = _context(evidence, values)
+    profile = BusinessModelProfile(
+        company_id="synthetic:v1.5.02",
+        primary_model="manufacturing",
+        secondary_models=["distributor"],
+        confidence=0.9,
+        evidence_ids=[item.evidence_id for item in evidence],
+        router_version="router@1.1.0",
+    )
+    registry = PluginRegistry(core_api_version="1.0", research_os_version="1.5.1")
+    manufacturing = ManufacturingIndustryPlugin()
+    distributor = DistributorIndustryPlugin()
+    registry.register(manufacturing)
+    registry.register(distributor)
+    resolution = StrategyResolution(
+        industry_plugins=[
+            ResolvedPlugin(
+                plugin_id=manufacturing.manifest.plugin_id,
+                plugin_type="industry",
+                plugin_version=manufacturing.manifest.plugin_version,
+                api_version="1.0",
+                priority=100,
+                maturity="stable",
+                applicability_score=1.0,
+            ),
+            ResolvedPlugin(
+                plugin_id=distributor.manifest.plugin_id,
+                plugin_type="industry",
+                plugin_version=distributor.manifest.plugin_version,
+                api_version="1.0",
+                priority=100,
+                maturity="stable",
+                applicability_score=1.0,
+            ),
+        ]
+    )
+
+    result = IndustryKpiModule(registry=registry).run(
+        context,
+        ResearchStateView(
+            {
+                "business_model.profile": profile,
+                "strategy.resolution": resolution,
+            }
+        ),
+    )
+
+    metric_ids = {item.metric_id for item in result.artifacts["kpi.metrics"]}
+    assert result.artifacts["kpi.pack_ids"] == ["manufacturing"]
+    assert "roe" in metric_ids
+    assert "dso_days" not in metric_ids
