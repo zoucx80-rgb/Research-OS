@@ -78,7 +78,8 @@ Canonical sequence:
 5. execute the capability dependency graph;
 6. evaluate the single `ResearchCompletionGate`;
 7. freeze one canonical `ResearchRunResult` and versioned snapshot;
-8. project the same canonical result into a human-readable research view.
+8. project the same canonical result into a human-readable research view;
+9. compose that view into a report document without re-running research semantics.
 
 `experimental` plugins require explicit opt-in. Plugin overrides are exceptional, explicit and auditable.
 
@@ -110,6 +111,8 @@ For Research OS v1.5.03 or later, professional-looking research questions are no
 - missing capabilities or missing evidence.
 
 If a Manufacturing plugin asks about backlog, utilization, yield, product mix or qualification but those capabilities/evidence are absent, report the question as unanswered/partially covered. Never fill the answer narratively.
+
+For v1.5.05 report composition, unresolved items must remain distinguishable as **evidence missing**, **capability missing**, **not applicable**, or **presentation/deferred** limitations. Do not flatten these into a single generic “data gap”.
 
 ## Presentation Contracts
 
@@ -174,6 +177,43 @@ The professional view should expose, from the same canonical result where availa
 
 The presenter is a read-only projection. It does not become a second research engine.
 
+### v1.5.05 Professional Reporting Composition
+
+For v1.5.05, the canonical full human presentation fingerprint is **`professional-research-view@1.3.0`** and the canonical report-composition fingerprint is **`research-report-composer@1.0.0`**.
+
+Required one-way direction:
+
+```text
+ResearchRunResult
+    ↓
+ResearchViewPresenter
+    ↓
+HumanReadableResearchView
+    ↓
+ResearchReportComposer
+    ↓
+ResearchReportDocument
+    ↓
+renderer / PDF
+```
+
+`ResearchReportComposer` is a deterministic editorial layer. It must:
+
+- consume `HumanReadableResearchView` only; raw dictionaries or machine artifacts must not become an alternate semantic path;
+- copy canonical Decision/Completion/Thesis/Funding/Forecast/Valuation/business-model semantics without recalculating them;
+- deduplicate materially identical risks by canonical semantic code;
+- build a causal bridge only from an existing valuation `driver_bridge` or existing Driver Graph edges;
+- never invent a causal edge, forecast assumption, market expectation, valuation output, monitoring threshold, or thesis condition for narrative smoothness;
+- preserve missing expectation gaps when consensus is absent and preserve missing valuation fields when no supported result exists;
+- keep repository SHA, plugin/module identities, raw evidence IDs and raw assumption IDs in the audit appendix by default rather than the primary investment prose;
+- use concise main-body evidence notes that point to the audit appendix instead of dumping provenance IDs;
+- distinguish evidence missing, capability missing, not applicable, and presentation/deferred gaps;
+- omit empty sections;
+- treat `万元` / `亿元` scaling as display-only formatting; machine values remain unchanged;
+- surface lease-heavy limitations without inferring “轻资产” or “低资本占用” solely from owned-PPE ratios and without implying that lease-adjusted ROIC/valuation exists.
+
+`ResearchReportDocument` is downstream of research semantics. Renderers/PDF templates may style or paginate it but must not become a second state source.
+
 ## State Provenance — v1.5.03+
 
 `fundamental_state`, `valuation_state`, and `expectation_state` must retain their source semantics. If legacy string inputs are used, human-facing output must identify them as analyst assumptions rather than claiming they were derived by Research OS.
@@ -204,6 +244,8 @@ Human-facing KPI output must preserve the machine value while also providing rea
 
 Example: a machine value `0.0501` with percent semantics should be shown primarily as approximately `5.01%`; an H1 receivable-days value should be labeled with its H1/181-day period semantics rather than appearing as an unqualified annual DSO.
 
+For v1.5.05, human-facing CNY amounts may use `万元` / `亿元` display scaling when appropriate, but scaling is presentation-only and the underlying machine value is not changed or fed back into research calculations.
+
 ## Expectation Quality and Event-relative Freshness
 
 Expectation quality uses existing source count, source quality and calendar vintage age. Fewer than 3 sources, low source quality, or an old vintage remain visible limitations.
@@ -212,13 +254,15 @@ For v1.5.03+, when a latest material event timestamp is available, compare the c
 
 Calendar freshness and information freshness are distinct. This quality layer does not invent market direction and does not replace PIT validation.
 
+For v1.5.05, missing consensus must remain missing and must not produce a fabricated expectation gap. Directional expectation evidence must not be converted into a numeric magnitude without supported numeric inputs.
+
 ## Lease-aware Router and Economic Exposure Integrity
 
 For lease-heavy operating models, low owned PPE is not sufficient evidence of a distributor model. When right-of-use assets or lease liabilities are economically material, suppress the low-PPE distributor heuristic according to the pinned Router implementation. Do not reinterpret lease accounting through narrative shortcuts.
 
 For distributor/working-capital research, expose factoring, derecognized receivables, receivable transfers and other working-capital financing when evidenced. These are economic financing exposures but must **not automatically be relabeled as debt**. Preserve their accounting/legal nature and analyze financing burden separately.
 
-Comprehensive lease-adjusted ROIC/DCF is not implied by v1.5.03 unless a compatible methodology explicitly implements it.
+Comprehensive lease-adjusted ROIC/DCF is not implied by v1.5.03+ unless a compatible methodology explicitly implements it. v1.5.05 improves the presentation guard but does not add a lease-adjusted valuation engine.
 
 ### v1.5.04 delta and equity-financing semantics
 
@@ -255,6 +299,8 @@ Do not begin with a preferred valuation template. Preserve causal order:
 11. Monitoring / next-verification events
 12. Research Completion Gate
 13. `ResearchViewPresenter` one-way human-readable projection
+14. `ResearchReportComposer` one-way editorial composition into `ResearchReportDocument`
+15. renderer / PDF output without semantic recomputation
 
 Do not mechanically average incompatible valuation methods.
 
@@ -271,16 +317,19 @@ Where supported by evidence, include:
 - State Provenance for high-level fundamental/expectation/valuation states;
 - Thesis / Anti-Thesis / Falsifiers or an explicit limitation;
 - specialized vs generic Driver Graph scope plus driver-specific evidence;
+- a composed causal bridge only when supported by canonical Driver Graph / valuation bridge artifacts;
 - period-aware, unit-aware financial/operating KPI presentation;
 - Capital Efficiency, Funding Loop and evidenced financing exposures;
 - market expectations, consensus quality, event-relative freshness and expectation gap;
 - Forecast evidence/limitations;
-- Valuation Model Fitness, executed valuation and assumption lineage;
-- Evidence Quality / Evidence Gaps;
-- key risks;
+- Valuation Model Fitness, executed valuation, supported scenarios/ranges and assumption lineage;
+- Evidence Quality / Evidence Gaps separated from capability/not-applicable/presentation gaps;
+- key risks without semantic duplication;
 - next verification events;
-- evidence that would increase conviction;
-- evidence that would weaken or break the thesis.
+- evidence that would increase conviction when canonically available;
+- evidence that would weaken or break the thesis when canonically available;
+- concise evidence-traceability language in the main body and full raw provenance in the audit appendix;
+- a first-page decision snapshot that copies, rather than recalculates, canonical research state.
 
 A tool or browsing workflow ending successfully does not imply research completion. Canonical `FINAL_STATUS=COMPLETE` may exist only when `ResearchCompletionGate` returns COMPLETE. Otherwise status remains INCOMPLETE and blocking modules must be identified. Human-facing output translates those states without replacing their canonical meaning.
 
@@ -292,7 +341,7 @@ A stock-research request is read-only with respect to Research OS by default. If
 
 When the user says an equivalent of `更新 <公司>，按 Research OS，只看上次 snapshot 之后的新证据`, use the latest Research OS `main` for methodology while preserving the prior versioned snapshot as the historical baseline. Produce an Evidence Delta rather than overwriting historical state.
 
-At minimum report what changed, why, what did not change, whether conviction/Decision State changed, falsifier movement, and the next evidence to verify. Human-facing incremental output follows the current professional research-view contract.
+At minimum report what changed, why, what did not change, whether conviction/Decision State changed, falsifier movement, and the next evidence to verify. Human-facing incremental output follows the current professional research-view and report-composition contracts.
 
 ## Historical PIT Invocation
 
