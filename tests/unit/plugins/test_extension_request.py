@@ -8,17 +8,26 @@ def test_coverage_gap_can_be_serialized_as_safe_extension_request_without_regist
     request = ExtensionRequest(
         company_id="synthetic:unsupported",
         business_model="consumer",
-        coverage_gaps=[CoverageGap(
-            gap_type="industry_strategy",
-            business_model="consumer",
-            reason="no compatible stable industry strategy",
-        )],
+        coverage_gaps=[
+            CoverageGap(
+                gap_type="industry_strategy",
+                business_model="consumer",
+                reason="no compatible stable industry strategy",
+                reason_code="NO_COMPATIBLE_INDUSTRY_PLUGIN",
+                affected_capabilities=["industry_strategy", "kpi.metrics"],
+                fallback_available=True,
+            )
+        ],
         evidence_requirements=["industry KPI definitions"],
         requested_capabilities=["kpi.metrics"],
     )
     payload = request.model_dump(mode="json")
+    gap = payload["coverage_gaps"][0]
     assert payload["business_model"] == "consumer"
-    assert payload["coverage_gaps"][0]["gap_type"] == "industry_strategy"
+    assert gap["gap_type"] == "industry_strategy"
+    assert gap["reason_code"] == "NO_COMPATIBLE_INDUSTRY_PLUGIN"
+    assert gap["affected_capabilities"] == ["industry_strategy", "kpi.metrics"]
+    assert gap["fallback_available"] is True
 
     public_methods = {
         name: member
@@ -26,4 +35,19 @@ def test_coverage_gap_can_be_serialized_as_safe_extension_request_without_regist
         if not name.startswith("_")
     }
     assert "register" in public_methods
-    assert all("ExtensionRequest" not in str(inspect.signature(method)) for method in public_methods.values())
+    assert all(
+        "ExtensionRequest" not in str(inspect.signature(method))
+        for method in public_methods.values()
+    )
+
+
+def test_existing_coverage_gap_constructor_remains_backward_compatible():
+    gap = CoverageGap(
+        gap_type="industry_strategy",
+        business_model="consumer",
+        reason="legacy-style gap",
+    )
+
+    assert gap.reason_code is None
+    assert gap.affected_capabilities == []
+    assert gap.fallback_available is None
