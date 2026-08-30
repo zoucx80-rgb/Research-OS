@@ -82,10 +82,19 @@ class ResolvedPlugin(BaseModel):
 class CoverageGap(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    gap_type: Literal["industry_strategy", "methodology", "capability"]
+    gap_type: Literal[
+        "industry_strategy",
+        "methodology",
+        "capability",
+        "business_model_taxonomy",
+        "business_model_evidence",
+    ]
     business_model: str | None = None
     missing_capability: str | None = None
     reason: str
+    reason_code: str | None = None
+    affected_capabilities: list[str] = Field(default_factory=list)
+    fallback_available: bool | None = None
 
 
 class ExtensionRequest(BaseModel):
