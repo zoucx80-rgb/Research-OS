@@ -43,7 +43,7 @@ Presentation must never recalculate Decision, Completion, Thesis, expectation di
 
 v1.5.03 does **not**:
 
-- add a full Hospitality strategy plugin;
+- add a full **Hospitality Plugin**;
 - create a second generic-financial Decision state machine;
 - perform comprehensive lease-adjusted valuation or accounting restatement;
 - rewrite the Forecast subsystem;
@@ -304,7 +304,7 @@ Backward-compatible additive fields do not require a Core API major/minor change
 
 - Router remains Hospitality.
 - material right-of-use assets suppress low-PPE Distributor heuristic.
-- no Hospitality plugin is invented; Coverage Gap and generic graph behavior remain truthful.
+- no Hospitality Plugin is invented; Coverage Gap and generic graph behavior remain truthful.
 - consensus published before the latest H1 material event is flagged `CONSENSUS_PREDATES_MATERIAL_EVENT`, even if only 34 days old.
 - no specialized Hospitality Thesis is generated.
 
