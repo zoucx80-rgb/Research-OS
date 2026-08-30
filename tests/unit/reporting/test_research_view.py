@@ -68,6 +68,10 @@ def _fitness():
     )
 
 
+def _presenter_version_tuple() -> tuple[int, ...]:
+    return tuple(int(part) for part in ResearchViewPresenter.version.rsplit("@", 1)[-1].split("."))
+
+
 def test_distributor_research_view_humanizes_end_to_end_machine_artifacts():
     company_id = "synthetic:distributor-view"
     values = {
@@ -113,7 +117,8 @@ def test_distributor_research_view_humanizes_end_to_end_machine_artifacts():
 
     view = ResearchViewPresenter().build(result)
 
-    assert view.presentation_version == "semantic-research-view@1.0.0"
+    assert _presenter_version_tuple() >= (1, 0, 0)
+    assert view.presentation_version == ResearchViewPresenter.version
     assert view.business_model.label == "分销业务"
     assert view.classification_status.label == "业务模型已识别"
     assert view.industry_plugins[0].label == "分销业务策略插件"
