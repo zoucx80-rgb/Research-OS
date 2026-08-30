@@ -75,6 +75,12 @@ CHECKS: dict[str,str]={
     "delta_comparison_basis":"tests/regression/research_patterns/test_v1_5_04_field_correctness.py::test_incomparable_delta_bases_do_not_produce_incremental_ratios",
     "funding_aware_pe_fitness":"tests/regression/research_patterns/test_v1_5_04_field_correctness.py::test_debt_funded_negative_ocf_distributor_cannot_route_pe_as_primary",
     "material_artifact_projection":"tests/regression/research_patterns/test_v1_5_04_field_correctness.py::test_professional_view_projects_material_canonical_artifacts",
+    "report_composer_one_way":"tests/unit/reporting/test_composer.py::test_composer_rejects_raw_objects_instead_of_becoming_second_semantic_path",
+    "expectation_gap_missingness":"tests/unit/expectations/test_expectation_gap.py::test_missing_consensus_does_not_fabricate_gap",
+    "valuation_result_contract":"tests/unit/valuation/test_result_contract.py::test_valuation_result_carries_scenarios_ranges_and_lineage",
+    "composition_dedup":"tests/unit/reporting/test_composition_rules.py::test_semantic_risks_are_deduplicated_by_canonical_code",
+    "lease_heavy_presentation_guard":"tests/regression/research_patterns/test_v1_5_05_reporting_patterns.py::test_lease_heavy_hospitality_without_plugin_surfaces_capability_break_and_no_fake_hotel_kpis",
+    "audit_metadata_separation":"tests/unit/reporting/test_monitoring_and_evidence.py::test_main_body_evidence_note_is_concise_and_raw_ids_stay_in_audit_appendix",
 }
 
 ROOT=Path(__file__).resolve().parents[3]
