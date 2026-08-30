@@ -112,7 +112,7 @@ For Research OS v1.5.03 or later, professional-looking research questions are no
 
 If a Manufacturing plugin asks about backlog, utilization, yield, product mix or qualification but those capabilities/evidence are absent, report the question as unanswered/partially covered. Never fill the answer narratively.
 
-For v1.5.05 report composition, unresolved items must remain distinguishable as **evidence missing**, **capability missing**, **not applicable**, or **presentation/deferred** limitations. Do not flatten these into a single generic “data gap”.
+For v1.5.05+ report composition, unresolved items must remain distinguishable as **evidence missing**, **capability missing**, **not applicable**, or **presentation/deferred** limitations. Do not flatten these into a single generic “data gap”.
 
 ## Presentation Contracts
 
@@ -214,6 +214,23 @@ renderer / PDF
 
 `ResearchReportDocument` is downstream of research semantics. Renderers/PDF templates may style or paginate it but must not become a second state source.
 
+### v1.5.06 Composition Coverage
+
+For v1.5.06, `ResearchViewPresenter` remains **`professional-research-view@1.3.0`** and the canonical report-composition fingerprint is **`research-report-composer@1.1.0`**.
+
+The v1.5.06 Composer closes a downstream coverage gap only. When the canonical `HumanReadableResearchView` already contains them, `ResearchReportDocument` may now compose typed body sections for:
+
+- Financial Sanity and KPI metrics;
+- Capital Efficiency and Funding Loop;
+- Thesis / Anti-Thesis / Falsifiers and thesis-signal assessment;
+- expectation quality and Forecast Discipline;
+- valuation model fitness and valuation execution;
+- state provenance.
+
+These sections copy existing human-readable values and states. The Composer **不重新计算** KPI, Funding Loop, Thesis, expectation, Forecast, valuation, business-model, Decision, or Completion state. It must omit a section when its canonical source artifact is absent.
+
+Raw evidence IDs, assumption IDs, repository/plugin/module identities and valuation lineage identifiers remain audit metadata rather than primary body content. A recognized Hospitality company without a compatible industry strategy plugin must still surface the Coverage Gap and must not receive fabricated RevPAR, ADR, OCC, same-store, unit-economics, lease-adjusted ROIC or lease-adjusted valuation solely to make the report appear complete.
+
 ## State Provenance — v1.5.03+
 
 `fundamental_state`, `valuation_state`, and `expectation_state` must retain their source semantics. If legacy string inputs are used, human-facing output must identify them as analyst assumptions rather than claiming they were derived by Research OS.
@@ -244,7 +261,7 @@ Human-facing KPI output must preserve the machine value while also providing rea
 
 Example: a machine value `0.0501` with percent semantics should be shown primarily as approximately `5.01%`; an H1 receivable-days value should be labeled with its H1/181-day period semantics rather than appearing as an unqualified annual DSO.
 
-For v1.5.05, human-facing CNY amounts may use `万元` / `亿元` display scaling when appropriate, but scaling is presentation-only and the underlying machine value is not changed or fed back into research calculations.
+For v1.5.05+, human-facing CNY amounts may use `万元` / `亿元` display scaling when appropriate, but scaling is presentation-only and the underlying machine value is not changed or fed back into research calculations.
 
 ## Expectation Quality and Event-relative Freshness
 
@@ -254,7 +271,7 @@ For v1.5.03+, when a latest material event timestamp is available, compare the c
 
 Calendar freshness and information freshness are distinct. This quality layer does not invent market direction and does not replace PIT validation.
 
-For v1.5.05, missing consensus must remain missing and must not produce a fabricated expectation gap. Directional expectation evidence must not be converted into a numeric magnitude without supported numeric inputs.
+For v1.5.05+, missing consensus must remain missing and must not produce a fabricated expectation gap. Directional expectation evidence must not be converted into a numeric magnitude without supported numeric inputs.
 
 ## Lease-aware Router and Economic Exposure Integrity
 
@@ -262,7 +279,7 @@ For lease-heavy operating models, low owned PPE is not sufficient evidence of a 
 
 For distributor/working-capital research, expose factoring, derecognized receivables, receivable transfers and other working-capital financing when evidenced. These are economic financing exposures but must **not automatically be relabeled as debt**. Preserve their accounting/legal nature and analyze financing burden separately.
 
-Comprehensive lease-adjusted ROIC/DCF is not implied by v1.5.03+ unless a compatible methodology explicitly implements it. v1.5.05 improves the presentation guard but does not add a lease-adjusted valuation engine.
+Comprehensive lease-adjusted ROIC/DCF is not implied by v1.5.03+ unless a compatible methodology explicitly implements it. v1.5.05+ improves the presentation guard but does not add a lease-adjusted valuation engine.
 
 ### v1.5.04 delta and equity-financing semantics
 
