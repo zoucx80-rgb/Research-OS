@@ -104,7 +104,11 @@ class ResearchRuntime:
         if driver is not None:
             drivers = artifacts.get("drivers.graph")
             theses = list(artifacts.get("thesis.items") or [])
-            statuses["Driver Graph"] = "PASS" if drivers is not None else driver.status
+            statuses["Driver Graph"] = (
+                "PASS"
+                if driver.status == "PASS" and drivers is not None
+                else driver.status
+            )
             statuses["Thesis"] = "PASS" if theses else driver.status
             statuses["Anti-Thesis"] = (
                 "PASS"
