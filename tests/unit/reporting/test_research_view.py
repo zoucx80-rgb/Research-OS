@@ -177,4 +177,5 @@ def test_hospitality_research_view_exposes_coverage_limit_without_fake_thesis():
     assert view.driver_graph.coverage_limited is True
     assert view.driver_graph.coverage.label == "通用驱动，仅供信息参考"
     assert view.theses == []
+    assert view.decision_summary.module_statuses["核心驱动关系"].label == "证据不足"
     assert view.decision_summary.final_status.label == "研究流程未完成"
