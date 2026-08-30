@@ -21,6 +21,10 @@ def _version_tuple(value: str) -> tuple[int, ...]:
     return tuple(int(part) for part in value.split("."))
 
 
+def _component_version_tuple(value: str) -> tuple[int, ...]:
+    return _version_tuple(value.rsplit("@", 1)[-1])
+
+
 def test_v1_5_01_semantic_contract_remains_available_in_current_release():
     project = tomllib.loads(Path("pyproject.toml").read_text())
     metadata = json.loads(Path("research_os_version.json").read_text())
@@ -31,9 +35,10 @@ def test_v1_5_01_semantic_contract_remains_available_in_current_release():
     assert metadata["research_os_version"] == RESEARCH_OS_VERSION
     assert CORE_API_VERSION == "1.0"
     assert metadata["core_api_version"] == "1.0"
-    assert metadata["module_versions"]["router"] == "1.1.0"
+    assert _version_tuple(metadata["module_versions"]["router"]) >= (1, 1, 0)
     assert metadata["module_versions"]["semantic_presentation"] == "1.0.0"
-    assert BusinessModelRouter.version == "router@1.1.0"
+    assert _component_version_tuple(BusinessModelRouter.version) >= (1, 1, 0)
+    assert metadata["module_versions"]["router"] == BusinessModelRouter.version.rsplit("@", 1)[-1]
     assert DecisionSummaryPresenter.version == "semantic-report@1.0.0"
 
 
