@@ -79,7 +79,8 @@ Canonical sequence:
 6. evaluate the single `ResearchCompletionGate`;
 7. freeze one canonical `ResearchRunResult` and versioned snapshot;
 8. project the same canonical result into a human-readable research view;
-9. compose that view into a report document without re-running research semantics.
+9. compose that view into a report document without re-running research semantics;
+10. render the canonical `ResearchReportDocument` through the versioned presentation renderer without recomputing research semantics.
 
 `experimental` plugins require explicit opt-in. Plugin overrides are exceptional, explicit and auditable.
 
@@ -231,6 +232,40 @@ These sections copy existing human-readable values and states. The Composer **�
 
 Raw evidence IDs, assumption IDs, repository/plugin/module identities and valuation lineage identifiers remain audit metadata rather than primary body content. A recognized Hospitality company without a compatible industry strategy plugin must still surface the Coverage Gap and must not receive fabricated RevPAR, ADR, OCC, same-store, unit-economics, lease-adjusted ROIC or lease-adjusted valuation solely to make the report appear complete.
 
+### v1.5.07 Deterministic Markdown Rendering
+
+For v1.5.07, `ResearchViewPresenter` remains **`professional-research-view@1.3.0`**, `ResearchReportComposer` remains **`research-report-composer@1.1.0`**, and the canonical Markdown-renderer fingerprint is **`professional-markdown-renderer@1.0.0`**.
+
+Required one-way direction:
+
+```text
+ResearchRunResult
+    ↓
+ResearchViewPresenter
+    ↓
+HumanReadableResearchView
+    ↓
+ResearchReportComposer
+    ↓
+ResearchReportDocument
+    ↓
+ResearchReportMarkdownRenderer
+    ↓
+Markdown
+```
+
+`ResearchReportMarkdownRenderer` is a presentation-only boundary. It must:
+
+- consume `ResearchReportDocument` only; `ResearchRunResult`, `HumanReadableResearchView`, and raw dictionaries must not become alternate renderer inputs;
+- preserve document section order and canonical values while formatting headings, tables, supported scalar fields, monitoring, gaps and limitations;
+- keep raw evidence/assumption IDs and repository/plugin/module metadata in the audit appendix rather than primary investment prose;
+- never infer a missing KPI, state, causal edge, expectation gap, valuation result, threshold, thesis condition, or industry capability;
+- preserve factoring/receivable-transfer terminology without automatically relabeling those exposures as debt;
+- preserve lease-heavy/Hospitality capability limitations without inventing RevPAR, ADR, OCC, same-store, unit economics, lease-adjusted ROIC or lease-adjusted valuation;
+- be deterministic for the same `ResearchReportDocument` and renderer version.
+
+Downstream HTML/CSS/PDF tooling may consume canonical Markdown or a future presentation model, but must not feed presentation-derived values back into Research OS semantics.
+
 ## State Provenance — v1.5.03+
 
 `fundamental_state`, `valuation_state`, and `expectation_state` must retain their source semantics. If legacy string inputs are used, human-facing output must identify them as analyst assumptions rather than claiming they were derived by Research OS.
@@ -317,7 +352,8 @@ Do not begin with a preferred valuation template. Preserve causal order:
 12. Research Completion Gate
 13. `ResearchViewPresenter` one-way human-readable projection
 14. `ResearchReportComposer` one-way editorial composition into `ResearchReportDocument`
-15. renderer / PDF output without semantic recomputation
+15. `ResearchReportMarkdownRenderer` deterministic Markdown projection without semantic recomputation
+16. downstream HTML/PDF styling or pagination, when used, without semantic recomputation
 
 Do not mechanically average incompatible valuation methods.
 
@@ -358,7 +394,7 @@ A stock-research request is read-only with respect to Research OS by default. If
 
 When the user says an equivalent of `更新 <公司>，按 Research OS，只看上次 snapshot 之后的新证据`, use the latest Research OS `main` for methodology while preserving the prior versioned snapshot as the historical baseline. Produce an Evidence Delta rather than overwriting historical state.
 
-At minimum report what changed, why, what did not change, whether conviction/Decision State changed, falsifier movement, and the next evidence to verify. Human-facing incremental output follows the current professional research-view and report-composition contracts.
+At minimum report what changed, why, what did not change, whether conviction/Decision State changed, falsifier movement, and the next evidence to verify. Human-facing incremental output follows the current professional research-view, report-composition, and Markdown-renderer contracts.
 
 ## Historical PIT Invocation
 
