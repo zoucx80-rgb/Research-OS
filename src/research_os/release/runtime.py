@@ -49,6 +49,10 @@ CHECKS: dict[str,str]={
     "core_api_version_consistency":"tests/regression/architecture/test_release_contract_v1_4.py::test_public_release_version_and_core_api_are_consistent",
     "extensibility_no_engine_change":"tests/regression/architecture/test_extensibility.py",
     "no_legacy_runtime_policy_duplication":"tests/regression/architecture/test_single_runtime_policy.py",
+    "router_period_semantics":"tests/unit/router/test_classifier.py::test_interim_inventory_to_revenue_does_not_add_distributor_score",
+    "business_model_gap_semantics":"tests/unit/plugins/test_resolver.py::test_resolver_distinguishes_unsupported_taxonomy_from_missing_plugin",
+    "human_readable_reporting":"tests/unit/reporting/test_semantics.py::test_presenter_keeps_machine_code_secondary_and_chinese_label_primary",
+    "presentation_single_source":"tests/unit/reporting/test_semantics.py::test_presenter_does_not_recompute_completion_or_decision_state",
 }
 
 ROOT=Path(__file__).resolve().parents[3]

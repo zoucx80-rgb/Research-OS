@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.5.1 — 2026-08-30
+
+### Added
+Business-model classification semantics that distinguish successful classification, unsupported taxonomy, and insufficient evidence; `hospitality` as a representable standard business-model taxonomy; structured CoverageGap metadata (`reason_code`, `affected_capabilities`, `fallback_available`); and `DecisionSummaryPresenter` / `HumanReadableDecisionSummary` for canonical zh-CN human-facing presentation.
+
+### Changed
+`BusinessModelRouter` is now `router@1.1.0`. Its period-sensitive `inventory_to_revenue` feature only contributes when the Evidence period is explicitly annual, preventing interim balance/flow ratios from silently biasing cross-company classification. `StrategyResolver` now distinguishes business-model taxonomy/evidence gaps from the normal case of a represented business model lacking an industry plugin. The default report version is `semantic-report@1.0.0`.
+
+### Fixed
+Prevents `unknown` business-model output from collapsing unsupported taxonomy and missing evidence into the same misleading industry-plugin gap. Prevents internal enum/reason-code strings from being the primary human-facing research conclusion by introducing an explicit machine-code → zh-CN label → zh-CN explanation contract. The presenter preserves raw codes only as technical metadata and does not recalculate research states.
+
+### Validation
+Release Gate adds `router_period_semantics`, `business_model_gap_semantics`, `human_readable_reporting`, and `presentation_single_source`. CI continues to run architecture contracts before correctness regressions, storage migration smoke, the full suite, and the release gate.
+
+### Migration
+No database or Alembic migration is required. Existing `BusinessModelProfile`, `CoverageGap`, and `ExtensionRequest` construction remains backward compatible because new fields have defaults. Human-facing clients may use `DecisionSummaryPresenter`; machine integrations may continue consuming canonical `DecisionSummary` and `ResearchRunResult`. See `docs/migrations/v1.5.01.md`.
+
+### Compatibility
+`CORE_API_VERSION` remains `1.0`. `ResearchRunResult`, `ResearchCompletionGate`, the canonical decision state, snapshot architecture, Distributor Pack, Funding Loop engine, and v1.4 plugin/runtime boundaries are unchanged. v1.5.01 does not add a hotel strategy plugin or company-specific research logic.
+
 ## 1.4.0 — 2026-08-30
 
 ### Added

@@ -211,7 +211,7 @@ class ResearchRuntime:
             "valuation_version": supplied.get(
                 "valuation_version", "core:valuation@1.0.0"
             ),
-            "report_version": supplied.get("report_version", "runtime-result@1.0.0"),
+            "report_version": supplied.get("report_version", "semantic-report@1.0.0"),
             "core_api_version": context.baseline.core_api_version,
         }
 

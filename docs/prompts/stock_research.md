@@ -73,9 +73,9 @@ Strictly enforce:
 - **Models Beat Simple Benchmarks** before production promotion.
 - **Research Signal ≠ Auto Trading**.
 
-If reliable evidence cannot be obtained, use `INSUFFICIENT_EVIDENCE` rather than filling the gap for narrative completeness.
+If reliable evidence cannot be obtained, preserve the canonical machine state `INSUFFICIENT_EVIDENCE` rather than filling the gap for narrative completeness. In human-facing output, present that state through the current semantic presentation contract (for zh-CN: `证据不足` plus an explanation); do not use the internal code as the primary conclusion.
 
-## v1.4 Canonical Runtime and Plugin Resolution
+## v1.5 Canonical Runtime and Plugin Resolution
 
 Normal stock research should be invoked with the company/security, decision timestamp, and evidence requirements. The caller does **not** need to manually choose an industry strategy plugin in normal use.
 
@@ -93,9 +93,47 @@ The canonical runtime sequence is:
 
 If the routed primary or secondary business model lacks a compatible specialized strategy plugin, record an explicit **Coverage Gap**. If an explicitly requested methodology cannot be satisfied, record a methodology Coverage Gap. A Coverage Gap must never be silently converted into specialized KPI support, PASS, or COMPLETE. Plugin failure, compatibility rejection, and unsupported capability coverage must remain visible in the research result.
 
+On v1.5.01 or later, do not conflate business-model classification failure with missing industry strategy coverage:
+
+- `business_model_taxonomy` means available business evidence does not fit the current standard taxonomy;
+- `business_model_evidence` means usable evidence is insufficient to classify the business model;
+- `industry_strategy` means the business model is represented, but no compatible specialized industry strategy plugin is available.
+
+A recognized `hospitality` company without a hospitality plugin is therefore a represented business model with an `industry_strategy` Coverage Gap. It must not be silently mapped to Manufacturing or Distributor.
+
 Industry and methodology plugins are orthogonal. Business-model routing selects the relevant industry strategy; compatible methodology plugins may then extend the available capability graph. `ResearchEngine` itself must remain unaware of company, industry, or plugin identities.
 
 Reporting must consume the canonical `ResearchRunResult`. It must not accept a parallel status dictionary as a second completion-policy surface, and it must take `final_status`, `blocking_modules`, and `module_statuses` from the same runtime `ResearchCompletionResult`.
+
+## v1.5.01 Human-readable Presentation Contract
+
+For Research OS v1.5.01 or later, canonical machine semantics and human-facing research language are distinct layers.
+
+The required direction is one-way:
+
+```text
+ResearchRunResult
+    ↓
+DecisionSummary (canonical machine semantics)
+    ↓
+DecisionSummaryPresenter (human-readable presentation)
+```
+
+For zh-CN output, use `DecisionSummaryPresenter` / `semantic-report@1.0.0` semantics where available.
+
+Every human-facing state must follow:
+
+```text
+machine code → localized label → localized explanation
+```
+
+The machine code may be retained as secondary technical metadata for auditability. It must not be the primary research conclusion.
+
+Do not present raw enum names, reason codes, plugin IDs, Python object representations, internal field names, diagnostic strings, or debug output as if they were research conclusions. Examples include `INSUFFICIENT_EVIDENCE`, `UNRELIABLE`, `MIXED`, `NEGATIVE_OCF`, or `industry:manufacturing`.
+
+Human-readable rendering must preserve the exact underlying semantics. Presentation is not allowed to calculate, promote, demote, or otherwise modify completion, decision, thesis, fundamental, expectation, or valuation state.
+
+If the presenter does not yet have a localized explanation for an internal code, emit a readable fallback stating that the explanation is not configured and retain the raw code only as technical metadata. Never silently fall back to printing the raw code as the main conclusion.
 
 ## Machine-Enforced Safety Gates
 
@@ -117,10 +155,10 @@ Use the pinned Research OS implementation as the source of truth. Where the safe
 
 Financial sanity is a hard prerequisite: unit, scale, arithmetic or cross-report consistency failures block downstream valuation/decision completion. Expectation claims such as beat/miss/priced-in require auditable expectation evidence. The selected valuation model must equal the executed model and retain scenario, assumption, lineage, and driver-bridge evidence. Only legal `ResearchDecisionState` values may appear as decision states.
 
-For the v1.2.1 correctness semantics preserved by v1.4.0:
+For the v1.2.1 correctness semantics preserved by v1.5.01:
 
 - Interim day-based KPIs require a known reporting-period length or derivable dates. If period length is unavailable, keep the metric missing with an explicit reason rather than substituting 365.
-- Funding-loop inputs such as working-capital change, debt/equity funding and operating cash flow remain missing when not evidenced. An unclassifiable loop is `unknown` and maps to `INSUFFICIENT_EVIDENCE`.
+- Funding-loop inputs such as working-capital change, debt/equity funding and operating cash flow remain missing when not evidenced. An unclassifiable loop is `unknown` and maps to `INSUFFICIENT_EVIDENCE` at the machine layer.
 - Generic core KPI infrastructure is not specialized coverage. Specialized KPI/strategy PASS requires support for the routed primary business model; unsupported primary models remain visible as a coverage limitation.
 - `ResearchCompletionGate` is the single completion-policy authority. Reporting must propagate the same `ResearchCompletionResult` (`final_status`, `blocking_modules`, `module_statuses`) and must not independently promote or demote completion.
 - Claim-capability normalization must not treat a decision-state claim as an automatic valuation or target-price claim.
@@ -140,6 +178,7 @@ Do not begin with a preferred valuation template. Preserve the causal order impl
 9. Research Decision State
 10. Monitoring and next-verification events
 11. Research Completion Gate
+12. Human-readable semantic presentation derived from the canonical result
 
 Do not mechanically average incompatible valuation methods.
 
@@ -148,15 +187,15 @@ Do not mechanically average incompatible valuation methods.
 The report should include, where supported by evidence:
 
 - Research OS baseline fingerprint
-- resolved strategy/plugin set and any Coverage Gap
-- `FINAL_STATUS = COMPLETE | INCOMPLETE`
-- module validation/completion status for material gates
-- Research Decision State
+- resolved strategy/plugin set and any Coverage Gap, described in human-readable research language
+- final completion state, using a human-readable label as primary output and canonical machine code only as audit metadata where useful
+- module validation/completion status for material gates, rendered human-readably
+- Research Decision State, rendered human-readably
 - Thesis / Anti-Thesis / Falsifiers
 - Business Model classification and specialized KPI/strategy applicability
 - Key operating drivers
 - Financial quality, period-aware operating KPIs, capital efficiency and funding loop
-- Market expectations and expectation gap, or explicit `INSUFFICIENT_EVIDENCE`
+- Market expectations and expectation gap, or an explicit human-readable evidence-insufficiency statement
 - Forecast evidence / limitations
 - Valuation Model Fitness and executed valuation lineage
 - Evidence Quality / Evidence Gaps
@@ -165,7 +204,7 @@ The report should include, where supported by evidence:
 - Evidence that would increase conviction
 - Evidence that would weaken or break the thesis
 
-A tool or browsing workflow ending successfully does **not** imply research completion. `FINAL_STATUS=COMPLETE` may be emitted only when the Research Completion Gate returns COMPLETE. Otherwise report `FINAL_STATUS=INCOMPLETE` and identify blocking modules. The report's completion fields must come from the same completion result used by the runtime.
+A tool or browsing workflow ending successfully does **not** imply research completion. Canonical `FINAL_STATUS=COMPLETE` may exist only when the Research Completion Gate returns COMPLETE. Otherwise the canonical status remains `INCOMPLETE` and blocking modules must be identified. In the human-facing report, translate these states rather than exposing the raw codes as the main conclusion. The report's completion fields must come from the same completion result used by the runtime.
 
 ## Research vs. Repository Modification
 
@@ -179,8 +218,8 @@ When the user says an equivalent of:
 
 use the latest Research OS `main` for methodology, but preserve the prior versioned Research Snapshot as the historical baseline. Produce an Evidence Delta and do not overwrite the historical snapshot.
 
-At minimum report what changed, why it changed, what did not change, whether conviction or Research Decision State changed, falsifier movement, and the next evidence that must be verified.
+At minimum report what changed, why it changed, what did not change, whether conviction or Research Decision State changed, falsifier movement, and the next evidence that must be verified. Human-facing incremental output follows the same semantic presentation contract.
 
 ## Historical PIT Invocation
 
-Historical research requires explicit `decision_ts`. Prohibit evidence, outcomes, prices, disclosures, and hindsight explanations published after that timestamp.
+Historical research requires explicit `decision_ts`. Prohibit evidence, outcomes, prices, disclosures, and hindsight explanations published after that timestamp. Human-readable presentation may evolve by version, but it must never alter the frozen canonical machine semantics of the historical snapshot.

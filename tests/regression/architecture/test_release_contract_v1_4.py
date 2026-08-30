@@ -33,10 +33,9 @@ def test_public_release_version_and_core_api_are_consistent():
     project = tomllib.loads(Path("pyproject.toml").read_text())
     metadata = json.loads(Path("research_os_version.json").read_text())
 
-    assert RESEARCH_OS_VERSION == "1.4.0"
-    assert research_os.__version__ == "1.4.0"
-    assert project["project"]["version"] == "1.4.0"
-    assert metadata["research_os_version"] == "1.4.0"
+    assert RESEARCH_OS_VERSION == research_os.__version__
+    assert project["project"]["version"] == RESEARCH_OS_VERSION
+    assert metadata["research_os_version"] == RESEARCH_OS_VERSION
     assert CORE_API_VERSION == "1.0"
     assert metadata.get("core_api_version", "1.0") == "1.0"
 

@@ -130,6 +130,58 @@ def test_resolver_emits_coverage_gap_without_silent_core_fallback():
     assert result.coverage_gaps[0].business_model == "consumer"
 
 
+def test_resolver_distinguishes_unsupported_taxonomy_from_missing_plugin():
+    profile = _profile(primary="unknown").model_copy(
+        update={
+            "classification_status": "unsupported_taxonomy",
+            "classification_reason": "no_supported_business_model_match",
+        }
+    )
+
+    result = StrategyResolver().resolve(profile, _context(), _registry())
+
+    assert result.industry_plugins == []
+    assert len(result.coverage_gaps) == 1
+    gap = result.coverage_gaps[0]
+    assert gap.gap_type == "business_model_taxonomy"
+    assert gap.business_model == "unknown"
+    assert gap.reason_code == "UNSUPPORTED_BUSINESS_MODEL_TAXONOMY"
+    assert gap.fallback_available is True
+    assert "industry_strategy" in gap.affected_capabilities
+
+
+def test_resolver_distinguishes_insufficient_model_evidence():
+    profile = _profile(primary="unknown").model_copy(
+        update={
+            "classification_status": "insufficient_evidence",
+            "classification_reason": "no_usable_business_model_evidence",
+        }
+    )
+
+    result = StrategyResolver().resolve(profile, _context(), _registry())
+
+    assert result.industry_plugins == []
+    assert len(result.coverage_gaps) == 1
+    gap = result.coverage_gaps[0]
+    assert gap.gap_type == "business_model_evidence"
+    assert gap.reason_code == "INSUFFICIENT_BUSINESS_MODEL_EVIDENCE"
+    assert gap.fallback_available is True
+
+
+def test_recognized_hospitality_gets_industry_strategy_gap():
+    profile = _profile(primary="hospitality")
+
+    result = StrategyResolver().resolve(profile, _context(), _registry())
+
+    assert result.industry_plugins == []
+    assert len(result.coverage_gaps) == 1
+    gap = result.coverage_gaps[0]
+    assert gap.gap_type == "industry_strategy"
+    assert gap.business_model == "hospitality"
+    assert gap.reason_code == "NO_COMPATIBLE_INDUSTRY_PLUGIN"
+    assert gap.fallback_available is True
+
+
 def test_resolver_prefers_higher_applicability_score():
     lower = IndustryPlugin("industry:lower", models={"manufacturing"}, score=0.6, priority=1)
     higher = IndustryPlugin("industry:higher", models={"manufacturing"}, score=0.9, priority=999)
