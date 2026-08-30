@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from typing import Any
 
 from research_os.reporting.document import (
     AuditAppendix,
+    CapitalFundingBlock,
     CausalBridgeBlock,
     EvidenceNoteBlock,
+    ExpectationForecastBlock,
     ExpectationGapBlock,
+    FinancialOperatingBlock,
     GapClassificationBlock,
     InvestmentDecisionSnapshot,
     LimitationBlock,
@@ -14,7 +18,10 @@ from research_os.reporting.document import (
     NarrativeBlock,
     ReportSection,
     ResearchReportDocument,
+    StateProvenanceBlock,
+    ThesisDebateBlock,
     ValuationBlock,
+    ValuationRationaleBlock,
 )
 from research_os.reporting.research_view_v1_5_05 import HumanReadableResearchView
 
@@ -34,10 +41,49 @@ class ResearchReportComposer:
         "Net Profit / Cash Economics": "净利润/现金经济性",
         "Valuation": "估值",
     }
+    _INTERNAL_ID_KEYS = {
+        "evidence_id",
+        "evidence_ids",
+        "assumption_id",
+        "assumption_ids",
+    }
 
     @staticmethod
     def _dedup(items: list[str]) -> list[str]:
         return list(dict.fromkeys(item for item in items if item))
+
+    @classmethod
+    def _display_payload(cls, value: Any) -> Any:
+        if value is None:
+            return None
+        if hasattr(value, "model_dump"):
+            value = value.model_dump(mode="python")
+        if isinstance(value, dict):
+            return {
+                key: cls._display_payload(item)
+                for key, item in value.items()
+                if key not in cls._INTERNAL_ID_KEYS
+            }
+        if isinstance(value, list):
+            return [cls._display_payload(item) for item in value]
+        if isinstance(value, tuple):
+            return [cls._display_payload(item) for item in value]
+        return value
+
+    @classmethod
+    def _valuation_execution_payload(cls, execution) -> dict[str, Any] | None:
+        if execution is None:
+            return None
+        payload = cls._display_payload(execution)
+        payload.pop("lineage", None)
+        assumptions = []
+        for item in payload.get("assumptions", []):
+            if isinstance(item, dict):
+                item = dict(item)
+                item.pop("id", None)
+            assumptions.append(item)
+        payload["assumptions"] = assumptions
+        return payload
 
     @staticmethod
     def _normalize_limitation(text: str) -> str:
@@ -192,18 +238,13 @@ class ResearchReportComposer:
             return None
         return block
 
-    @staticmethod
-    def _expectation_payload(view: HumanReadableResearchView) -> dict:
-        payload = view.expectation_gap.model_dump(mode="python")
-        payload.pop("evidence_ids", None)
-        return payload
+    @classmethod
+    def _expectation_payload(cls, view: HumanReadableResearchView) -> dict:
+        return cls._display_payload(view.expectation_gap)
 
-    @staticmethod
-    def _valuation_payload(view: HumanReadableResearchView) -> dict:
-        payload = view.valuation_result.model_dump(mode="python")
-        payload.pop("evidence_ids", None)
-        payload.pop("assumption_ids", None)
-        return payload
+    @classmethod
+    def _valuation_payload(cls, view: HumanReadableResearchView) -> dict:
+        return cls._display_payload(view.valuation_result)
 
     def _snapshot(self, view: HumanReadableResearchView) -> InvestmentDecisionSnapshot:
         summary = view.decision_summary
@@ -241,6 +282,35 @@ class ResearchReportComposer:
                     ],
                 )
             )
+
+        if view.financial_sanity is not None or view.kpi_metrics:
+            sections.append(
+                ReportSection(
+                    section_id="financial-operating-performance",
+                    title="财务与经营表现",
+                    blocks=[
+                        FinancialOperatingBlock(
+                            financial_sanity=self._display_payload(view.financial_sanity),
+                            kpi_metrics=[self._display_payload(item) for item in view.kpi_metrics],
+                        )
+                    ],
+                )
+            )
+
+        if view.capital_efficiency is not None or view.funding_loop is not None:
+            sections.append(
+                ReportSection(
+                    section_id="capital-funding",
+                    title="资本效率与融资循环",
+                    blocks=[
+                        CapitalFundingBlock(
+                            capital_efficiency=self._display_payload(view.capital_efficiency),
+                            funding_loop=self._display_payload(view.funding_loop),
+                        )
+                    ],
+                )
+            )
+
         causal_bridge = self._causal_bridge(view)
         if causal_bridge:
             sections.append(
@@ -250,6 +320,35 @@ class ResearchReportComposer:
                     blocks=[CausalBridgeBlock(steps=causal_bridge)],
                 )
             )
+
+        if view.theses or view.thesis_signal_assessment is not None:
+            sections.append(
+                ReportSection(
+                    section_id="thesis-debate",
+                    title="投资逻辑与反证",
+                    blocks=[
+                        ThesisDebateBlock(
+                            theses=[self._display_payload(item) for item in view.theses],
+                            signal_assessment=self._display_payload(view.thesis_signal_assessment),
+                        )
+                    ],
+                )
+            )
+
+        if view.expectation_quality is not None or view.forecast_discipline is not None:
+            sections.append(
+                ReportSection(
+                    section_id="expectation-forecast",
+                    title="市场预期与预测纪律",
+                    blocks=[
+                        ExpectationForecastBlock(
+                            expectation_quality=self._display_payload(view.expectation_quality),
+                            forecast_discipline=self._display_payload(view.forecast_discipline),
+                        )
+                    ],
+                )
+            )
+
         if view.expectation_gap is not None:
             sections.append(
                 ReportSection(
@@ -258,6 +357,21 @@ class ResearchReportComposer:
                     blocks=[ExpectationGapBlock(payload=self._expectation_payload(view))],
                 )
             )
+
+        if view.valuation_models or view.valuation_execution is not None:
+            sections.append(
+                ReportSection(
+                    section_id="valuation-rationale",
+                    title="估值方法与适用性",
+                    blocks=[
+                        ValuationRationaleBlock(
+                            valuation_models=[self._display_payload(item) for item in view.valuation_models],
+                            valuation_execution=self._valuation_execution_payload(view.valuation_execution),
+                        )
+                    ],
+                )
+            )
+
         if view.valuation_result is not None:
             sections.append(
                 ReportSection(
@@ -266,6 +380,7 @@ class ResearchReportComposer:
                     blocks=[ValuationBlock(payload=self._valuation_payload(view))],
                 )
             )
+
         if view.monitoring is not None:
             sections.append(
                 ReportSection(
@@ -281,6 +396,20 @@ class ResearchReportComposer:
                     ],
                 )
             )
+
+        if view.state_provenance:
+            sections.append(
+                ReportSection(
+                    section_id="state-provenance",
+                    title="状态来源",
+                    blocks=[
+                        StateProvenanceBlock(
+                            items=[self._display_payload(item) for item in view.state_provenance]
+                        )
+                    ],
+                )
+            )
+
         gaps = self._gap_classification(view)
         if gaps is not None:
             sections.append(
