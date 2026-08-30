@@ -15,16 +15,51 @@ class NarrativeBlock(BaseModel):
     text: str
 
 
+class FinancialOperatingBlock(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    block_type: Literal["financial_operating"] = "financial_operating"
+    financial_sanity: dict[str, Any] | None = None
+    kpi_metrics: list[dict[str, Any]] = Field(default_factory=list)
+
+
+class CapitalFundingBlock(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    block_type: Literal["capital_funding"] = "capital_funding"
+    capital_efficiency: dict[str, Any] | None = None
+    funding_loop: dict[str, Any] | None = None
+
+
 class CausalBridgeBlock(BaseModel):
     model_config = ConfigDict(frozen=True)
     block_type: Literal["causal_bridge"] = "causal_bridge"
     steps: list[str] = Field(default_factory=list)
 
 
+class ThesisDebateBlock(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    block_type: Literal["thesis_debate"] = "thesis_debate"
+    theses: list[dict[str, Any]] = Field(default_factory=list)
+    signal_assessment: dict[str, Any] | None = None
+
+
+class ExpectationForecastBlock(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    block_type: Literal["expectation_forecast"] = "expectation_forecast"
+    expectation_quality: dict[str, Any] | None = None
+    forecast_discipline: dict[str, Any] | None = None
+
+
 class ExpectationGapBlock(BaseModel):
     model_config = ConfigDict(frozen=True)
     block_type: Literal["expectation_gap"] = "expectation_gap"
     payload: dict[str, Any] = Field(default_factory=dict)
+
+
+class ValuationRationaleBlock(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    block_type: Literal["valuation_rationale"] = "valuation_rationale"
+    valuation_models: list[dict[str, Any]] = Field(default_factory=list)
+    valuation_execution: dict[str, Any] | None = None
 
 
 class ValuationBlock(BaseModel):
@@ -40,6 +75,12 @@ class MonitoringBlock(BaseModel):
     conviction_up_conditions: list[str] = Field(default_factory=list)
     thesis_broken_conditions: list[str] = Field(default_factory=list)
     key_metrics: list[str] = Field(default_factory=list)
+
+
+class StateProvenanceBlock(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    block_type: Literal["state_provenance"] = "state_provenance"
+    items: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class LimitationBlock(BaseModel):
@@ -66,10 +107,16 @@ class GapClassificationBlock(BaseModel):
 
 ReportBlock = (
     NarrativeBlock
+    | FinancialOperatingBlock
+    | CapitalFundingBlock
     | CausalBridgeBlock
+    | ThesisDebateBlock
+    | ExpectationForecastBlock
     | ExpectationGapBlock
+    | ValuationRationaleBlock
     | ValuationBlock
     | MonitoringBlock
+    | StateProvenanceBlock
     | LimitationBlock
     | EvidenceNoteBlock
     | GapClassificationBlock
