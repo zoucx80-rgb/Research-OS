@@ -1,13 +1,13 @@
 {
-  "research_os_version":"1.5.2",
+  "research_os_version":"1.5.3",
   "core_api_version":"1.0",
   "status":"stable",
   "module_versions":{
     "finance_core":"2.0.1",
     "router":"1.2.0",
-    "driver_engine":"1.1.0",
-    "thesis_engine":"1.0.0",
-    "expectation_engine":"1.1.0",
+    "driver_engine":"1.2.0",
+    "thesis_engine":"1.1.0",
+    "expectation_engine":"1.2.0",
     "valuation":"2.1.0",
     "evidence_lineage":"2.0.0",
     "safety_gates":"1.0.0",
@@ -17,6 +17,6 @@
     "completion_gate":"1.1.0",
     "report_template":"3.1.1",
     "semantic_presentation":"1.0.0",
-    "semantic_research_view":"1.0.0"
+    "semantic_research_view":"1.1.0"
   }
 }
