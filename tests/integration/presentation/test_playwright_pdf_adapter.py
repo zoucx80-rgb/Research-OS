@@ -4,6 +4,7 @@ from io import BytesIO
 import os
 from pathlib import Path
 import sys
+import unicodedata
 
 import pytest
 from pypdf import PdfReader
@@ -42,7 +43,10 @@ def test_playwright_renders_production_pipeline_as_multipage_a4_pdf(tmp_path: Pa
         assert float(page.mediabox.width) == pytest.approx(595.28, abs=1.0)
         assert float(page.mediabox.height) == pytest.approx(841.89, abs=1.0)
 
-    extracted = "\n".join(page.extract_text() or "" for page in reader.pages)
+    extracted = unicodedata.normalize(
+        "NFKC",
+        "\n".join(page.extract_text() or "" for page in reader.pages),
+    )
     for section in (
         "投资决策快照",
         "财务与经营表现",
