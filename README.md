@@ -1,6 +1,6 @@
 # Research OS v1.5.02
 
-Research OS v1.5.02 (code SemVer `1.5.2`) is a Point-in-Time, evidence-linked investment research operating system built around one canonical, extensible runtime. This release preserves the v1.4 runtime/plugin architecture and the v1.5.01 semantic-correctness boundaries while extending them into end-to-end **Semantic Research Integrity**.
+Research OS v1.5.02 (code SemVer `1.5.2`) is a Point-in-Time, evidence-linked investment research operating system built around one canonical, extensible runtime. This release preserves the v1.4.0 runtime/plugin architecture and the v1.5.01 semantic-correctness boundaries while extending them into end-to-end **Semantic Research Integrity**.
 
 ## Core invariants
 
