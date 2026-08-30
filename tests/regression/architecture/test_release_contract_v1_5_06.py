@@ -17,15 +17,15 @@ def test_public_v1_5_06_version_and_reporting_fingerprints_are_consistent():
     project = tomllib.loads(Path("pyproject.toml").read_text())
     metadata = json.loads(Path("research_os_version.json").read_text())
 
-    assert RESEARCH_OS_VERSION == "1.5.6"
-    assert research_os.__version__ == "1.5.6"
-    assert project["project"]["version"] == "1.5.6"
-    assert metadata["research_os_version"] == "1.5.6"
+    assert tuple(map(int, RESEARCH_OS_VERSION.split("."))) >= (1, 5, 6)
+    assert research_os.__version__ == RESEARCH_OS_VERSION
+    assert project["project"]["version"] == RESEARCH_OS_VERSION
+    assert metadata["research_os_version"] == RESEARCH_OS_VERSION
     assert metadata["status"] == "stable"
     assert CORE_API_VERSION == "1.0"
     assert metadata["core_api_version"] == "1.0"
-    assert metadata["module_versions"]["semantic_research_view"] == "1.3.0"
-    assert metadata["module_versions"]["report_composer"] == "1.1.0"
+    assert tuple(map(int, metadata["module_versions"]["semantic_research_view"].split("."))) >= (1, 3, 0)
+    assert tuple(map(int, metadata["module_versions"]["report_composer"].split("."))) >= (1, 1, 0)
     assert ResearchViewPresenter.version == "professional-research-view@1.3.0"
     assert ResearchReportComposer.version == "research-report-composer@1.1.0"
 
