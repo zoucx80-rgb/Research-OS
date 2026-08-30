@@ -33,5 +33,10 @@ jobs:
           pytest -q
           tests/regression/architecture
           tests/unit/reporting/test_composition_coverage_v1_5_06.py
+      - run: >
+          pytest -q
+          tests/regression/architecture
+          tests/unit/reporting/test_markdown_renderer.py
+          tests/regression/research_patterns/test_v1_5_07_renderer_patterns.py
       - run: pytest -q
       - run: python scripts/release_gate_v1_1.py
