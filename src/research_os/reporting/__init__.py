@@ -1,3 +1,17 @@
+from .composer import ResearchReportComposer
+from .document import (
+    AuditAppendix,
+    CausalBridgeBlock,
+    EvidenceNoteBlock,
+    ExpectationGapBlock,
+    InvestmentDecisionSnapshot,
+    LimitationBlock,
+    MonitoringBlock,
+    NarrativeBlock,
+    ReportSection,
+    ResearchReportDocument,
+    ValuationBlock,
+)
 from .research_view import (
     HumanReadableCoverageGap,
     HumanReadableDriverEdge,
@@ -31,9 +45,13 @@ from .semantics import (
 from .summary import DecisionSummary, DecisionSummaryBuilder, ResearchReportModel
 
 __all__ = [
+    "AuditAppendix",
+    "CausalBridgeBlock",
     "DecisionSummary",
     "DecisionSummaryBuilder",
     "DecisionSummaryPresenter",
+    "EvidenceNoteBlock",
+    "ExpectationGapBlock",
     "HumanReadableCoverageGap",
     "HumanReadableDecisionSummary",
     "HumanReadableDriverEdge",
@@ -55,7 +73,15 @@ __all__ = [
     "HumanReadableValuationExecution",
     "HumanReadableValuationModel",
     "HumanReadableValuationResult",
+    "InvestmentDecisionSnapshot",
+    "LimitationBlock",
+    "MonitoringBlock",
+    "NarrativeBlock",
+    "ReportSection",
+    "ResearchReportComposer",
+    "ResearchReportDocument",
     "ResearchReportModel",
     "ResearchViewPresenter",
     "SemanticValue",
+    "ValuationBlock",
 ]
