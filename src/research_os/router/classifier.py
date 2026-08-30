@@ -7,7 +7,8 @@ from .models import BusinessModelProfile
 
 
 class BusinessModelRouter:
-    version = "router@1.1.0"
+    version = "router@1.2.0"
+    LEASE_MATERIALITY_THRESHOLD = 0.20
 
     @staticmethod
     def _is_annual_period(item: Evidence | None) -> bool:
@@ -16,7 +17,21 @@ class BusinessModelRouter:
         period = str(item.period).strip().lower().replace(" ", "")
         if not period:
             return False
-        if any(token in period for token in ("h1", "h2", "q1", "q2", "q3", "q4", "interim", "半年度", "半年", "季度")):
+        if any(
+            token in period
+            for token in (
+                "h1",
+                "h2",
+                "q1",
+                "q2",
+                "q3",
+                "q4",
+                "interim",
+                "半年度",
+                "半年",
+                "季度",
+            )
+        ):
             return False
         if period in {"annual", "year", "yearly", "年度", "年报"}:
             return True
@@ -55,13 +70,20 @@ class BusinessModelRouter:
         inv = values.get("inventory_to_revenue")
         fa = values.get("fixed_asset_to_assets")
         gm = values.get("gross_margin")
+        rou = values.get("right_of_use_assets_to_assets")
+        lease_liabilities = values.get("lease_liabilities_to_assets")
+        lease_heavy = any(
+            isinstance(value, (int, float)) and value >= self.LEASE_MATERIALITY_THRESHOLD
+            for value in (rou, lease_liabilities)
+        )
+
         if (
             isinstance(inv, (int, float))
             and inv >= 0.15
             and self._is_annual_period(records.get("inventory_to_revenue"))
         ):
             scores["distributor"] += 0.2
-        if isinstance(fa, (int, float)) and fa <= 0.08:
+        if isinstance(fa, (int, float)) and fa <= 0.08 and not lease_heavy:
             scores["distributor"] += 0.15
         if isinstance(gm, (int, float)) and gm <= 0.10:
             scores["distributor"] += 0.15
