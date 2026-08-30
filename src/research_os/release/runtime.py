@@ -53,6 +53,14 @@ CHECKS: dict[str,str]={
     "business_model_gap_semantics":"tests/unit/plugins/test_resolver.py::test_resolver_distinguishes_unsupported_taxonomy_from_missing_plugin",
     "human_readable_reporting":"tests/unit/reporting/test_semantics.py::test_presenter_keeps_machine_code_secondary_and_chinese_label_primary",
     "presentation_single_source":"tests/unit/reporting/test_semantics.py::test_presenter_does_not_recompute_completion_or_decision_state",
+    "business_model_status_truth":"tests/regression/research_patterns/test_v1_5_02_semantic_integrity.py::test_unresolved_business_model_does_not_report_router_pass",
+    "coverage_aware_thesis":"tests/regression/research_patterns/test_v1_5_02_semantic_integrity.py::test_missing_primary_industry_coverage_keeps_generic_drivers_but_blocks_active_thesis",
+    "funding_material_risk":"tests/regression/research_patterns/test_v1_5_02_semantic_integrity.py::test_debt_funded_negative_ocf_is_material_risk_for_decision_state",
+    "expectation_quality":"tests/regression/research_patterns/test_v1_5_02_semantic_integrity.py::test_expectation_quality_uses_existing_consensus_fields_and_age",
+    "industry_report_contributions":"tests/regression/research_patterns/test_v1_5_02_semantic_integrity.py::test_builtin_industry_plugins_provide_structured_report_contributions",
+    "primary_industry_isolation":"tests/regression/research_patterns/test_v1_5_02_semantic_integrity.py::test_secondary_industry_plugin_cannot_contaminate_primary_kpi_pack",
+    "end_to_end_research_view":"tests/unit/reporting/test_research_view.py::test_distributor_research_view_humanizes_end_to_end_machine_artifacts",
+    "coverage_limited_completion":"tests/unit/reporting/test_research_view.py::test_hospitality_research_view_exposes_coverage_limit_without_fake_thesis",
 }
 
 ROOT=Path(__file__).resolve().parents[3]
