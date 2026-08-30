@@ -25,6 +25,10 @@ def _version_tuple(value: str) -> tuple[int, ...]:
     return tuple(int(part) for part in value.split("."))
 
 
+def _presenter_version_tuple(value: str) -> tuple[int, ...]:
+    return _version_tuple(value.rsplit("@", 1)[-1])
+
+
 def test_public_v1_5_02_version_and_core_api_are_consistent():
     project = tomllib.loads(Path("pyproject.toml").read_text())
     metadata = json.loads(Path("research_os_version.json").read_text())
@@ -39,7 +43,7 @@ def test_public_v1_5_02_version_and_core_api_are_consistent():
     assert metadata["module_versions"]["router"] == BusinessModelRouter.version.rsplit("@", 1)[-1]
     assert metadata["module_versions"]["semantic_presentation"] == "1.0.0"
     assert _version_tuple(metadata["module_versions"]["semantic_research_view"]) >= (1, 0, 0)
-    assert ResearchViewPresenter.version.startswith("semantic-research-view@")
+    assert _presenter_version_tuple(ResearchViewPresenter.version) >= (1, 0, 0)
 
 
 def test_release_gate_contains_v1_5_02_semantic_integrity_checks():
