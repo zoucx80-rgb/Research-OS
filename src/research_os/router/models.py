@@ -20,3 +20,4 @@ class BusinessModelProfile(BaseModel):
     manual_override: bool = False
     classification_status: ClassificationStatus = "classified"
     classification_reason: str | None = None
+    lease_heavy: bool = False
