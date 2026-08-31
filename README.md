@@ -1,6 +1,6 @@
-# Research OS v1.5.11
+# Research OS v1.5.12
 
-Research OS v1.5.11 (code SemVer `1.5.11`) is a Point-in-Time, evidence-linked investment research operating system built around one canonical, extensible runtime. This PATCH release hardens **semantic correctness, comparison-basis safety, missingness handling, and investor-facing presentation integrity** while preserving the professional completeness and strict one-way presentation pipeline established in v1.5.05-v1.5.10. The canonical extensible runtime introduced in `1.4.0` remains the architectural baseline.
+Research OS v1.5.12 (code SemVer `1.5.12`) is a Point-in-Time, evidence-linked investment research operating system built around one canonical, extensible runtime. This PATCH release hardens **semantic preservation, claim strength, threshold context, and valuation reconciliation** while retaining v1.5.11 comparison-basis and missingness safety.
 
 ## Core invariants
 
@@ -143,7 +143,7 @@ Research OS v1.5.09 used `professional-research-view@1.4.0`, `research-report-co
 
 Research OS v1.5.10 used `professional-research-view@1.5.0`, `research-report-composer@1.3.0`, and `professional-markdown-renderer@1.2.0`.
 
-For v1.5.11 the active upstream fingerprints are `professional-research-view@1.6.0`, `research-report-composer@1.3.0`, and `professional-markdown-renderer@1.3.0`. HTML/PDF remain `professional-html-renderer@1.0.0` and `professional-pdf-adapter@1.0.0`.
+For v1.5.12 the active upstream fingerprints are `professional-research-view@1.7.0`, `research-report-composer@1.4.0`, and `professional-markdown-renderer@1.4.0`. HTML/PDF remain `professional-html-renderer@1.0.0` and `professional-pdf-adapter@1.0.0`.
 
 `HumanReadableResearchView` remains a read-only projection of canonical research artifacts. `ResearchReportComposer` accepts that view only; it does not accept a raw dictionary as an alternate semantic path and does not calculate or alter completion, decision, thesis, fundamental, expectation, valuation, funding, forecast, business-model, consensus, peer, sensitivity, monitoring, or prior-run state.
 

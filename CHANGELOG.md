@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.5.12 — 2026-08-31
+
+### Added
+Typed claim-strength, cycle-state and moat-realization contracts; mandatory context for numerical sensitivities and monitoring thresholds; canonical valuation reconciliation; stable Result→View→Document semantic fingerprints; and dual synthetic/steel-superalloy v1.5.12 field acceptance.
+
+### Changed
+The active reporting chain is `professional-research-view@1.7.0`, `research-report-composer@1.4.0`, and `professional-markdown-renderer@1.4.0`. v1.5.11 runtime and reporting entry points are frozen for historical replay, with a fail-closed, package-level source-tree fingerprint covering all Python runtime dependencies (plus direct dependency pins). Any later production-source drift is rejected instead of silently changing a historical result.
+
+### Fixed
+Prevents technical evidence from becoming a realized economic moat, missing recovery signals from becoming observed recovery, recovery observations from becoming confirmed troughs, sensitivity results from losing assumptions, absent semantic fingerprints from passing presentation, analyst thresholds from appearing as objective standards, multilingual software versions from becoming valuation rationale, and incompatible valuation ranges from being forced into a synthetic band.
+
+### Validation
+Adds the reusable `semantic-preservation` verification pack, permanent architecture regressions, fixed-cutoff `300034.SZ` acceptance at `decision_ts=2026-08-30`, all v1.5.08–v1.5.11 replays, and persisted first-pass artifacts with layer-attributed PASS/WARN/FAIL findings.
+
+### Migration
+No database or Alembic migration is required. See `docs/migrations/v1.5.12.md`.
+
+### Compatibility
+`CORE_API_VERSION` remains `1.0`; all input fields are additive and production Core contains no acceptance-company-specific branches.
+
 ## 1.5.11 — 2026-08-31
 
 ### Added

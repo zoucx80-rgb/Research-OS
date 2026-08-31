@@ -113,6 +113,22 @@ class PeerComparableObservation(BaseModel):
     evidence_ids: tuple[str, ...] = Field(default_factory=tuple)
 
 
+class ScenarioAssumption(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
+    assumption_id: str
+    label: str
+    value: Scalar = None
+    unit: str | None = None
+    source_type: Literal[
+        "analyst_assumption",
+        "company_guidance",
+        "contract",
+        "industry_reference",
+        "other",
+    ]
+
+
 class SensitivityCase(BaseModel):
     model_config = ConfigDict(frozen=True)
 
@@ -129,6 +145,10 @@ class SensitivityCase(BaseModel):
     formula_version: str
     evidence_ids: tuple[str, ...] = Field(default_factory=tuple)
     assumption_ids: tuple[str, ...] = Field(default_factory=tuple)
+    material_assumptions: tuple[ScenarioAssumption, ...] = Field(default_factory=tuple)
+    model_boundary: str | None = None
+    applicability: str | None = None
+    caveats: tuple[str, ...] = Field(default_factory=tuple)
 
 
 class MonitoringRule(BaseModel):
@@ -141,6 +161,18 @@ class MonitoringRule(BaseModel):
     frequency: str
     rationale: str
     source_type: Literal["analyst_assumption", "company_guidance", "contract", "industry_reference", "other"]
+    threshold_type: Literal[
+        "company_guidance",
+        "accounting_or_regulatory",
+        "industry_benchmark",
+        "historical_company_benchmark",
+        "analyst_defined_monitoring",
+        "contractual",
+        "other",
+    ] | None = None
+    threshold_source: str | None = None
+    comparison_basis: str | None = None
+    applicability: str | None = None
     evidence_ids: tuple[str, ...] = Field(default_factory=tuple)
     assumption_ids: tuple[str, ...] = Field(default_factory=tuple)
 

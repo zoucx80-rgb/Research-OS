@@ -1,0 +1,92 @@
+{
+  "schema_version": "field-acceptance-case@1.0.0",
+  "case_id": "300034.SZ",
+  "company": {
+    "company_id": "钢研高纳（300034.SZ）",
+    "security_id": "300034.SZ",
+    "exchange": "SZSE",
+    "display_name": "钢研高纳"
+  },
+  "decision_ts": "2026-08-30T00:00:00Z",
+  "evidence_defaults": {
+    "evidence_type": "filing_fact",
+    "period_end": "2026-06-30",
+    "period": "2026H1",
+    "publish_ts": "2026-08-25T00:00:00Z",
+    "unit": "元",
+    "scope": "consolidated",
+    "version": "2026H1",
+    "source_document_id": "300034.SZ-2026H1-full-report",
+    "source_url": "https://disc.static.szse.cn/disc/disk03/finalpage/2026-08-25/fc6a5e7f-dd11-47f9-b460-c4e67a821115.PDF",
+    "confidence_grade": "A",
+    "verification_status": "PRIMARY_VERIFIED",
+    "dataset_version": "field-acceptance-v1.5.12@1",
+    "parser_version": "manual-primary-source@1"
+  },
+  "evidence": [
+    {"evidence_id": "ev:300034.SZ:business-description", "source_table": "business_description", "value": "高温合金材料制造与生产", "unit": null},
+    {"evidence_id": "ev:300034.SZ:revenue", "source_table": "revenue", "value": 2053495665.67},
+    {"evidence_id": "ev:300034.SZ:revenue-growth", "source_table": "revenue_growth", "value": 0.1304, "unit": "ratio"},
+    {"evidence_id": "ev:300034.SZ:net-profit-parent", "source_table": "net_profit_parent", "value": 102870971.88},
+    {"evidence_id": "ev:300034.SZ:gross-profit", "source_table": "gross_profit", "value": 439265030.63},
+    {"evidence_id": "ev:300034.SZ:gross-margin", "source_table": "gross_margin", "value": 0.2139108633, "unit": "ratio"},
+    {"evidence_id": "ev:300034.SZ:margin-change", "source_table": "margin_change", "value": -0.0265554378, "unit": "ratio"},
+    {"evidence_id": "ev:300034.SZ:ocf", "source_table": "operating_cash_flow", "value": 318569605.91},
+    {"evidence_id": "ev:300034.SZ:technical", "source_table": "technical_barrier_description", "value": "高温合金材料工艺与制造能力", "unit": null},
+    {"evidence_id": "ev:300034.SZ:qualification", "source_table": "qualification_barrier_description", "value": "客户验证与准入过程", "unit": null}
+  ],
+  "inputs": {
+    "fundamental_state_input": {"value": "UNCERTAIN", "source": "analyst_assumption", "method": "收入增长但毛利承压，修复仍需后续报告确认"},
+    "valuation_state_input": {"value": "UNRELIABLE", "source": "analyst_assumption", "method": "模型区间存在分歧，暂不合并"},
+    "valuation_models": {
+      "dcf": {"data_quality": 0.8, "earnings_stability": 0.5, "cash_flow_visibility": 0.4, "capital_structure_fit": 0.7, "business_model_fit": 0.7, "forecast_stability": 0.3},
+      "pe": {"data_quality": 0.9, "earnings_stability": 0.7, "cash_flow_visibility": 0.6, "capital_structure_fit": 0.8, "business_model_fit": 0.8, "forecast_stability": 0.6}
+    },
+    "valuation_ranges": [
+      {"range_id": "dcf-range", "model_id": "dcf", "role": "model_implied", "basis": "equity_per_share", "currency": "CNY", "low": 15.0, "high": 18.0},
+      {"range_id": "pe-range", "model_id": "pe", "role": "model_implied", "basis": "equity_per_share", "currency": "CNY", "low": 22.0, "high": 26.0}
+    ],
+    "valuation_rationales": [
+      {"model_id": "dcf", "status": "DOWNGRADED", "economic_factors": ["cash_flow_visibility", "forecast_horizon", "terminal_value_sensitivity"], "explanation": "现金流可见性与预测期不足，终值敏感性较高"},
+      {"model_id": "pe", "status": "PRIMARY", "economic_factors": ["business_model_fit", "evidence_quality"], "explanation": "当前盈利口径与可比证据更适合相对估值交叉验证"}
+    ],
+    "sensitivities": [
+      {
+        "case_id": "raw-material-up",
+        "driver_id": "raw_material_price",
+        "base_value": 1.0,
+        "shock_label": "原材料价格 +5%",
+        "shock_value": 0.05,
+        "affected_metric": "gross_margin",
+        "result": -0.018,
+        "probability": 0.30,
+        "formula_version": "mechanical-sensitivity@1",
+        "material_assumptions": [
+          {"assumption_id": "assumption:300034:price", "label": "售价不变", "value": true, "source_type": "analyst_assumption"},
+          {"assumption_id": "assumption:300034:mix", "label": "产品结构不变", "value": true, "source_type": "analyst_assumption"}
+        ],
+        "model_boundary": "机械敏感性，不是公司盈利预测",
+        "applicability": "销量与产品结构不变的单一报告期",
+        "caveats": ["未模拟存货计价和价格传导时滞"]
+      }
+    ],
+    "monitoring_rules": [
+      {"rule_id": "margin-watch", "metric": "gross_margin", "operator": "gte", "threshold": 0.23, "frequency": "quarterly", "rationale": "监控毛利修复持续性", "source_type": "analyst_assumption", "threshold_type": "analyst_defined_monitoring", "threshold_source": "分析师监控策略", "comparison_basis": "单季度披露口径", "applicability": "合并高温合金制造业务"}
+    ],
+    "cycle_recovery_observed": true,
+    "cycle_turning_point_support": {"evidence_count": 1, "evidence_quality": 0.9, "comparable": true, "independent_confirmation": false},
+    "moat_evidence": [
+      {"evidence_type": "technical_barrier", "evidence_ids": ["ev:300034.SZ:technical"]},
+      {"evidence_type": "qualification_barrier", "evidence_ids": ["ev:300034.SZ:qualification"]}
+    ],
+    "next_verification_event": {"event_name": "下一定期报告验证毛利、回款与现金转化", "event_time": "2026-10-31T00:00:00Z"}
+  },
+  "acceptance": {
+    "expected_business_model": "manufacturing",
+    "required_body_terms": ["关键假设", "模型边界", "适用范围", "研究预警线", "模型分歧", "技术壁垒有证据", "周期底部未确认", "现金流可见性与预测期不足"],
+    "forbidden_body_terms": ["ev:300034.SZ:", "综合估值区间", "经济护城河已实现", "周期底部已确认"],
+    "forbidden_anywhere_terms": [],
+    "audit_only_terms": ["ev:300034.SZ:"],
+    "required_section_ids": ["valuation-methods", "sensitivity-scenarios", "monitoring-calendar", "semantic-claims", "audit-appendix"]
+  }
+}

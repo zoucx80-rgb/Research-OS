@@ -61,6 +61,8 @@ class ValuationRationaleBlock(BaseModel):
     block_type: Literal["valuation_rationale"] = "valuation_rationale"
     valuation_models: list[dict[str, Any]] = Field(default_factory=list)
     valuation_execution: dict[str, Any] | None = None
+    valuation_model_rationales: list[dict[str, Any]] = Field(default_factory=list)
+    valuation_reconciliation: dict[str, Any] | None = None
 
 
 class ValuationBlock(BaseModel):
@@ -113,6 +115,7 @@ class ResearchCompletenessBlock(BaseModel):
     block_type: Literal["research_completeness"] = "research_completeness"
     kind: str
     payload: Any
+    semantic_fingerprint: str | None = None
 
 
 ReportBlock = (

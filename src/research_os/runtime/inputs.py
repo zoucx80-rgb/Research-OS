@@ -19,11 +19,16 @@ from research_os.events.validation import NextVerificationEvent
 from research_os.expectations.models import ConsensusVintage, ExpectationEvidence, ExpectationGapResult
 from research_os.preflight.models import RepositoryPreflightEvidence
 from research_os.runtime.provenance import StateInput
+from research_os.semantics.claims import ClaimSupport, MoatEvidence
 from research_os.thesis.models import Thesis
 from research_os.thesis.semantic_signals import GrowthComparisonRule
 from research_os.validation.financial import FinancialMetricObservation
 from research_os.valuation.execution import ValuationExecution
 from research_os.valuation.fitness import ModelFitnessInputs
+from research_os.valuation.reconciliation import (
+    ValuationModelRationale,
+    ValuationRange,
+)
 
 
 class ResearchInputs(BaseModel):
@@ -50,6 +55,8 @@ class ResearchInputs(BaseModel):
 
     valuation_models: dict[str, ModelFitnessInputs] = Field(default_factory=dict)
     valuation_execution: ValuationExecution | None = None
+    valuation_ranges: tuple[ValuationRange, ...] = Field(default_factory=tuple)
+    valuation_rationales: tuple[ValuationModelRationale, ...] = Field(default_factory=tuple)
 
     operating_observations: tuple[OperatingObservation, ...] = Field(default_factory=tuple)
     financial_time_series: tuple[FinancialTimeSeries, ...] = Field(default_factory=tuple)
@@ -60,6 +67,10 @@ class ResearchInputs(BaseModel):
     monitoring_rules: tuple[MonitoringRule, ...] = Field(default_factory=tuple)
     verification_calendar: tuple[VerificationCalendarEvent, ...] = Field(default_factory=tuple)
     prior_run_review_items: tuple[PriorRunReviewInput, ...] = Field(default_factory=tuple)
+
+    cycle_recovery_observed: bool | None = None
+    cycle_turning_point_support: ClaimSupport | None = None
+    moat_evidence: tuple[MoatEvidence, ...] = Field(default_factory=tuple)
 
     prior_theses: tuple[Thesis, ...] = Field(default_factory=tuple)
     thesis_comparison_rules: tuple[GrowthComparisonRule, ...] = Field(default_factory=tuple)

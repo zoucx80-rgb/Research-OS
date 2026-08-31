@@ -47,6 +47,14 @@ REPLAY_REGISTRY: Mapping[str, FieldReplayProfile] = {
         fixture_dir="tests/fixtures/field_acceptance/v1_5_11",
         output_dir="build/field-acceptance-v1.5.11",
         artifact_name="v1.5.11-field-acceptance",
+        frozen=True,
+    ),
+    "field-v1.5.12": FieldReplayProfile(
+        profile_id="field-v1.5.12",
+        runner_script="scripts/render_field_acceptance_v1_5_12.py",
+        fixture_dir="tests/fixtures/field_acceptance/v1_5_12",
+        output_dir="build/field-acceptance-v1.5.12",
+        artifact_name="v1.5.12-field-acceptance",
         frozen=False,
     ),
 }

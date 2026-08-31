@@ -33,6 +33,7 @@ def test_v1_5_11_generic_field_case_passes_machine_and_presentation_semantics(tm
     assert acceptance["presentation"]["status"] == "PASS"
     assert acceptance["semantic_correctness"]["status"] == "PASS", acceptance["semantic_correctness"]["errors"]
     assert acceptance["overall_status"] == "PASS"
+    assert "semantic:preservation" not in output.result.module_results
     assert output.manifest["versions"]["presenter"] == "professional-research-view@1.6.0"
     assert output.manifest["versions"]["markdown_renderer"] == "professional-markdown-renderer@1.3.0"
 

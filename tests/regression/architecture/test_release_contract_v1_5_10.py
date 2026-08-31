@@ -49,7 +49,7 @@ def test_v1_5_10_versions_and_component_fingerprints_remain_replayable():
     modules = metadata["module_versions"]
     assert modules["research_completeness"] == "1.0.0"
     assert tuple(map(int, modules["semantic_research_view"].split("."))) >= (1, 5, 0)
-    assert modules["report_composer"] == "1.3.0"
+    assert tuple(map(int, modules["report_composer"].split("."))) >= (1, 3, 0)
     assert tuple(map(int, modules["markdown_renderer"].split("."))) >= (1, 2, 0)
     assert modules["financial_fact_snapshot"] == "1.0.0"
     assert modules["html_renderer"] == "1.0.0"
@@ -113,7 +113,7 @@ def test_v1_5_10_documentation_records_completeness_gate_and_one_way_boundary():
     ):
         assert text in migration_text
 
-    assert "Research OS v1.5.10" in readme
+    assert "v1.5.10 professional research completeness" in readme
     assert "research_completeness" in readme
     assert "## 1.5.10" in changelog
     assert "professional-research-view@1.5.0" in protocol

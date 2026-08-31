@@ -10,7 +10,11 @@ from typing import Any
 
 from research_os.domain.evidence import Evidence
 from research_os.preflight.models import RepositoryPreflightEvidence
-from research_os.presentation import PresentationBundle, ProfessionalPresentationPipeline
+from research_os.presentation import (
+    MarkdownArtifactRenderer,
+    PresentationBundle,
+    ProfessionalPresentationPipeline,
+)
 from research_os.reporting import (
     HumanReadableResearchView,
     ResearchReportComposer,
@@ -62,6 +66,8 @@ def _repository_identity(
     *,
     commit_sha: str | None,
     decision_ts: datetime,
+    research_os_version: str,
+    core_api_version: str,
 ) -> tuple[BaselineFingerprint, RepositoryPreflightEvidence]:
     frozen_sha = commit_sha or os.environ.get("GITHUB_SHA") or _git(
         repository_root, "rev-parse", "HEAD"
@@ -73,8 +79,8 @@ def _repository_identity(
         repository_id=1350382205,
         branch="main",
         commit_sha=frozen_sha,
-        research_os_version=RESEARCH_OS_VERSION,
-        core_api_version=CORE_API_VERSION,
+        research_os_version=research_os_version,
+        core_api_version=core_api_version,
     )
     preflight = RepositoryPreflightEvidence(
         repository_full_name=baseline.repository_full_name,
@@ -153,13 +159,14 @@ def _research_inputs(
     payload: dict[str, Any],
     *,
     preflight: RepositoryPreflightEvidence,
+    report_version: str,
 ) -> ResearchInputs:
     raw = dict(payload.get("inputs") or {})
     versions = {
         "dataset_version": "field-acceptance@1",
         "parser_version": "primary-source-adapter@1",
         "formula_version": "field-derived@1",
-        "report_version": ResearchViewPresenter.version,
+        "report_version": report_version,
         **dict(raw.get("versions") or {}),
     }
     raw.update(preflight=preflight, versions=versions)
@@ -234,6 +241,12 @@ def render_active_case(
     repository_root: Path,
     pdf_adapter=None,
     commit_sha: str | None = None,
+    runtime=None,
+    presenter_class=ResearchViewPresenter,
+    composer_class=ResearchReportComposer,
+    markdown_renderer=None,
+    research_os_version: str = RESEARCH_OS_VERSION,
+    core_api_version: str = CORE_API_VERSION,
 ) -> FieldAcceptanceOutput:
     """Render one field case through the current canonical Research OS pipeline."""
 
@@ -243,6 +256,8 @@ def render_active_case(
         repository_root,
         commit_sha=commit_sha,
         decision_ts=decision_ts,
+        research_os_version=research_os_version,
+        core_api_version=core_api_version,
     )
     evidence, facts, evidence_by_fact = _case_evidence(payload, decision_ts=decision_ts)
     company = CompanyRef.model_validate(payload["company"])
@@ -256,18 +271,58 @@ def render_active_case(
         facts=LegacyFactView(values=facts, evidence_by_fact=evidence_by_fact),
         options=ResearchOptions(),
     )
-    inputs = _research_inputs(payload, preflight=preflight)
-    result = ResearchRuntimeFactory.default().run_context(context, inputs)
-    view = ResearchViewPresenter().build(result)
-    document = ResearchReportComposer().compose(view)
-    bundle = ProfessionalPresentationPipeline(pdf_adapter=pdf_adapter).render(document)
-    acceptance = _presentation_acceptance(payload, result=result, bundle=bundle)
+    inputs = _research_inputs(
+        payload,
+        preflight=preflight,
+        report_version=presenter_class.version,
+    )
+    result = (runtime or ResearchRuntimeFactory.default()).run_context(context, inputs)
+    view = presenter_class().build(result)
+    document = composer_class().compose(view)
+    bundle = ProfessionalPresentationPipeline(
+        markdown_renderer=(
+            MarkdownArtifactRenderer(renderer=markdown_renderer)
+            if markdown_renderer is not None
+            else None
+        ),
+        pdf_adapter=pdf_adapter,
+    ).render(document)
 
     output_dir = output_root / case_id
     output_dir.mkdir(parents=True, exist_ok=True)
     (output_dir / "report.md").write_text(bundle.markdown.content, encoding="utf-8")
     (output_dir / "report.html").write_text(bundle.html.content, encoding="utf-8")
     (output_dir / "report.pdf").write_bytes(bundle.pdf.content)
+
+    try:
+        acceptance = _presentation_acceptance(payload, result=result, bundle=bundle)
+    except FieldAcceptanceError as exc:
+        diagnostic_manifest = {
+            "schema_version": "field-acceptance-result@1.0.0",
+            "case_id": case_id,
+            "company": company.model_dump(mode="json"),
+            "decision_ts": decision_ts.isoformat().replace("+00:00", "Z"),
+            "repository": baseline.model_dump(mode="json"),
+            "hash_chain": {
+                "document": bundle.markdown.source_hash,
+                "markdown": bundle.markdown.content_hash,
+                "html": bundle.html.content_hash,
+                "pdf": bundle.pdf.content_hash,
+            },
+            "acceptance": {
+                "status": "FAIL",
+                "layer": "presentation",
+                "errors": [str(exc)],
+            },
+        }
+        (output_dir / "manifest.json").write_text(
+            json.dumps(
+                diagnostic_manifest, ensure_ascii=False, indent=2, sort_keys=True
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        raise
 
     manifest = {
         "schema_version": "field-acceptance-result@1.0.0",
@@ -296,8 +351,8 @@ def render_active_case(
             "pdf": bundle.pdf.content_hash,
         },
         "versions": {
-            "research_os": RESEARCH_OS_VERSION,
-            "core_api": CORE_API_VERSION,
+            "research_os": research_os_version,
+            "core_api": core_api_version,
             "presenter": view.presentation_version,
             "composer": document.composition_version,
             "markdown_renderer": bundle.markdown.renderer_version,

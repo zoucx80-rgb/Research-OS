@@ -16,6 +16,9 @@ from research_os.runtime.engine import ResearchEngine
 from research_os.runtime.historical_professional_modules_v1_5_10 import (
     build_professional_builtin_modules_v1_5_10,
 )
+from research_os.runtime.historical_professional_modules_v1_5_11 import (
+    build_professional_builtin_modules_v1_5_11,
+)
 from research_os.runtime.inputs import ResearchInputs
 from research_os.runtime.professional_modules import build_professional_builtin_modules
 from research_os.runtime.provenance import resolve_state_input
@@ -425,6 +428,13 @@ class ResearchRuntimeFactory:
         return ResearchRuntime(
             providers=(BuiltinPluginProvider(),),
             module_builder=build_professional_builtin_modules_v1_5_10,
+        )
+
+    @classmethod
+    def historical_v1_5_11(cls) -> ResearchRuntime:
+        return ResearchRuntime(
+            providers=(BuiltinPluginProvider(),),
+            module_builder=build_professional_builtin_modules_v1_5_11,
         )
 
     @classmethod

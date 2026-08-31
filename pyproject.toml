@@ -30,6 +30,9 @@ pdf = [
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+research_os = ["runtime/*.sha256"]
+
 [tool.setuptools.dynamic]
 version = {attr = "research_os.version.RESEARCH_OS_VERSION"}
 

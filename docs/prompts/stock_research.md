@@ -356,6 +356,12 @@ The investor-facing body must not contain literal `None`, must deduplicate only 
 
 v1.5.11 field acceptance independently verifies machine semantic correctness and rendered Markdown/HTML/PDF. It must fail if incompatible comparisons produce conclusions, missingness is collapsed into a directional state, the report diverges from canonical thesis signals, or presentation integrity rules are violated. Production Core must contain no acceptance-company identity branches.
 
+### v1.5.12 Semantic Preservation and Valuation Reconciliation
+
+For v1.5.12 the active fingerprints are **`professional-research-view@1.7.0`**, **`research-report-composer@1.4.0`**, and **`professional-markdown-renderer@1.4.0`**. A numerical sensitivity result is inseparable from its material assumptions, model boundary and applicability. Analyst-defined thresholds must be labeled as research warning lines with source, comparison basis and scope.
+
+Recovery observations remain distinct from confirmed troughs. Technical or qualification barriers remain distinct from realized economic moat. Valuation reconciliation is canonical and typed: mathematical intersection, cross-check band, model disagreement, or non-comparability; presentation must not calculate a range. Model downgrade reasons must be economic rather than software-version metadata.
+
 ## State Provenance — v1.5.03+
 
 `fundamental_state`, `valuation_state`, and `expectation_state` must retain their source semantics. If legacy string inputs are used, human-facing output must identify them as analyst assumptions rather than claiming they were derived by Research OS.

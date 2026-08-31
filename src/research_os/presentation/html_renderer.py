@@ -42,6 +42,7 @@ class ProfessionalHtmlRenderer:
         "监控规则与验证日历": ("monitoring-calendar", "monitoring-calendar"),
         "上期判断回顾": ("prior-run-review", "prior-run-review"),
         "方法说明": ("methodology-disclosure", "methodology-disclosure"),
+        "主张强度与语义边界": ("semantic-claims", "semantic-claims"),
         "状态来源": ("state-provenance", "state-provenance"),
         "研究缺口分类": ("research-gaps", "research-gaps"),
         "关键研究限制": ("material-limitations", "research-gaps"),

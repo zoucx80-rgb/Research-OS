@@ -61,9 +61,9 @@ def test_field_replay_profiles_are_unique_and_historical_profiles_are_frozen():
     assert len(ids) == len(set(ids))
     assert ids == list(CURRENT_RELEASE.field_replay_profiles)
 
-    for profile_id in ("field-v1.5.08", "field-v1.5.09", "field-v1.5.10"):
+    for profile_id in ("field-v1.5.08", "field-v1.5.09", "field-v1.5.10", "field-v1.5.11"):
         assert REPLAY_REGISTRY[profile_id].frozen is True
-    assert REPLAY_REGISTRY["field-v1.5.11"].frozen is False
+    assert REPLAY_REGISTRY["field-v1.5.12"].frozen is False
 
     for profile in profiles:
         assert Path(profile.runner_script).exists()
@@ -71,7 +71,7 @@ def test_field_replay_profiles_are_unique_and_historical_profiles_are_frozen():
 
 
 def test_current_field_replay_uses_stable_acceptance_core_not_historical_runner_scripts():
-    current = REPLAY_REGISTRY["field-v1.5.11"]
+    current = REPLAY_REGISTRY["field-v1.5.12"]
     source = Path(current.runner_script).read_text(encoding="utf-8")
     assert "research_os.acceptance" in source
     for historical_version in ("v1_5_08", "v1_5_09", "v1_5_10"):

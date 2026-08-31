@@ -11,6 +11,16 @@ from research_os.acceptance import (
     render_active_case,
 )
 from research_os.presentation import PlaywrightPdfAdapter
+from research_os.reporting.composer_v1_5_10 import (
+    ResearchReportComposer as V1_5_11ResearchReportComposer,
+)
+from research_os.reporting.markdown_renderer_v1_5_11 import (
+    ResearchReportMarkdownRenderer as V1_5_11ResearchReportMarkdownRenderer,
+)
+from research_os.reporting.research_view_v1_5_11 import (
+    ResearchViewPresenter as V1_5_11ResearchViewPresenter,
+)
+from research_os.runtime.factory import ResearchRuntimeFactory
 
 
 def _semantic_acceptance(output: FieldAcceptanceOutput) -> dict:
@@ -106,6 +116,12 @@ def render_case(
         repository_root=repository_root,
         pdf_adapter=pdf_adapter,
         commit_sha=commit_sha,
+        runtime=ResearchRuntimeFactory.historical_v1_5_11(),
+        presenter_class=V1_5_11ResearchViewPresenter,
+        composer_class=V1_5_11ResearchReportComposer,
+        markdown_renderer=V1_5_11ResearchReportMarkdownRenderer(),
+        research_os_version="1.5.11",
+        core_api_version="1.0",
     )
     semantic = _semantic_acceptance(output)
     acceptance = {

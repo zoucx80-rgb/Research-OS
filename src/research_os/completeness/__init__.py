@@ -11,6 +11,7 @@ from research_os.completeness.models import (
     PriorRunReview,
     PriorRunReviewInput,
     PriorRunReviewItem,
+    ScenarioAssumption,
     SensitivityCase,
     VerificationCalendarEvent,
 )
@@ -33,6 +34,7 @@ __all__ = [
     "PriorRunReview",
     "PriorRunReviewInput",
     "PriorRunReviewItem",
+    "ScenarioAssumption",
     "SensitivityCase",
     "VerificationCalendarEvent",
     "build_cash_flow_quality_bridge",
