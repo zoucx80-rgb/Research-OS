@@ -19,6 +19,7 @@ class FinancialOperatingBlock(BaseModel):
     model_config = ConfigDict(frozen=True)
     block_type: Literal["financial_operating"] = "financial_operating"
     financial_sanity: dict[str, Any] | None = None
+    core_financial_facts: list[dict[str, Any]] = Field(default_factory=list)
     kpi_metrics: list[dict[str, Any]] = Field(default_factory=list)
 
 
