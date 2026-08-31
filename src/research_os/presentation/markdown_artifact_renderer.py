@@ -5,12 +5,13 @@ from research_os.reporting import ResearchReportDocument, ResearchReportMarkdown
 
 
 class MarkdownArtifactRenderer:
-    """Attach deterministic provenance to the existing Markdown renderer output."""
+    """Attach deterministic provenance to the configured Markdown renderer output."""
 
     version = ResearchReportMarkdownRenderer.version
 
     def __init__(self, renderer: ResearchReportMarkdownRenderer | None = None) -> None:
         self._renderer = renderer or ResearchReportMarkdownRenderer()
+        self.version = self._renderer.version
 
     def render(self, document: ResearchReportDocument) -> MarkdownPresentationArtifact:
         if not isinstance(document, ResearchReportDocument):
