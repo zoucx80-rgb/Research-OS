@@ -1,34 +1,10 @@
 from pydantic import BaseModel
 
+from .manifest import CURRENT_RELEASE
+from .verification import resolve_release_checks
 
-REQUIRED=(
-    "v1_golden",
-    "pit",
-    "manufacturing",
-    "distributor",
-    "router_explainable",
-    "thesis_falsifiers",
-    "ledger",
-    "valuation_fitness",
-    "decision_no_trade",
-    "snapshot_reproducible",
-    "repository_preflight",
-    "evidence_lineage",
-    "financial_sanity",
-    "expectation_evidence",
-    "valuation_execution",
-    "decision_validation",
-    "completion_gate",
-    "temporal_consistency",
-    "distributor_kpi_safety",
-    "research_completion_integration",
-    "migration_lineage",
-    "period_semantics",
-    "missing_value_semantics",
-    "kpi_applicability",
-    "completion_consistency",
-    "version_consistency",
-)
+
+REQUIRED = tuple(resolve_release_checks(CURRENT_RELEASE))
 
 
 class ReleaseGateResult(BaseModel):
@@ -37,7 +13,7 @@ class ReleaseGateResult(BaseModel):
     failed: list[str]
 
 
-def evaluate_release_gate(status:dict[str,bool])->ReleaseGateResult:
-    passed=[k for k in REQUIRED if status.get(k) is True]
-    failed=[k for k in REQUIRED if status.get(k) is not True]
-    return ReleaseGateResult(ready=not failed,passed=passed,failed=failed)
+def evaluate_release_gate(status: dict[str, bool]) -> ReleaseGateResult:
+    passed = [key for key in REQUIRED if status.get(key) is True]
+    failed = [key for key in REQUIRED if status.get(key) is not True]
+    return ReleaseGateResult(ready=not failed, passed=passed, failed=failed)

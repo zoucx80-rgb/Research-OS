@@ -103,3 +103,16 @@ def test_same_input_has_stable_payload_hash_and_component_fingerprints():
     assert first.snapshot.snapshot_id != second.snapshot.snapshot_id
     assert first.snapshot.payload_hash == second.snapshot.payload_hash
     assert first.component_fingerprints == second.component_fingerprints
+
+
+def test_historical_v1_5_10_runtime_pins_pre_v1_5_11_semantic_modules():
+    runtime = ResearchRuntimeFactory.historical_v1_5_10()
+    result = runtime.run_context(_context(), ResearchInputs(versions=_versions()))
+    versions = {
+        item.component_id: item.component_version
+        for item in result.component_fingerprints
+        if item.component_type == "module"
+    }
+
+    assert versions["core:driver-thesis"] == "1.3.0"
+    assert versions["core:decision"] == "1.2.0"

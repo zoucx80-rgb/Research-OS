@@ -56,6 +56,7 @@ Strictly enforce:
 - **No Time Travel** — material evidence must satisfy `publish_ts <= decision_ts`.
 - **No Fabricated Data** — missing facts remain missing; `None` is not economic zero.
 - **Period Truthfulness** — period-sensitive balance/flow metrics use the actual or explicitly resolved reporting period; interim periods must not silently assume 365 days.
+- **Comparison-Basis Safety** — cross-metric directional comparisons require compatible comparison basis and economic metric kind. Unknown, mismatched, stock-change-vs-flow or otherwise incompatible bases are `NOT_COMPARABLE` and must not produce an adverse/favorable conclusion.
 - **Facts ≠ Calculations ≠ Statistical Evidence ≠ Assumptions**.
 - **State Provenance** — derived state, analyst assumption, external-model state and manual override remain distinguishable.
 - **Everything Has Lineage** — preserve raw/normalized value, unit, period, scope, version, evidence and formula/assumption lineage where applicable.
@@ -64,6 +65,8 @@ Strictly enforce:
 - **Completion ≠ Bullish**.
 
 If reliable evidence cannot be obtained, preserve canonical `INSUFFICIENT_EVIDENCE` rather than filling the gap for narrative completeness. In human-facing output, translate it to readable language such as `证据不足` plus an explanation; the internal code may remain secondary audit metadata but **must not be the primary research conclusion**.
+
+For v1.5.11+, missing auditable PIT market-expectation evidence is `UNKNOWN`, not an inferred `MIXED` state. Mixed current thesis evidence without an explicit prior directional thesis is `UNRESOLVED`; weakening requires an actual prior thesis to weaken.
 
 ## Canonical Runtime and Plugin Resolution
 
@@ -341,6 +344,18 @@ Cash-flow presentation must preserve the declared methodology. When operating ca
 
 This release still does not add a Hospitality Plugin. Missing RevPAR, ADR, OCC, same-store, mature-store, hotel-opening, unit-economics or lease-adjusted analysis remains a capability/evidence limitation unless a compatible future strategy explicitly supplies it.
 
+### v1.5.11 Semantic Correctness and Missingness Safety
+
+For v1.5.11 the active fingerprints are **`professional-research-view@1.6.0`**, **`research-report-composer@1.3.0`**, and **`professional-markdown-renderer@1.3.0`**. HTML/PDF remain **`professional-html-renderer@1.0.0`** and **`professional-pdf-adapter@1.0.0`**.
+
+The canonical thesis boundary emits typed directional signals plus explicit comparison assessments. A directional conclusion may be created only from compatible evidence semantics; incompatible inputs remain `NOT_COMPARABLE`. The active professional view consumes `thesis.semantic_signal_assessment` and must not re-run the thesis service. Historical signal/reporting artifacts may be retained solely for historical replay.
+
+Lifecycle semantics are explicit: mixed current evidence without an explicit `prior_theses` directional state is `UNRESOLVED`, with resolution/conviction-up/deterioration conditions rather than fabricated falsifiers. Missing auditable PIT expectation evidence is `UNKNOWN`; an explicitly supplied provenance-aware `MIXED` state remains `MIXED`.
+
+The investor-facing body must not contain literal `None`, must deduplicate only semantically equivalent OCF aliases while preserving evidence lineage, must use human decision dates while exact timestamps stay auditable, must label admitted-evidence quality narrowly, and must show valuation suitability categorically rather than as pseudo-precise scoring. These are presentation rules only and **不重新计算** research semantics.
+
+v1.5.11 field acceptance independently verifies machine semantic correctness and rendered Markdown/HTML/PDF. It must fail if incompatible comparisons produce conclusions, missingness is collapsed into a directional state, the report diverges from canonical thesis signals, or presentation integrity rules are violated. Production Core must contain no acceptance-company identity branches.
+
 ## State Provenance — v1.5.03+
 
 `fundamental_state`, `valuation_state`, and `expectation_state` must retain their source semantics. If legacy string inputs are used, human-facing output must identify them as analyst assumptions rather than claiming they were derived by Research OS.
@@ -413,6 +428,8 @@ For v1.5.09+ field delivery, `ResearchCompletionGate` and field `research_depth`
 
 For v1.5.10 field delivery, `research_completeness` is a third independent downstream acceptance contract. It evaluates declared professional coverage dimensions only. It may fail a field-delivery artifact or mark a dimension `NOT_APPLICABLE`, but it must never rewrite `ResearchCompletionGate` or any canonical research state. Required missing dimensions fail closed.
 
+For v1.5.11 field delivery, `semantic_correctness` is another independent downstream acceptance contract. It verifies compatibility-aware comparison semantics, missingness-safe thesis/expectation states and presentation integrity. It can fail delivery but cannot rewrite canonical runtime state.
+
 ## Required Research Order
 
 Do not begin with a preferred valuation template. Preserve causal order:
@@ -433,7 +450,7 @@ Do not begin with a preferred valuation template. Preserve causal order:
 14. `ResearchReportComposer` one-way editorial composition into `ResearchReportDocument`
 15. `ResearchReportMarkdownRenderer` deterministic Markdown projection without semantic recomputation
 16. downstream HTML/PDF styling or pagination, when used, without semantic recomputation
-17. v1.5.10 field acceptance: independent `presentation`, `research_depth`, and `research_completeness`, without feeding any acceptance status back into canonical research state
+17. field acceptance: historical presentation/depth/completeness replay plus v1.5.11 `semantic_correctness`, without feeding any acceptance status back into canonical research state
 
 Do not mechanically average incompatible valuation methods.
 
@@ -450,10 +467,11 @@ Where supported by evidence, include:
 - State Provenance for high-level fundamental/expectation/valuation states;
 - Thesis / Anti-Thesis / Falsifiers or an explicit limitation;
 - specialized vs generic Driver Graph scope plus driver-specific evidence;
+- typed directional/comparison semantics where used, including explicit `NOT_COMPARABLE` rather than a fabricated cross-basis conclusion;
 - a composed causal bridge only when supported by canonical Driver Graph / valuation bridge artifacts;
 - period-aware, unit-aware financial/operating KPI presentation;
 - Capital Efficiency, Funding Loop and evidenced financing exposures;
-- market expectations, consensus quality, event-relative freshness and expectation gap;
+- market expectations, consensus quality, event-relative freshness and expectation gap, with missing PIT expectation evidence shown as `UNKNOWN`;
 - Forecast evidence/limitations;
 - Valuation Model Fitness, executed valuation, supported scenarios/ranges and assumption lineage;
 - Evidence Quality / Evidence Gaps separated from capability/not-applicable/presentation gaps;
@@ -463,7 +481,7 @@ Where supported by evidence, include:
 - evidence that would weaken or break the thesis when canonically available;
 - concise evidence-traceability language in the main body and full raw provenance in the audit appendix;
 - a first-page decision snapshot that copies, rather than recalculates, canonical research state;
-- v1.5.10 field-delivery `presentation`, `research_depth`, `research_completeness`, per-dimension `PASS` / `INCOMPLETE` / `NOT_APPLICABLE`, and `overall_status` when the report is run through field acceptance.
+- field-delivery `presentation`, `research_depth`, `research_completeness`, v1.5.11 `semantic_correctness`, per-dimension `PASS` / `INCOMPLETE` / `NOT_APPLICABLE` where applicable, and `overall_status` when the report is run through field acceptance.
 
 A tool or browsing workflow ending successfully does not imply research completion. Canonical `FINAL_STATUS=COMPLETE` may exist only when `ResearchCompletionGate` returns COMPLETE. Otherwise status remains INCOMPLETE and blocking modules must be identified. Human-facing output translates those states without replacing their canonical meaning.
 

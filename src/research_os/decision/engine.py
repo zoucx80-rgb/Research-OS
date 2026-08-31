@@ -31,7 +31,10 @@ class DecisionEngine:
         ):
             state = "ACCUMULATION_CANDIDATE"
             reasons.append("CHEAP_AND_IMPROVING")
-        elif c.thesis_state == "WEAKENING" or c.fundamental_state == "UNCERTAIN":
+        elif (
+            c.thesis_state in {"WEAKENING", "UNRESOLVED"}
+            or c.fundamental_state == "UNCERTAIN"
+        ):
             state = "WAIT_FOR_CONFIRMATION"
             reasons.append("CONFIRMATION_REQUIRED")
         else:

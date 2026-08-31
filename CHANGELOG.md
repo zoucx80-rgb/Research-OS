@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.5.11 — 2026-08-31
+
+### Added
+Typed directional-signal and comparison-basis contracts; canonical `thesis.semantic_signal_assessment`; explicit `UNRESOLVED` thesis lifecycle semantics; explicit `UNKNOWN` market-expectation missingness; `professional-research-view@1.6.0`; `professional-markdown-renderer@1.3.0`; generic semantic-correctness field acceptance; and permanent semantic architecture/output regressions.
+
+### Changed
+Cross-metric directional conclusions now fail closed unless comparison basis and economic metric kind are compatible. Mixed current evidence without an explicit prior directional thesis remains unresolved instead of being coerced to weakening. The active professional view consumes the same typed signal artifact used by the canonical runtime, while historical signal/reporting artifacts remain available for replay. Investor-facing Markdown uses day-level decision dates, narrow evidence-quality wording, null-safe display, equivalent OCF alias deduplication, and categorical valuation-model suitability.
+
+### Fixed
+Prevents negative margin changes from being narrated as improvement; prevents stock-change receivables growth from being compared with YoY flow growth without a compatible basis; prevents absent market-expectation evidence from becoming a synthetic `MIXED` conclusion; prevents unresolved theses from inventing thesis-broken conditions; prevents literal `None`, duplicate equivalent OCF facts, and pseudo-precise valuation fitness scores from leaking into the investment body; and prevents reporting from becoming a second thesis-signal calculation path.
+
+### Validation
+Release Gate adds `semantic_signal_contract_v1_5_11`, `thesis_lifecycle_v1_5_11`, `expectation_missingness_v1_5_11`, `semantic_runtime_v1_5_11`, `presentation_integrity_v1_5_11`, `semantic_output_patterns_v1_5_11`, `semantic_correctness_patterns_v1_5_11`, `semantic_architecture_v1_5_11`, `semantic_field_v1_5_11`, and `release_contract_v1_5_11`. CI retains v1.5.08-v1.5.10 replay and adds generic Manufacturing v1.5.11 machine-semantic plus Markdown/HTML/PDF acceptance.
+
+### Migration
+No database or Alembic migration is required. See `docs/migrations/v1.5.11.md`.
+
+### Compatibility
+`CORE_API_VERSION` remains `1.0`; `research-report-composer@1.3.0`, `professional-html-renderer@1.0.0`, and `professional-pdf-adapter@1.0.0` remain unchanged. No company-specific Core logic, second Completion Gate, second Decision Engine, automatic trading logic, Hospitality Plugin, or renderer-side research calculation is introduced.
+
 ## 1.5.10 — 2026-08-31
 
 ### Added

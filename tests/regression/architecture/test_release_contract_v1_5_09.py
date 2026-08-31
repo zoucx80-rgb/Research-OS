@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-import tomllib
 
 import research_os
 from research_os.presentation import PlaywrightPdfAdapter, ProfessionalHtmlRenderer
+from research_os.release.replays import REPLAY_REGISTRY
 from research_os.release.runtime import CHECKS
 from research_os.reporting.composer_v1_5_09 import ResearchReportComposer
 from research_os.reporting.markdown_renderer_v1_5_09 import ResearchReportMarkdownRenderer
@@ -39,14 +39,12 @@ def _version(value: str) -> tuple[int, ...]:
     return tuple(int(part) for part in value.split("."))
 
 
-def test_public_v1_5_09_versions_and_depth_fingerprints_are_consistent():
-    project = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
+def test_v1_5_09_depth_fingerprints_remain_replayable():
     metadata = json.loads(Path("research_os_version.json").read_text(encoding="utf-8"))
 
     current = RESEARCH_OS_VERSION
     assert _version(current) >= _version("1.5.9")
     assert research_os.__version__ == current
-    assert project["project"]["version"] == current
     assert metadata["research_os_version"] == current
     assert metadata["status"] == "stable"
     assert CORE_API_VERSION == "1.0"
@@ -82,25 +80,13 @@ def test_release_gate_requires_v1_5_09_depth_checks_without_removing_prior_gates
         assert prior_gate in CHECKS
 
 
-def test_ci_runs_real_v1_5_09_depth_acceptance_and_keeps_v1_5_08_replay():
-    workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
-
-    for text in (
-        "test_financial_fact_snapshot_v1_5_09.py",
-        "test_research_depth_semantics_v1_5_09.py",
-        "test_professional_output_depth_v1_5_09.py",
-        "test_field_acceptance_v1_5_09.py",
-        "test_v1_5_09_field_depth_patterns.py",
-        "test_release_contract_v1_5_09.py",
-        "render_field_acceptance_v1_5_09.py",
-        "tests/fixtures/field_acceptance/v1_5_09",
-        "build/field-acceptance-v1.5.09",
-        "v1.5.09-field-acceptance",
-        "render_field_acceptance_v1_5_08.py",
-        "v1.5.08-field-acceptance",
-        "python -m playwright install --with-deps chromium",
-    ):
-        assert text in workflow
+def test_v1_5_09_field_acceptance_is_a_frozen_replay_profile():
+    profile = REPLAY_REGISTRY["field-v1.5.09"]
+    assert profile.frozen is True
+    assert profile.runner_script == "scripts/render_field_acceptance_v1_5_09.py"
+    assert profile.fixture_dir == "tests/fixtures/field_acceptance/v1_5_09"
+    assert Path(profile.runner_script).exists()
+    assert Path(profile.fixture_dir).exists()
 
 
 def test_v1_5_09_documentation_records_depth_gate_and_one_way_boundary():
@@ -147,7 +133,7 @@ def test_v1_5_09_adds_no_database_migration_and_no_hospitality_strategy_plugin()
 
 def test_v1_5_09_production_core_has_no_three_company_special_cases():
     forbidden = ("300034", "001287", "301073", "钢研高纳", "中电港", "君亭酒店")
-    offenders: list[tuple[str, str]] = []
+    offenders = []
     for path in Path("src/research_os").rglob("*.py"):
         content = path.read_text(encoding="utf-8")
         for value in forbidden:

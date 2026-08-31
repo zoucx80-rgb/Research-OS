@@ -13,6 +13,9 @@ from research_os.plugins.registry import PluginRegistry
 from research_os.reporting.contributions import ResearchQuestionAssessment
 from research_os.runtime.context import ResearchContext
 from research_os.runtime.engine import ResearchEngine
+from research_os.runtime.historical_professional_modules_v1_5_10 import (
+    build_professional_builtin_modules_v1_5_10,
+)
 from research_os.runtime.inputs import ResearchInputs
 from research_os.runtime.professional_modules import build_professional_builtin_modules
 from research_os.runtime.provenance import resolve_state_input
@@ -55,10 +58,12 @@ class ResearchRuntime:
         providers: Iterable[PluginProvider],
         completion_gate: ResearchCompletionGate | None = None,
         snapshot_service: SnapshotService | None = None,
+        module_builder=build_professional_builtin_modules,
     ):
         self._providers = tuple(providers)
         self._completion_gate = completion_gate or ResearchCompletionGate()
         self._snapshots = snapshot_service or SnapshotService()
+        self._module_builder = module_builder
 
     def _build_registry(self, context: ResearchContext) -> PluginRegistry:
         registry = PluginRegistry(
@@ -321,7 +326,7 @@ class ResearchRuntime:
     ) -> ResearchRunResult:
         run_inputs = inputs or ResearchInputs()
         registry = self._build_registry(context)
-        modules = build_professional_builtin_modules(registry=registry, inputs=run_inputs)
+        modules = self._module_builder(registry=registry, inputs=run_inputs)
         state = ResearchEngine(modules).run(context)
 
         business_model = state.get("business_model.profile")
@@ -414,6 +419,13 @@ class ResearchRuntimeFactory:
     @classmethod
     def default(cls) -> ResearchRuntime:
         return ResearchRuntime(providers=(BuiltinPluginProvider(),))
+
+    @classmethod
+    def historical_v1_5_10(cls) -> ResearchRuntime:
+        return ResearchRuntime(
+            providers=(BuiltinPluginProvider(),),
+            module_builder=build_professional_builtin_modules_v1_5_10,
+        )
 
     @classmethod
     def with_providers(cls, *providers: PluginProvider) -> ResearchRuntime:

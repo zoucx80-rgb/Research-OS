@@ -76,7 +76,7 @@ def test_field_acceptance_separates_presentation_and_research_depth_status(tmp_p
 
     acceptance = output.manifest["acceptance"]
     assert acceptance["presentation"]["status"] == "PASS"
-    assert acceptance["research_depth"]["status"] == "PASS"
+    assert acceptance["research_depth"]["status"] == "PASS", acceptance["research_depth"]["errors"]
     assert acceptance["research_depth"]["errors"] == []
     assert acceptance["overall_status"] == "PASS"
     assert output.manifest["versions"]["presenter"] == "professional-research-view@1.4.0"

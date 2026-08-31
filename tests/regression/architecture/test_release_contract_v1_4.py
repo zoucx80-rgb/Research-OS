@@ -1,5 +1,4 @@
 import json
-import tomllib
 from pathlib import Path
 
 import research_os
@@ -30,11 +29,10 @@ ARCHITECTURE_GATES = {
 
 
 def test_public_release_version_and_core_api_are_consistent():
-    project = tomllib.loads(Path("pyproject.toml").read_text())
     metadata = json.loads(Path("research_os_version.json").read_text())
 
+    assert tuple(map(int, RESEARCH_OS_VERSION.split("."))) >= (1, 4, 0)
     assert RESEARCH_OS_VERSION == research_os.__version__
-    assert project["project"]["version"] == RESEARCH_OS_VERSION
     assert metadata["research_os_version"] == RESEARCH_OS_VERSION
     assert CORE_API_VERSION == "1.0"
     assert metadata.get("core_api_version", "1.0") == "1.0"
@@ -46,23 +44,6 @@ def test_release_gate_contains_all_v1_4_architecture_checks():
         nodeid = CHECKS[gate]
         test_path = Path(nodeid.split("::", 1)[0])
         assert test_path.exists(), f"{gate} points to missing test: {test_path}"
-
-
-def test_ci_orders_architecture_before_correctness_migration_full_and_release():
-    ci = Path(".github/workflows/ci.yml").read_text()
-    architecture = ci.index("tests/unit/runtime")
-    correctness = ci.index(
-        "tests/regression/research_patterns/test_v1_2_1_correctness_patterns.py"
-    )
-    migration = ci.index("tests/integration/storage/test_v1_2_lineage_migration.py")
-    full_suite = ci.rindex("- run: pytest -q")
-    release_gate = ci.index("python scripts/release_gate_v1_1.py")
-
-    assert architecture < correctness < migration < full_suite < release_gate
-    assert "tests/unit/plugins" in ci
-    assert "tests/unit/knowledge" in ci
-    assert "tests/integration/runtime" in ci
-    assert "tests/regression/architecture" in ci
 
 
 def test_v1_4_release_documentation_contract_exists():

@@ -1,0 +1,81 @@
+{
+  "schema_version": "field-acceptance-case@1.0.0",
+  "case_id": "manufacturing_semantic_correctness",
+  "company": {
+    "company_id": "synthetic:manufacturing-semantic-correctness",
+    "security_id": "SYNTH-MFG-SEM",
+    "exchange": "SYNTHETIC",
+    "display_name": "制造业语义正确性样本"
+  },
+  "decision_ts": "2026-08-30T00:00:00Z",
+  "evidence_defaults": {
+    "evidence_type": "filing_fact",
+    "period_end": "2026-06-30",
+    "period": "2026H1",
+    "publish_ts": "2026-08-20T00:00:00Z",
+    "unit": "元",
+    "scope": "consolidated",
+    "version": "2026H1",
+    "source_document_id": "synthetic-manufacturing-semantic-correctness-2026H1",
+    "confidence_grade": "A",
+    "verification_status": "PRIMARY_VERIFIED",
+    "dataset_version": "field-acceptance-v1.5.11@1",
+    "parser_version": "synthetic-primary-source@1"
+  },
+  "evidence": [
+    {"evidence_id": "ev:semantic:business-description", "source_table": "business_description", "value": "precision industrial components manufacturing", "unit": null},
+    {"evidence_id": "ev:semantic:revenue", "source_table": "revenue", "value": 2400000000.0},
+    {"evidence_id": "ev:semantic:revenue-growth", "source_table": "revenue_growth", "value": 0.12, "unit": "ratio", "comparison_basis": "YOY_PERIOD", "metric_kind": "FLOW_RATIO"},
+    {"evidence_id": "ev:semantic:net-profit-parent", "source_table": "net_profit_parent", "value": 150000000.0},
+    {"evidence_id": "ev:semantic:assets-begin", "source_table": "assets_begin", "value": 4200000000.0},
+    {"evidence_id": "ev:semantic:assets-end", "source_table": "assets_end", "value": 4500000000.0},
+    {"evidence_id": "ev:semantic:equity-begin", "source_table": "equity_begin", "value": 2500000000.0},
+    {"evidence_id": "ev:semantic:equity-end", "source_table": "equity_end", "value": 2600000000.0},
+    {"evidence_id": "ev:semantic:cogs", "source_table": "cogs", "value": 1848000000.0},
+    {"evidence_id": "ev:semantic:gross-profit", "source_table": "gross_profit", "value": 552000000.0, "evidence_type": "calculated_metric", "formula_version": "revenue-minus-cogs@1"},
+    {"evidence_id": "ev:semantic:gross-margin", "source_table": "gross_margin", "value": 0.23, "unit": "ratio", "evidence_type": "calculated_metric", "formula_version": "gross-profit-div-revenue@1"},
+    {"evidence_id": "ev:semantic:margin-change", "source_table": "margin_change", "value": -0.02, "unit": "ratio", "evidence_type": "calculated_metric", "formula_version": "h1-yoy-gross-margin-change@1", "comparison_basis": "YOY_PERIOD", "metric_kind": "FLOW_RATIO"},
+    {"evidence_id": "ev:semantic:ar-begin", "source_table": "ar_begin", "value": 600000000.0},
+    {"evidence_id": "ev:semantic:ar-end", "source_table": "ar_end", "value": 840000000.0},
+    {"evidence_id": "ev:semantic:ar-growth", "source_table": "ar_growth", "value": 0.40, "unit": "ratio", "evidence_type": "calculated_metric", "formula_version": "end-vs-begin-growth@1", "comparison_basis": "END_VS_BEGIN", "metric_kind": "STOCK_RATIO"},
+    {"evidence_id": "ev:semantic:inventory-begin", "source_table": "inventory_begin", "value": 500000000.0},
+    {"evidence_id": "ev:semantic:inventory-end", "source_table": "inventory_end", "value": 530000000.0},
+    {"evidence_id": "ev:semantic:inventory-growth", "source_table": "inventory_growth", "value": 0.06, "unit": "ratio", "evidence_type": "calculated_metric", "formula_version": "end-vs-begin-growth@1", "comparison_basis": "END_VS_BEGIN", "metric_kind": "STOCK_RATIO"},
+    {"evidence_id": "ev:semantic:ocf", "source_table": "ocf", "value": 220000000.0},
+    {"evidence_id": "ev:semantic:operating-cash-flow", "source_table": "operating_cash_flow", "value": 220000000.0},
+    {"evidence_id": "ev:semantic:capex-cash", "source_table": "capex_cash", "value": 70000000.0},
+    {"evidence_id": "ev:semantic:ppe-begin", "source_table": "ppe_begin", "value": 1200000000.0},
+    {"evidence_id": "ev:semantic:ppe-end", "source_table": "ppe_end", "value": 1250000000.0},
+    {"evidence_id": "ev:semantic:period-type", "source_table": "period_type", "value": "H1", "unit": null},
+    {"evidence_id": "ev:semantic:period-start", "source_table": "period_start", "value": "2026-01-01", "unit": null},
+    {"evidence_id": "ev:semantic:period-end", "source_table": "period_end", "value": "2026-06-30", "unit": null},
+    {"evidence_id": "ev:semantic:period-days", "source_table": "period_days", "value": 181, "unit": "days"},
+    {"evidence_id": "ev:semantic:is-cumulative", "source_table": "is_cumulative", "value": true, "unit": null}
+  ],
+  "inputs": {
+    "fundamental_state_input": {"value": "UNCERTAIN", "source": "analyst_assumption", "method": "增长与毛利方向分化，等待可比口径验证"},
+    "valuation_state_input": {"value": "UNRELIABLE", "source": "analyst_assumption", "method": "未提供可执行价格估值证据"},
+    "thesis_comparison_rules": [
+      {
+        "rule_id": "receivables-vs-revenue",
+        "left_metric": "ar_growth",
+        "right_metric": "revenue_growth",
+        "spread_threshold": 0.10,
+        "adverse_label": "应收增速显著快于收入"
+      }
+    ],
+    "valuation_models": {
+      "dcf": {"data_quality": 0.85, "earnings_stability": 0.60, "cash_flow_visibility": 0.65, "capital_structure_fit": 0.75, "business_model_fit": 0.80, "forecast_stability": 0.45},
+      "pe": {"data_quality": 0.90, "earnings_stability": 0.70, "cash_flow_visibility": 0.65, "capital_structure_fit": 0.80, "business_model_fit": 0.85, "forecast_stability": 0.55}
+    },
+    "next_verification_event": {"event_name": "下一定期报告验证毛利与现金转化", "event_time": "2026-10-31T00:00:00Z"}
+  },
+  "acceptance": {
+    "expected_business_model": "manufacturing",
+    "required_body_terms": ["制造业务", "毛利率同比下降", "市场预期证据不足", "已采纳证据质量", "估值方法与适用性"],
+    "forbidden_body_terms": ["None", "0.87654321", "应收增速显著快于收入", "ev:semantic:"],
+    "forbidden_anywhere_terms": [],
+    "audit_only_terms": ["ev:semantic:"],
+    "required_section_ids": ["investment-decision-snapshot", "financial-operating", "thesis-debate", "expectation-forecast", "valuation-methods", "monitoring", "audit-appendix"]
+  }
+}

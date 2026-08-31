@@ -248,7 +248,7 @@ def _render_current_case(
         options=ResearchOptions(),
     )
     inputs = _research_inputs(payload, preflight=preflight)
-    result = ResearchRuntimeFactory.default().run_context(context, inputs)
+    result = ResearchRuntimeFactory.historical_v1_5_10().run_context(context, inputs)
     view = V1_5_10ResearchViewPresenter().build(result)
     document = V1_5_10ResearchReportComposer().compose(view)
     markdown_renderer = MarkdownArtifactRenderer(

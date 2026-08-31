@@ -9,7 +9,11 @@ from research_os.version import RESEARCH_OS_VERSION
 def test_all_public_version_metadata_matches_runtime_version():
     project = tomllib.loads(Path("pyproject.toml").read_text())
     metadata = json.loads(Path("research_os_version.json").read_text())
-    assert project["project"]["version"] == RESEARCH_OS_VERSION
+    assert "version" not in project["project"]
+    assert project["project"]["dynamic"] == ["version"]
+    assert project["tool"]["setuptools"]["dynamic"]["version"] == {
+        "attr": "research_os.version.RESEARCH_OS_VERSION"
+    }
     assert metadata["research_os_version"] == RESEARCH_OS_VERSION
     assert research_os.__version__ == RESEARCH_OS_VERSION
 

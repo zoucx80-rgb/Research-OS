@@ -13,7 +13,9 @@ from research_os.completeness import (
     VerificationCalendarEvent,
 )
 from research_os.domain.evidence import Evidence
-from research_os.reporting import ResearchReportComposer, ResearchReportMarkdownRenderer, ResearchViewPresenter
+from research_os.reporting.composer_v1_5_10 import ResearchReportComposer
+from research_os.reporting.markdown_renderer_v1_5_10 import ResearchReportMarkdownRenderer
+from research_os.reporting.research_view_v1_5_10 import ResearchViewPresenter
 from research_os.runtime import (
     BaselineFingerprint,
     CompanyRef,
@@ -112,7 +114,7 @@ def _inputs():
 
 
 def test_completeness_artifacts_flow_one_way_into_document_and_markdown():
-    result = ResearchRuntimeFactory.default().run_context(_context(), _inputs())
+    result = ResearchRuntimeFactory.historical_v1_5_10().run_context(_context(), _inputs())
     before = result.model_dump(mode="json")
     view = ResearchViewPresenter().build(result)
     document = ResearchReportComposer().compose(view)
@@ -148,7 +150,7 @@ def test_completeness_artifacts_flow_one_way_into_document_and_markdown():
 
 
 def test_empty_optional_completeness_inputs_only_add_methodology_section():
-    result = ResearchRuntimeFactory.default().run_context(_context(), ResearchInputs())
+    result = ResearchRuntimeFactory.historical_v1_5_10().run_context(_context(), ResearchInputs())
     view = ResearchViewPresenter().build(result)
     document = ResearchReportComposer().compose(view)
     section_ids = [section.section_id for section in document.sections]

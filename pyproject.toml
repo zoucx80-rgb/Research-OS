@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "research-os"
-version = "1.5.10"
+dynamic = ["version"]
 requires-python = ">=3.12"
 dependencies = [
   "pydantic>=2",
@@ -29,6 +29,9 @@ pdf = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.dynamic]
+version = {attr = "research_os.version.RESEARCH_OS_VERSION"}
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

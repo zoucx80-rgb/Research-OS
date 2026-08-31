@@ -29,4 +29,6 @@ class Evidence(BaseModel):
     parser_version: str | None=None
     formula_version: str | None=None
     model_version: str | None=None
+    comparison_basis: str | None=None
+    metric_kind: str | None=None
     revision_no: int=1

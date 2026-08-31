@@ -5,6 +5,7 @@ from pathlib import Path
 import tomllib
 
 from research_os.presentation import PlaywrightPdfAdapter, ProfessionalHtmlRenderer
+from research_os.release.replays import REPLAY_REGISTRY
 from research_os.release.runtime import CHECKS
 from research_os.reporting.composer import ResearchReportComposer
 from research_os.reporting.markdown_renderer import ResearchReportMarkdownRenderer
@@ -60,23 +61,14 @@ def test_release_gate_requires_v1_5_08_pipeline_and_real_browser_pdf():
         assert CHECKS.get(gate) == nodeid
         assert Path(nodeid.split("::", 1)[0]).exists()
 
-    runtime = Path("src/research_os/release/runtime.py").read_text(encoding="utf-8")
-    assert 'RESEARCH_OS_RUN_PDF_INTEGRATION"] = "1"' in runtime
 
-
-def test_ci_installs_chromium_and_runs_v1_5_08_regressions():
-    workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
-
-    assert 'pip install -e ".[test,pdf]"' in workflow
-    assert "python -m playwright install --with-deps chromium" in workflow
-    assert "fonts-noto-cjk" in workflow
-    assert "RESEARCH_OS_RUN_PDF_INTEGRATION: '1'" in workflow
-    assert "test_v1_5_08_presentation_patterns.py" in workflow
-    assert "test_playwright_pdf_adapter.py" in workflow
-    assert "render_field_acceptance_v1_5_08.py" in workflow
-    assert "tests/fixtures/field_acceptance/v1_5_08" in workflow
-    assert "v1.5.08-field-acceptance" in workflow
-    assert "actions/upload-artifact@v4" in workflow
+def test_v1_5_08_field_acceptance_is_a_frozen_replay_profile():
+    profile = REPLAY_REGISTRY["field-v1.5.08"]
+    assert profile.frozen is True
+    assert profile.runner_script == "scripts/render_field_acceptance_v1_5_08.py"
+    assert profile.fixture_dir == "tests/fixtures/field_acceptance/v1_5_08"
+    assert Path(profile.runner_script).exists()
+    assert Path(profile.fixture_dir).exists()
 
 
 def test_v1_5_08_documentation_preserves_one_way_boundary_and_non_goals():

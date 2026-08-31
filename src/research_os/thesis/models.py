@@ -28,12 +28,23 @@ class Thesis(BaseModel):
     statement: str
     mechanism: str
     anti_thesis: str | None = None
-    status: Literal["new", "active", "strengthening", "weakening", "falsified", "expired"] = "new"
+    status: Literal[
+        "new",
+        "unresolved",
+        "active",
+        "strengthening",
+        "weakening",
+        "falsified",
+        "expired",
+    ] = "new"
     time_horizon: str | None = None
     supporting_drivers: list[str] = Field(default_factory=list)
     supporting_evidence: list[str] = Field(default_factory=list)
     falsifiers: list[Falsifier] = Field(default_factory=list)
     verification_metrics: list[str] = Field(default_factory=list)
+    resolution_conditions: list[str] = Field(default_factory=list)
+    conviction_up_conditions: list[str] = Field(default_factory=list)
+    deterioration_conditions: list[str] = Field(default_factory=list)
     next_check_date: date | None = None
     confidence: float | None = Field(default=None, ge=0, le=1)
     triggered_falsifiers: list[str] = Field(default_factory=list)

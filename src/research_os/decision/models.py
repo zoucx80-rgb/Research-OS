@@ -7,8 +7,8 @@ from research_os.version import RESEARCH_OS_VERSION
 
 FundamentalState = Literal["IMPROVING", "STABLE", "DETERIORATING", "UNCERTAIN"]
 ValuationState = Literal["CHEAP", "FAIR", "EXPENSIVE", "UNRELIABLE"]
-ExpectationState = Literal["UNDER_EXPECTED", "IN_LINE", "OVER_EXPECTED", "MIXED"]
-ThesisState = Literal["STRENGTHENING", "ACTIVE", "WEAKENING", "FALSIFIED"]
+ExpectationState = Literal["UNDER_EXPECTED", "IN_LINE", "OVER_EXPECTED", "MIXED", "UNKNOWN"]
+ThesisState = Literal["STRENGTHENING", "ACTIVE", "WEAKENING", "FALSIFIED", "UNRESOLVED"]
 ResearchDecisionState = Literal[
     "HIGH_CONVICTION_WATCH",
     "ACCUMULATION_CANDIDATE",

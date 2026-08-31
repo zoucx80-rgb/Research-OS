@@ -1,19 +1,17 @@
 import json
-import tomllib
 from pathlib import Path
 
 import research_os
 from research_os.decision.models import DecisionContext, DecisionStateRecord
+from research_os.release.manifest import CURRENT_RELEASE
 from research_os.reporting.summary import DecisionSummaryBuilder
 from research_os.version import RESEARCH_OS_VERSION
 
 
-def test_all_runtime_and_public_version_surfaces_match_current_release():
-    project = tomllib.loads(Path("pyproject.toml").read_text())
+def test_runtime_version_defaults_follow_canonical_release_manifest():
     metadata = json.loads(Path("research_os_version.json").read_text())
-    assert research_os.__version__ == RESEARCH_OS_VERSION
-    assert project["project"]["version"] == RESEARCH_OS_VERSION
-    assert metadata["research_os_version"] == RESEARCH_OS_VERSION
+    assert research_os.__version__ == CURRENT_RELEASE.version == RESEARCH_OS_VERSION
+    assert metadata == CURRENT_RELEASE.to_public_metadata()
     assert DecisionContext.model_fields["research_os_version"].default == RESEARCH_OS_VERSION
     assert DecisionStateRecord.model_fields["research_os_version"].default == RESEARCH_OS_VERSION
 

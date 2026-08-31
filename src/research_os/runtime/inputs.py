@@ -19,6 +19,8 @@ from research_os.events.validation import NextVerificationEvent
 from research_os.expectations.models import ConsensusVintage, ExpectationEvidence, ExpectationGapResult
 from research_os.preflight.models import RepositoryPreflightEvidence
 from research_os.runtime.provenance import StateInput
+from research_os.thesis.models import Thesis
+from research_os.thesis.semantic_signals import GrowthComparisonRule
 from research_os.validation.financial import FinancialMetricObservation
 from research_os.valuation.execution import ValuationExecution
 from research_os.valuation.fitness import ModelFitnessInputs
@@ -58,6 +60,9 @@ class ResearchInputs(BaseModel):
     monitoring_rules: tuple[MonitoringRule, ...] = Field(default_factory=tuple)
     verification_calendar: tuple[VerificationCalendarEvent, ...] = Field(default_factory=tuple)
     prior_run_review_items: tuple[PriorRunReviewInput, ...] = Field(default_factory=tuple)
+
+    prior_theses: tuple[Thesis, ...] = Field(default_factory=tuple)
+    thesis_comparison_rules: tuple[GrowthComparisonRule, ...] = Field(default_factory=tuple)
 
     # Legacy string inputs remain backward compatible. When provenance-aware
     # inputs are absent, runtime explicitly treats these as analyst assumptions.

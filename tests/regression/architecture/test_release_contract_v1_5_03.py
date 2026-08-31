@@ -1,5 +1,4 @@
 import json
-import tomllib
 from pathlib import Path
 
 import research_os
@@ -22,15 +21,13 @@ V1_5_03_GATES = {
 }
 
 
-def test_public_v1_5_03_version_and_component_fingerprints_are_consistent():
-    project = tomllib.loads(Path("pyproject.toml").read_text())
+def test_v1_5_03_component_contract_remains_available():
     metadata = json.loads(Path("research_os_version.json").read_text())
 
     assert tuple(map(int, RESEARCH_OS_VERSION.split("."))) >= (1, 5, 3)
     assert research_os.__version__ == RESEARCH_OS_VERSION
-    assert project["project"]["version"] == RESEARCH_OS_VERSION
     assert metadata["research_os_version"] == RESEARCH_OS_VERSION
-    assert metadata["status"] in {"release_candidate", "stable"}
+    assert metadata["status"] == "stable"
     assert CORE_API_VERSION == "1.0"
     assert metadata["core_api_version"] == "1.0"
     assert BusinessModelRouter.version == "router@1.2.0"

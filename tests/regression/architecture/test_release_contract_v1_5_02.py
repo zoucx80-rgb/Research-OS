@@ -1,5 +1,4 @@
 import json
-import tomllib
 from pathlib import Path
 
 import research_os
@@ -29,13 +28,11 @@ def _presenter_version_tuple(value: str) -> tuple[int, ...]:
     return _version_tuple(value.rsplit("@", 1)[-1])
 
 
-def test_public_v1_5_02_version_and_core_api_are_consistent():
-    project = tomllib.loads(Path("pyproject.toml").read_text())
+def test_v1_5_02_version_and_core_api_contract_remain_available():
     metadata = json.loads(Path("research_os_version.json").read_text())
 
     assert _version_tuple(RESEARCH_OS_VERSION) >= (1, 5, 2)
     assert research_os.__version__ == RESEARCH_OS_VERSION
-    assert project["project"]["version"] == RESEARCH_OS_VERSION
     assert metadata["research_os_version"] == RESEARCH_OS_VERSION
     assert CORE_API_VERSION == "1.0"
     assert metadata["core_api_version"] == "1.0"
