@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from research_os.domain.enums import ConfidenceGrade, EvidenceType, VerificationStatus
 from research_os.domain.evidence import Evidence
 from research_os.expectations.models import ExpectationGapResult
-from research_os.reporting import ResearchViewPresenter
+from research_os.reporting.research_view_v1_5_05 import ResearchViewPresenter
 from research_os.runtime import (
     BaselineFingerprint,
     CompanyRef,
