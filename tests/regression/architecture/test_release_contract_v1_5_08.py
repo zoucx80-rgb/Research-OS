@@ -4,13 +4,12 @@ import json
 from pathlib import Path
 import tomllib
 
-import research_os
 from research_os.presentation import PlaywrightPdfAdapter, ProfessionalHtmlRenderer
 from research_os.release.runtime import CHECKS
 from research_os.reporting.composer import ResearchReportComposer
 from research_os.reporting.markdown_renderer import ResearchReportMarkdownRenderer
 from research_os.reporting.research_view_v1_5_05 import ResearchViewPresenter
-from research_os.version import CORE_API_VERSION, RESEARCH_OS_VERSION
+from research_os.version import CORE_API_VERSION
 
 
 V1_5_08_CHECKS = {
@@ -30,22 +29,15 @@ V1_5_08_CHECKS = {
 }
 
 
-def test_public_v1_5_08_versions_and_presentation_fingerprints_are_consistent():
+def test_historical_v1_5_08_presentation_fingerprints_remain_replayable():
     project = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
     metadata = json.loads(Path("research_os_version.json").read_text(encoding="utf-8"))
 
-    assert RESEARCH_OS_VERSION == "1.5.8"
-    assert research_os.__version__ == "1.5.8"
-    assert project["project"]["version"] == "1.5.8"
-    assert metadata["research_os_version"] == "1.5.8"
-    assert metadata["status"] == "stable"
     assert CORE_API_VERSION == "1.0"
     assert metadata["core_api_version"] == "1.0"
-    assert metadata["module_versions"]["semantic_research_view"] == "1.3.0"
-    assert metadata["module_versions"]["report_composer"] == "1.1.0"
-    assert metadata["module_versions"]["markdown_renderer"] == "1.0.0"
-    assert metadata["module_versions"]["html_renderer"] == "1.0.0"
-    assert metadata["module_versions"]["pdf_adapter"] == "1.0.0"
+    assert project["project"]["optional-dependencies"]["pdf"] == [
+        "playwright>=1.62,<1.63"
+    ]
     assert ResearchViewPresenter.version == "professional-research-view@1.3.0"
     assert ResearchReportComposer.version == "research-report-composer@1.1.0"
     assert ResearchReportMarkdownRenderer.version == "professional-markdown-renderer@1.0.0"
