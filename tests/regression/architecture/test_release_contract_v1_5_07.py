@@ -7,8 +7,8 @@ from research_os.release.runtime import CHECKS
 from research_os.reporting import (
     ResearchReportComposer,
     ResearchReportMarkdownRenderer,
-    ResearchViewPresenter,
 )
+from research_os.reporting.research_view_v1_5_05 import ResearchViewPresenter
 from research_os.version import CORE_API_VERSION, RESEARCH_OS_VERSION
 
 
