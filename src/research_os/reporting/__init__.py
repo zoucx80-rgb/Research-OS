@@ -1,4 +1,4 @@
-from .composer import ResearchReportComposer
+from .composer_v1_5_09 import ResearchReportComposer
 from .document import (
     AuditAppendix,
     CapitalFundingBlock,
@@ -19,7 +19,7 @@ from .document import (
     ValuationBlock,
     ValuationRationaleBlock,
 )
-from .markdown_renderer import ResearchReportMarkdownRenderer
+from .markdown_renderer_v1_5_09 import ResearchReportMarkdownRenderer
 from .research_view import (
     HumanReadableCoverageGap,
     HumanReadableDriverEdge,
