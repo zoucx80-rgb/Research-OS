@@ -4,10 +4,8 @@ from pathlib import Path
 
 import research_os
 from research_os.release.runtime import CHECKS
-from research_os.reporting import (
-    ResearchReportComposer,
-    ResearchReportMarkdownRenderer,
-)
+from research_os.reporting.composer import ResearchReportComposer
+from research_os.reporting.markdown_renderer import ResearchReportMarkdownRenderer
 from research_os.reporting.research_view_v1_5_05 import ResearchViewPresenter
 from research_os.version import CORE_API_VERSION, RESEARCH_OS_VERSION
 
