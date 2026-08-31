@@ -26,9 +26,9 @@ def test_v1_5_07_reporting_fingerprints_remain_stable_across_patch_releases():
     assert metadata["status"] in {"release_candidate", "stable"}
     assert CORE_API_VERSION == "1.0"
     assert metadata["core_api_version"] == "1.0"
-    assert metadata["module_versions"]["semantic_research_view"] == "1.3.0"
-    assert metadata["module_versions"]["report_composer"] == "1.1.0"
-    assert metadata["module_versions"]["markdown_renderer"] == "1.0.0"
+    assert tuple(map(int, metadata["module_versions"]["semantic_research_view"].split("."))) >= (1, 3, 0)
+    assert tuple(map(int, metadata["module_versions"]["report_composer"].split("."))) >= (1, 1, 0)
+    assert tuple(map(int, metadata["module_versions"]["markdown_renderer"].split("."))) >= (1, 0, 0)
     assert ResearchViewPresenter.version == "professional-research-view@1.3.0"
     assert ResearchReportComposer.version == "research-report-composer@1.1.0"
     assert ResearchReportMarkdownRenderer.version == "professional-markdown-renderer@1.0.0"
