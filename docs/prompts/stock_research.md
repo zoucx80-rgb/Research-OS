@@ -287,6 +287,34 @@ Primary presentation must remain free of raw Python repr, enum/internal fields, 
 
 When PDF export is requested, actually render the PDF and visually review all pages. Unit tests or successful serialization are not substitutes for checking the first-page snapshot, financial/KPI tables, Funding Loop, Thesis, Valuation, Monitoring, Research Gaps, Audit Appendix, page breaks, overflow, and Chinese glyphs.
 
+### v1.5.09 Professional Research Depth Hardening
+
+For v1.5.09 the active fingerprints are **`professional-research-view@1.4.0`**, **`research-report-composer@1.2.0`**, and **`professional-markdown-renderer@1.1.0`**. HTML/PDF remain **`professional-html-renderer@1.0.0`** and **`professional-pdf-adapter@1.0.0`**.
+
+`FinancialFactSnapshot` is a read-only canonical projection of material PIT-safe filed financial facts already present in the run. It must preserve value, period, unit, evidence identity, and missingness semantics. It must not open an alternate raw-evidence or calculation path.
+
+v1.5.09 keeps the same one-way boundary and deepens only what can flow through it:
+
+```text
+ResearchRunResult
+    → HumanReadableResearchView
+    → ResearchReportDocument
+    → MarkdownPresentationArtifact
+    → HtmlPresentationArtifact
+    → PdfPresentationArtifact
+```
+
+Presenter, Composer, Markdown, HTML, PDF and field-acceptance code **不重新计算** canonical KPI, Funding Loop, Driver/Thesis, Expectation Gap, Forecast, Valuation, Decision State, Completion State, or monitoring semantics.
+
+Field acceptance now has two independent statuses:
+
+- `presentation` — typed-artifact integrity, real browser/PDF export, pagination, wrapping and glyph/layout quality;
+- `research_depth` — required financial facts, business-model-specific economics, thesis/anti-thesis/monitoring depth, missingness discipline and non-fabrication.
+
+A polished PDF is not sufficient. `overall_status=PASS` requires both `presentation=PASS` and `research_depth=PASS`; otherwise the batch acceptance is fail-closed.
+
+Permanent field-depth regressions use Manufacturing, Distributor and lease-heavy Hospitality/no-plugin archetypes. These fixtures are acceptance data only. Production Core must contain no special cases for the validated companies.
+
 ## State Provenance — v1.5.03+
 
 `fundamental_state`, `valuation_state`, and `expectation_state` must retain their source semantics. If legacy string inputs are used, human-facing output must identify them as analyst assumptions rather than claiming they were derived by Research OS.
@@ -355,6 +383,8 @@ Severe canonical Funding Loop evidence may populate the existing material-risk d
 
 `ResearchCompletionGate` is the **single completion-policy authority**. Reporting must propagate the same `ResearchCompletionResult` (`final_status`, `blocking_modules`, `module_statuses`) and must not independently promote or demote completion.
 
+For v1.5.09 field delivery, `ResearchCompletionGate` and field `research_depth` are different contracts: completion remains the canonical machine research-completion authority, while `research_depth` is a downstream acceptance gate that verifies whether the professional report actually carries the required supported content. `research_depth` may reject a thin output but must not rewrite canonical completion or research states.
+
 ## Required Research Order
 
 Do not begin with a preferred valuation template. Preserve causal order:
@@ -375,6 +405,7 @@ Do not begin with a preferred valuation template. Preserve causal order:
 14. `ResearchReportComposer` one-way editorial composition into `ResearchReportDocument`
 15. `ResearchReportMarkdownRenderer` deterministic Markdown projection without semantic recomputation
 16. downstream HTML/PDF styling or pagination, when used, without semantic recomputation
+17. v1.5.09 `presentation` and `research_depth` field acceptance, without feeding either status back into canonical research state
 
 Do not mechanically average incompatible valuation methods.
 
@@ -403,7 +434,8 @@ Where supported by evidence, include:
 - evidence that would increase conviction when canonically available;
 - evidence that would weaken or break the thesis when canonically available;
 - concise evidence-traceability language in the main body and full raw provenance in the audit appendix;
-- a first-page decision snapshot that copies, rather than recalculates, canonical research state.
+- a first-page decision snapshot that copies, rather than recalculates, canonical research state;
+- v1.5.09 field-delivery `presentation`, `research_depth`, and `overall_status` when the report is run through field acceptance.
 
 A tool or browsing workflow ending successfully does not imply research completion. Canonical `FINAL_STATUS=COMPLETE` may exist only when `ResearchCompletionGate` returns COMPLETE. Otherwise status remains INCOMPLETE and blocking modules must be identified. Human-facing output translates those states without replacing their canonical meaning.
 
