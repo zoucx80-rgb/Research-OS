@@ -4,9 +4,11 @@ from research_os.runtime.builtin_modules import (
     DecisionModule,
     DriverThesisModule,
     ExpectationModule,
+    PITLineageModule,
     ValuationModule,
     build_builtin_modules,
 )
+from research_os.runtime.financial_snapshot import FinancialFactSnapshotModule
 from research_os.runtime.inputs import ResearchInputs
 from research_os.runtime.provenance import resolve_state_input
 
@@ -125,7 +127,10 @@ def build_professional_builtin_modules(*, registry, inputs: ResearchInputs | Non
     modules = build_builtin_modules(registry=registry, inputs=run_inputs)
     result = []
     for module in modules:
-        if isinstance(module, DriverThesisModule):
+        if isinstance(module, PITLineageModule):
+            result.append(module)
+            result.append(FinancialFactSnapshotModule())
+        elif isinstance(module, DriverThesisModule):
             result.append(ProfessionalDriverThesisModule())
         elif isinstance(module, ExpectationModule):
             result.append(ProfessionalExpectationModule(inputs=run_inputs))
