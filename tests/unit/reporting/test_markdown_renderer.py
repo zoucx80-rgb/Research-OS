@@ -28,7 +28,7 @@ def _semantic(code: str, label: str, explanation: str = "") -> SemanticValue:
 
 
 def _renderer_cls():
-    reporting = importlib.import_module("research_os.reporting")
+    reporting = importlib.import_module("research_os.reporting.markdown_renderer")
     assert hasattr(reporting, "ResearchReportMarkdownRenderer"), (
         "v1.5.07 requires a public ResearchReportMarkdownRenderer"
     )
