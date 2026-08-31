@@ -4,7 +4,11 @@ import argparse
 from dataclasses import replace
 import json
 from pathlib import Path
+import sys
 from typing import Any
+
+if __package__ in {None, ""}:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from research_os.presentation import PlaywrightPdfAdapter
 from scripts.render_field_acceptance_v1_5_08 import (
