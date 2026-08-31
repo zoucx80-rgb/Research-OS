@@ -16,14 +16,14 @@ from research_os.presentation import (
     PlaywrightPdfAdapter,
     ProfessionalPresentationPipeline,
 )
-from research_os.reporting.composer_v1_5_09 import (
-    ResearchReportComposer as V1_5_09ResearchReportComposer,
+from research_os.reporting.composer_v1_5_10 import (
+    ResearchReportComposer as V1_5_10ResearchReportComposer,
 )
-from research_os.reporting.markdown_renderer_v1_5_09 import (
-    ResearchReportMarkdownRenderer as V1_5_09ResearchReportMarkdownRenderer,
+from research_os.reporting.markdown_renderer_v1_5_10 import (
+    ResearchReportMarkdownRenderer as V1_5_10ResearchReportMarkdownRenderer,
 )
-from research_os.reporting.research_view_v1_5_09 import (
-    ResearchViewPresenter as V1_5_09ResearchViewPresenter,
+from research_os.reporting.research_view_v1_5_10 import (
+    ResearchViewPresenter as V1_5_10ResearchViewPresenter,
 )
 from research_os.runtime import (
     CompanyRef,
@@ -44,123 +44,174 @@ from scripts.render_field_acceptance_v1_5_08 import (
     _repository_identity,
     _research_inputs,
 )
+from scripts.render_field_acceptance_v1_5_09 import _evaluate_research_depth
 
 
-_DEFAULT_FORBIDDEN_DEPTH_TERMS = (
-    "专业研究问题的中文展示尚未配置",
-    "存在尚未配置中文说明的研究状态",
-)
-_HOSPITALITY_FORBIDDEN_TERMS = (
-    "RevPAR",
-    "ADR",
-    "OCC",
-    "同店增长",
-    "成熟店曲线",
-    "轻资产",
-    "低资本占用",
-    "现金转化极佳",
+_DIMENSIONS = (
+    "time_series",
+    "operating_evidence",
+    "cash_flow",
+    "consensus",
+    "peers",
+    "sensitivity",
+    "monitoring_events",
+    "prior_run_validation",
+    "methodology",
 )
 
+_DIMENSION_PRESENTATION = {
+    "time_series": ("financial-trends", "财务趋势"),
+    "operating_evidence": ("operating-evidence", "经营证据"),
+    "cash_flow": ("cash-flow-quality", "现金流质量"),
+    "consensus": ("consensus-dispersion", "一致预期分布"),
+    "peers": ("peer-comparison", "同行与产品线比较"),
+    "sensitivity": ("sensitivity-scenarios", "敏感性与情景"),
+    "monitoring_events": ("monitoring-calendar", "监控规则与验证日历"),
+    "prior_run_validation": ("prior-run-review", "上期判断回顾"),
+    "methodology": ("methodology-disclosure", "方法说明"),
+}
 
-def _dedup(items: list[str]) -> list[str]:
-    return list(dict.fromkeys(item for item in items if item))
+
+def _present(value: Any) -> bool:
+    return value not in (None, [], (), {})
 
 
-def _body_markdown(output: FieldAcceptanceOutput) -> str:
-    return output.bundle.markdown.content.split("## 审计附录", 1)[0]
+def _dimension_statuses(output: FieldAcceptanceOutput) -> dict[str, str]:
+    artifacts = output.result.artifacts
+
+    series = artifacts.get("financial.time_series") or ()
+    time_series_ok = any(
+        sum(1 for point in item.points if point.value is not None) >= 2
+        for item in series
+    )
+
+    cash = artifacts.get("cash_flow.quality_bridge")
+    cash_ok = bool(
+        cash is not None
+        and cash.operating_cash_flow is not None
+        and cash.capex_cash is not None
+        and cash.working_capital_contribution is not None
+        and cash.simplified_fcf is not None
+    )
+
+    distributions = artifacts.get("expectation.consensus_distribution") or ()
+    consensus_ok = any(
+        item.breadth == "multi_source" and item.source_count >= 2
+        for item in distributions
+    )
+
+    rules = artifacts.get("monitoring.rules")
+    events = artifacts.get("monitoring.verification_calendar")
+    review = artifacts.get("monitoring.prior_run_review")
+
+    return {
+        "time_series": "PASS" if time_series_ok else "INCOMPLETE",
+        "operating_evidence": "PASS" if _present(artifacts.get("research.operating_evidence")) else "INCOMPLETE",
+        "cash_flow": "PASS" if cash_ok else "INCOMPLETE",
+        "consensus": "PASS" if consensus_ok else "INCOMPLETE",
+        "peers": "PASS" if _present(artifacts.get("peers.comparables")) else "INCOMPLETE",
+        "sensitivity": "PASS" if _present(artifacts.get("scenario.sensitivities")) else "INCOMPLETE",
+        "monitoring_events": "PASS" if _present(rules) and _present(events) else "INCOMPLETE",
+        "prior_run_validation": "PASS" if review is not None and review.scored_count > 0 else "INCOMPLETE",
+        "methodology": "PASS" if _present(artifacts.get("methodology.disclosure")) else "INCOMPLETE",
+    }
 
 
-def _evaluate_research_depth(
+def _evaluate_research_completeness(
     *,
     output: FieldAcceptanceOutput,
     case: dict[str, Any],
 ) -> dict[str, Any]:
-    contract = case.get("research_depth_acceptance") or {}
-    errors: list[str] = []
-    body = _body_markdown(output)
+    contract = dict(case.get("research_completeness_acceptance") or {})
+    required = list(contract.get("required_dimensions") or _DIMENSIONS)
+    not_applicable = list(contract.get("not_applicable_dimensions") or [])
 
-    facts = {
-        item.fact_key: item
-        for item in list(getattr(output.view, "core_financial_facts", []) or [])
-    }
-    section_ids = [section.section_id for section in output.document.sections]
+    unknown = sorted((set(required) | set(not_applicable)) - set(_DIMENSIONS))
+    if unknown:
+        raise FieldAcceptanceError(
+            "unknown research completeness dimension(s): " + ", ".join(unknown)
+        )
 
-    required_fact_keys = list(contract.get("required_financial_fact_keys", []))
-    for key in required_fact_keys:
-        if key not in facts:
-            errors.append(f"missing required canonical financial fact: {key}")
+    statuses = _dimension_statuses(output)
+    for dimension in not_applicable:
+        statuses[dimension] = "NOT_APPLICABLE"
 
-    required_sections = list(contract.get("required_document_section_ids", []))
-    for section_id in required_sections:
-        if section_id not in section_ids:
-            errors.append(f"missing required research document section: {section_id}")
-
-    required_terms = list(contract.get("required_body_terms", []))
-    for term in required_terms:
-        if term not in body:
-            errors.append(f"missing required research-depth body term: {term}")
-
-    forbidden_terms = [
-        *_DEFAULT_FORBIDDEN_DEPTH_TERMS,
-        *list(contract.get("forbidden_body_terms", [])),
+    errors = [
+        f"required research completeness dimension is incomplete: {dimension}"
+        for dimension in required
+        if statuses[dimension] not in {"PASS", "NOT_APPLICABLE"}
     ]
-    if output.view.business_model.code == "hospitality":
-        forbidden_terms.extend(_HOSPITALITY_FORBIDDEN_TERMS)
-    for term in _dedup(forbidden_terms):
-        if term in body:
-            errors.append(f"forbidden research-depth body term present: {term}")
-
-    for assessment in output.view.question_assessments:
-        question = assessment.question.strip()
-        if "?" in question or question.startswith(("What ", "How ", "Is ", "Are ", "Which ")):
-            errors.append(f"non-localized professional research question: {question}")
-
-    for risk in output.document.decision_snapshot.material_risks:
-        if "尚未配置中文说明" in risk.label:
-            errors.append(f"unmapped machine state surfaced as material risk: {risk.code}")
-
-    business_model = output.view.business_model.code
-    if business_model == "manufacturing":
-        margin_change = facts.get("margin_change")
-        if margin_change is not None and isinstance(margin_change.value, (int, float)):
-            if margin_change.value < 0 and "毛利率同比下降" not in body:
-                errors.append("negative canonical margin_change is not explained as 毛利率同比下降")
-            if margin_change.value > 0 and "毛利率同比提升" not in body:
-                errors.append("positive canonical margin_change is not explained as 毛利率同比提升")
-
-    if business_model == "distributor":
-        if output.view.funding_loop is not None and "capital-funding" not in section_ids:
-            errors.append("distributor funding loop exists but capital-funding section is missing")
-        if output.view.driver_graph is not None and output.view.driver_graph.edges and "causal-bridge" not in section_ids:
-            errors.append("distributor driver graph exists but causal-bridge section is missing")
-
-    if business_model == "hospitality":
-        lease_limitations = [
-            item for item in output.view.presentation_limitations if "租赁" in item
-        ]
-        if not lease_limitations:
-            errors.append("lease-heavy hospitality presentation limitation is missing")
-        if not output.view.industry_plugins:
-            capability_gap = any(
-                gap.gap_type.code != "business_model_evidence"
-                for gap in output.view.coverage_gaps
-            )
-            if not capability_gap:
-                errors.append("hospitality without industry plugin does not expose capability gap")
-
     return {
         "status": "PASS" if not errors else "FAIL",
-        "errors": _dedup(errors),
-        "required_financial_fact_keys": required_fact_keys,
-        "observed_financial_fact_keys": list(facts),
-        "required_document_section_ids": required_sections,
-        "observed_document_section_ids": section_ids,
-        "required_body_terms": required_terms,
-        "forbidden_body_terms": _dedup(forbidden_terms),
+        "dimensions": statuses,
+        "required_dimensions": required,
+        "not_applicable_dimensions": not_applicable,
+        "errors": errors,
     }
 
 
-def _render_v1_5_09_case(
+def _effective_case_for_not_applicable(case: dict[str, Any]) -> dict[str, Any]:
+    result = json.loads(json.dumps(case))
+    contract = result.get("research_completeness_acceptance") or {}
+    not_applicable = set(contract.get("not_applicable_dimensions") or [])
+    if not not_applicable:
+        return result
+
+    section_ids = {
+        _DIMENSION_PRESENTATION[item][0]
+        for item in not_applicable
+        if item in _DIMENSION_PRESENTATION
+    }
+    terms = {
+        _DIMENSION_PRESENTATION[item][1]
+        for item in not_applicable
+        if item in _DIMENSION_PRESENTATION
+    }
+
+    presentation = dict(result.get("acceptance") or {})
+    presentation["required_section_ids"] = [
+        item
+        for item in presentation.get("required_section_ids", [])
+        if item not in section_ids
+    ]
+    presentation["required_body_terms"] = [
+        item
+        for item in presentation.get("required_body_terms", [])
+        if item not in terms
+    ]
+    result["acceptance"] = presentation
+
+    depth = dict(result.get("research_depth_acceptance") or {})
+    depth["required_document_section_ids"] = [
+        item
+        for item in depth.get("required_document_section_ids", [])
+        if item not in section_ids
+    ]
+    depth["required_body_terms"] = [
+        item
+        for item in depth.get("required_body_terms", [])
+        if item not in terms
+    ]
+    result["research_depth_acceptance"] = depth
+    return result
+
+
+def _presentation_acceptance(
+    *,
+    case: dict[str, Any],
+    result,
+    bundle,
+) -> dict[str, Any]:
+    try:
+        return _acceptance_result(case, result=result, bundle=bundle)
+    except FieldAcceptanceError as exc:
+        return {
+            "status": "FAIL",
+            "errors": [str(exc)],
+        }
+
+
+def _render_current_case(
     *,
     case_path: Path,
     output_root: Path,
@@ -174,8 +225,7 @@ def _render_v1_5_09_case(
     )
     if decision_ts != _FIXED_DECISION_TS:
         raise FieldAcceptanceError(
-            "v1.5.09 field acceptance requires decision_ts "
-            "2026-08-30T00:00:00Z"
+            "v1.5.10 field acceptance requires decision_ts 2026-08-30T00:00:00Z"
         )
 
     baseline, preflight = _repository_identity(
@@ -189,7 +239,7 @@ def _render_v1_5_09_case(
     )
     company = CompanyRef.model_validate(payload["company"])
     context = ResearchContext(
-        run_id=str(payload.get("run_id") or f"field:v1.5.09:{payload['case_id']}"),
+        run_id=str(payload.get("run_id") or f"field:v1.5.10:{payload['case_id']}"),
         company=company,
         decision_ts=decision_ts,
         baseline=baseline,
@@ -199,16 +249,22 @@ def _render_v1_5_09_case(
     )
     inputs = _research_inputs(payload, preflight=preflight)
     result = ResearchRuntimeFactory.default().run_context(context, inputs)
-    view = V1_5_09ResearchViewPresenter().build(result)
-    document = V1_5_09ResearchReportComposer().compose(view)
+    view = V1_5_10ResearchViewPresenter().build(result)
+    document = V1_5_10ResearchReportComposer().compose(view)
     markdown_renderer = MarkdownArtifactRenderer(
-        renderer=V1_5_09ResearchReportMarkdownRenderer()
+        renderer=V1_5_10ResearchReportMarkdownRenderer()
     )
     bundle = ProfessionalPresentationPipeline(
         markdown_renderer=markdown_renderer,
         pdf_adapter=pdf_adapter,
     ).render(document)
-    presentation = _acceptance_result(payload, result=result, bundle=bundle)
+
+    effective_case = _effective_case_for_not_applicable(payload)
+    presentation = _presentation_acceptance(
+        case=effective_case,
+        result=result,
+        bundle=bundle,
+    )
 
     case_id = str(payload["case_id"])
     output_dir = output_root / case_id
@@ -218,7 +274,7 @@ def _render_v1_5_09_case(
     (output_dir / "report.pdf").write_bytes(bundle.pdf.content)
 
     manifest = {
-        "schema_version": "field-acceptance-result@1.0.0",
+        "schema_version": "field-acceptance-result@1.2.0",
         "case_id": case_id,
         "company": company.model_dump(mode="json"),
         "decision_ts": decision_ts.isoformat().replace("+00:00", "Z"),
@@ -252,13 +308,12 @@ def _render_v1_5_09_case(
             "html_renderer": bundle.html.renderer_version,
             "pdf_adapter": bundle.pdf.renderer_version,
             "pdf_backend": bundle.pdf.backend_version,
+            "research_completeness": "1.0.0",
         },
-        "acceptance": presentation,
+        "acceptance": {
+            "presentation": presentation,
+        },
     }
-    (output_dir / "manifest.json").write_text(
-        json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
     return FieldAcceptanceOutput(
         case_id=case_id,
         result=result,
@@ -278,44 +333,34 @@ def render_case(
     commit_sha: str | None = None,
     pdf_adapter=None,
 ) -> FieldAcceptanceOutput:
-    case = json.loads(case_path.read_text(encoding="utf-8"))
-    output = _render_v1_5_09_case(
+    case = _load_case(case_path)
+    output = _render_current_case(
         case_path=case_path,
         output_root=output_root,
         repository_root=repository_root,
         commit_sha=commit_sha,
         pdf_adapter=pdf_adapter,
     )
-
-    presentation = dict(output.manifest.get("acceptance") or {})
-    presentation.setdefault("status", "PASS")
-    research_depth = _evaluate_research_depth(output=output, case=case)
+    effective_case = _effective_case_for_not_applicable(case)
+    presentation = dict(output.manifest["acceptance"]["presentation"])
+    research_depth = _evaluate_research_depth(output=output, case=effective_case)
+    research_completeness = _evaluate_research_completeness(output=output, case=case)
     overall_status = (
         "PASS"
-        if presentation.get("status") == "PASS" and research_depth["status"] == "PASS"
+        if presentation.get("status") == "PASS"
+        and research_depth["status"] == "PASS"
+        and research_completeness["status"] == "PASS"
         else "FAIL"
     )
 
     manifest = dict(output.manifest)
-    versions = dict(manifest.get("versions") or {})
-    versions.update(
-        {
-            "presenter": output.view.presentation_version,
-            "composer": output.document.composition_version,
-            "markdown_renderer": output.bundle.markdown.renderer_version,
-            "html_renderer": output.bundle.html.renderer_version,
-            "pdf_adapter": output.bundle.pdf.renderer_version,
-        }
-    )
-    manifest["versions"] = versions
     manifest["acceptance"] = {
         "presentation": presentation,
         "research_depth": research_depth,
+        "research_completeness": research_completeness,
         "overall_status": overall_status,
     }
-
-    manifest_path = output.output_dir / "manifest.json"
-    manifest_path.write_text(
+    (output.output_dir / "manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2, default=str) + "\n",
         encoding="utf-8",
     )
@@ -345,7 +390,7 @@ def render_directory(
         for path in case_paths
     ]
     summary = {
-        "schema_version": "field-acceptance-summary@1.1.0",
+        "schema_version": "field-acceptance-summary@1.2.0",
         "overall_status": (
             "PASS"
             if all(item.manifest["acceptance"]["overall_status"] == "PASS" for item in outputs)
@@ -356,6 +401,7 @@ def render_directory(
                 "case_id": item.manifest["case_id"],
                 "presentation_status": item.manifest["acceptance"]["presentation"]["status"],
                 "research_depth_status": item.manifest["acceptance"]["research_depth"]["status"],
+                "research_completeness_status": item.manifest["acceptance"]["research_completeness"]["status"],
                 "overall_status": item.manifest["acceptance"]["overall_status"],
                 "output_dir": str(item.output_dir.relative_to(output_root)),
             }
@@ -374,13 +420,15 @@ def render_directory(
             if item["overall_status"] != "PASS"
         ]
         raise FieldAcceptanceError(
-            "research-depth field acceptance failed: " + ", ".join(failed)
+            "v1.5.10 field acceptance failed: " + ", ".join(failed)
         )
     return outputs
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Render v1.5.09 dual-status field acceptance")
+    parser = argparse.ArgumentParser(
+        description="Render v1.5.10 research-completeness field acceptance"
+    )
     parser.add_argument("--input-dir", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--repository-root", type=Path, default=Path.cwd())

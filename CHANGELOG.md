@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.5.10 — 2026-08-31
+
+### Added
+Canonical v1.5.10 professional research-completeness contracts for financial time series, operating observations, cash-flow quality, consensus distributions, peer comparables, sensitivity cases, monitoring rules, verification calendars, prior-run review, and methodology disclosure; `research_completeness@1.0.0`; `professional-research-view@1.5.0`; `research-report-composer@1.3.0`; and `professional-markdown-renderer@1.2.0`.
+
+### Changed
+Field acceptance now requires three independent downstream checks: `presentation`, `research_depth`, and `research_completeness`. Completeness uses explicit dimension statuses `PASS`, `INCOMPLETE`, and `NOT_APPLICABLE`; required missing dimensions fail closed, while a dimension may be excluded only through explicit N/A declaration. The one-way research/presentation boundary remains unchanged, and reporting layers only carry already-produced canonical completeness artifacts forward.
+
+### Fixed
+Prevents polished reports from passing when material research dimensions are absent; prevents missing values from being turned into fabricated zeros or invented sections; preserves PIT-safe consensus inputs; distinguishes simplified operating-cash-flow-minus-capex presentation from FCFF; preserves comparable peer metadata; and keeps unsupported Hospitality specialization explicit instead of manufacturing hotel KPIs or lease-adjusted economics.
+
+### Validation
+Release Gate adds `research_completeness_contracts_v1_5_10`, `research_completeness_runtime_v1_5_10`, `research_completeness_reporting_v1_5_10`, `research_completeness_field_v1_5_10`, `research_completeness_patterns_v1_5_10`, and `release_contract_v1_5_10` while retaining every historical gate. CI preserves v1.5.08 and v1.5.09 replay and adds generic Manufacturing v1.5.10 field acceptance with Markdown/HTML/PDF artifacts and a fail-closed completeness manifest.
+
+### Migration
+No database or Alembic migration is required. See `docs/migrations/v1.5.10.md`.
+
+### Compatibility
+`CORE_API_VERSION` remains `1.0`; `financial_fact_snapshot@1.0.0`, `professional-html-renderer@1.0.0`, and `professional-pdf-adapter@1.0.0` remain unchanged. No Hospitality Plugin, lease-adjusted valuation engine, second Completion Gate, second Decision Engine, automatic trading logic, or company-specific Core logic is introduced.
+
 ## 1.5.9 — 2026-08-31
 
 ### Added

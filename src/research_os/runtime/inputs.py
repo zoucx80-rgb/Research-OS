@@ -4,6 +4,17 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from research_os.completeness import (
+    CashFlowQualityInput,
+    ConsensusObservation,
+    FinancialTimeSeries,
+    MonitoringRule,
+    OperatingObservation,
+    PeerComparableObservation,
+    PriorRunReviewInput,
+    SensitivityCase,
+    VerificationCalendarEvent,
+)
 from research_os.events.validation import NextVerificationEvent
 from research_os.expectations.models import ConsensusVintage, ExpectationEvidence, ExpectationGapResult
 from research_os.preflight.models import RepositoryPreflightEvidence
@@ -37,6 +48,16 @@ class ResearchInputs(BaseModel):
 
     valuation_models: dict[str, ModelFitnessInputs] = Field(default_factory=dict)
     valuation_execution: ValuationExecution | None = None
+
+    operating_observations: tuple[OperatingObservation, ...] = Field(default_factory=tuple)
+    financial_time_series: tuple[FinancialTimeSeries, ...] = Field(default_factory=tuple)
+    cash_flow_quality_input: CashFlowQualityInput | None = None
+    consensus_observations: tuple[ConsensusObservation, ...] = Field(default_factory=tuple)
+    peer_comparables: tuple[PeerComparableObservation, ...] = Field(default_factory=tuple)
+    sensitivities: tuple[SensitivityCase, ...] = Field(default_factory=tuple)
+    monitoring_rules: tuple[MonitoringRule, ...] = Field(default_factory=tuple)
+    verification_calendar: tuple[VerificationCalendarEvent, ...] = Field(default_factory=tuple)
+    prior_run_review_items: tuple[PriorRunReviewInput, ...] = Field(default_factory=tuple)
 
     # Legacy string inputs remain backward compatible. When provenance-aware
     # inputs are absent, runtime explicitly treats these as analyst assumptions.

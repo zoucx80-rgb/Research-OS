@@ -315,6 +315,32 @@ A polished PDF is not sufficient. `overall_status=PASS` requires both `presentat
 
 Permanent field-depth regressions use Manufacturing, Distributor and lease-heavy Hospitality/no-plugin archetypes. These fixtures are acceptance data only. Production Core must contain no special cases for the validated companies.
 
+### v1.5.10 Professional Research Completeness
+
+For v1.5.10 the active fingerprints are **`professional-research-view@1.5.0`**, **`research-report-composer@1.3.0`**, and **`professional-markdown-renderer@1.2.0`**. The canonical completeness component is **`research_completeness@1.0.0`**. HTML/PDF remain **`professional-html-renderer@1.0.0`** and **`professional-pdf-adapter@1.0.0`**.
+
+The completeness layer makes professional coverage explicit without creating a second research engine. Canonical runtime artifacts may carry PIT-safe financial time series, operating evidence, a cash-flow-quality bridge, consensus distributions, peer comparables, sensitivity cases, monitoring rules and verification events, prior-run review, and methodology disclosure. Presenter, Composer, Markdown, HTML, PDF and field-acceptance layers only project these artifacts and **不重新计算** the underlying research state.
+
+Field research-completeness is evaluated across nine declared dimensions:
+
+- `time_series`;
+- `operating_evidence`;
+- `cash_flow`;
+- `consensus`;
+- `peers`;
+- `sensitivity`;
+- `monitoring_events`;
+- `prior_run_validation`;
+- `methodology`.
+
+Each dimension has exactly one field-acceptance status: `PASS`, `INCOMPLETE`, or `NOT_APPLICABLE`. A required dimension that is missing or under-supported is `INCOMPLETE` and fails closed. `NOT_APPLICABLE` is allowed only when explicitly declared for the case; it must not be inferred merely to make a report pass. An N/A dimension is omitted from required presentation/depth sections rather than filled with fabricated data.
+
+`research_completeness` is a downstream acceptance contract and must not rewrite the canonical `ResearchCompletionGate`, Decision State, Thesis State, Fundamental State, Expectation State, Valuation State, or any runtime artifact. v1.5.10 field `overall_status=PASS` requires `presentation=PASS`, `research_depth=PASS`, and `research_completeness=PASS` simultaneously.
+
+Cash-flow presentation must preserve the declared methodology. When operating cash flow and capex cash support `simplified_fcf = operating_cash_flow - capex_cash`, label it as simplified FCF and **not FCFF**; do not silently add tax, interest, working-capital, lease, or other adjustments that are not present in the canonical input. Consensus distributions remain PIT-constrained; peer comparisons retain scope/accounting/period/share-count/business-model interpretation metadata; monitoring thresholds retain their evidence or assumption provenance.
+
+This release still does not add a Hospitality Plugin. Missing RevPAR, ADR, OCC, same-store, mature-store, hotel-opening, unit-economics or lease-adjusted analysis remains a capability/evidence limitation unless a compatible future strategy explicitly supplies it.
+
 ## State Provenance — v1.5.03+
 
 `fundamental_state`, `valuation_state`, and `expectation_state` must retain their source semantics. If legacy string inputs are used, human-facing output must identify them as analyst assumptions rather than claiming they were derived by Research OS.
@@ -383,7 +409,9 @@ Severe canonical Funding Loop evidence may populate the existing material-risk d
 
 `ResearchCompletionGate` is the **single completion-policy authority**. Reporting must propagate the same `ResearchCompletionResult` (`final_status`, `blocking_modules`, `module_statuses`) and must not independently promote or demote completion.
 
-For v1.5.09 field delivery, `ResearchCompletionGate` and field `research_depth` are different contracts: completion remains the canonical machine research-completion authority, while `research_depth` is a downstream acceptance gate that verifies whether the professional report actually carries the required supported content. `research_depth` may reject a thin output but must not rewrite canonical completion or research states.
+For v1.5.09+ field delivery, `ResearchCompletionGate` and field `research_depth` are different contracts: completion remains the canonical machine research-completion authority, while `research_depth` is a downstream acceptance gate that verifies whether the professional report actually carries the required supported content. `research_depth` may reject a thin output but must not rewrite canonical completion or research states.
+
+For v1.5.10 field delivery, `research_completeness` is a third independent downstream acceptance contract. It evaluates declared professional coverage dimensions only. It may fail a field-delivery artifact or mark a dimension `NOT_APPLICABLE`, but it must never rewrite `ResearchCompletionGate` or any canonical research state. Required missing dimensions fail closed.
 
 ## Required Research Order
 
@@ -405,7 +433,7 @@ Do not begin with a preferred valuation template. Preserve causal order:
 14. `ResearchReportComposer` one-way editorial composition into `ResearchReportDocument`
 15. `ResearchReportMarkdownRenderer` deterministic Markdown projection without semantic recomputation
 16. downstream HTML/PDF styling or pagination, when used, without semantic recomputation
-17. v1.5.09 `presentation` and `research_depth` field acceptance, without feeding either status back into canonical research state
+17. v1.5.10 field acceptance: independent `presentation`, `research_depth`, and `research_completeness`, without feeding any acceptance status back into canonical research state
 
 Do not mechanically average incompatible valuation methods.
 
@@ -435,7 +463,7 @@ Where supported by evidence, include:
 - evidence that would weaken or break the thesis when canonically available;
 - concise evidence-traceability language in the main body and full raw provenance in the audit appendix;
 - a first-page decision snapshot that copies, rather than recalculates, canonical research state;
-- v1.5.09 field-delivery `presentation`, `research_depth`, and `overall_status` when the report is run through field acceptance.
+- v1.5.10 field-delivery `presentation`, `research_depth`, `research_completeness`, per-dimension `PASS` / `INCOMPLETE` / `NOT_APPLICABLE`, and `overall_status` when the report is run through field acceptance.
 
 A tool or browsing workflow ending successfully does not imply research completion. Canonical `FINAL_STATUS=COMPLETE` may exist only when `ResearchCompletionGate` returns COMPLETE. Otherwise status remains INCOMPLETE and blocking modules must be identified. Human-facing output translates those states without replacing their canonical meaning.
 

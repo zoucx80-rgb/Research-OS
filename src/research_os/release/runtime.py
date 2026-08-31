@@ -96,6 +96,12 @@ CHECKS: dict[str,str]={
     "dual_field_acceptance_v1_5_09":"tests/integration/presentation/test_field_acceptance_v1_5_09.py",
     "three_company_field_depth_v1_5_09":"tests/regression/research_patterns/test_v1_5_09_field_depth_patterns.py",
     "release_contract_v1_5_09":"tests/regression/architecture/test_release_contract_v1_5_09.py",
+    "research_completeness_contracts_v1_5_10":"tests/unit/completeness/test_models_and_services.py",
+    "research_completeness_runtime_v1_5_10":"tests/unit/runtime/test_research_completeness_v1_5_10.py",
+    "research_completeness_reporting_v1_5_10":"tests/unit/reporting/test_research_completeness_v1_5_10.py",
+    "research_completeness_field_v1_5_10":"tests/integration/presentation/test_field_acceptance_v1_5_10.py",
+    "research_completeness_patterns_v1_5_10":"tests/regression/research_patterns/test_v1_5_10_research_completeness.py",
+    "release_contract_v1_5_10":"tests/regression/architecture/test_release_contract_v1_5_10.py",
 }
 
 ROOT=Path(__file__).resolve().parents[3]

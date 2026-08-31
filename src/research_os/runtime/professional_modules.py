@@ -11,6 +11,7 @@ from research_os.runtime.builtin_modules import (
 from research_os.runtime.financial_snapshot import FinancialFactSnapshotModule
 from research_os.runtime.inputs import ResearchInputs
 from research_os.runtime.provenance import resolve_state_input
+from research_os.runtime.research_completeness import ResearchCompletenessModule
 
 
 class ProfessionalDriverThesisModule(DriverThesisModule):
@@ -130,6 +131,7 @@ def build_professional_builtin_modules(*, registry, inputs: ResearchInputs | Non
         if isinstance(module, PITLineageModule):
             result.append(module)
             result.append(FinancialFactSnapshotModule())
+            result.append(ResearchCompletenessModule(inputs=run_inputs))
         elif isinstance(module, DriverThesisModule):
             result.append(ProfessionalDriverThesisModule())
         elif isinstance(module, ExpectationModule):

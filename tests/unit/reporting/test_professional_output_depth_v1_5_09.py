@@ -8,13 +8,13 @@ from research_os.reporting import (
     CapitalFundingBlock,
     InvestmentDecisionSnapshot,
     ReportSection,
-    ResearchReportComposer,
     ResearchReportDocument,
-    ResearchReportMarkdownRenderer,
-    ResearchViewPresenter,
     SemanticValue,
     ValuationRationaleBlock,
 )
+from research_os.reporting.composer_v1_5_09 import ResearchReportComposer
+from research_os.reporting.markdown_renderer_v1_5_09 import ResearchReportMarkdownRenderer
+from research_os.reporting.research_view_v1_5_09 import ResearchViewPresenter
 from research_os.runtime import (
     BaselineFingerprint,
     CompanyRef,

@@ -86,5 +86,28 @@ jobs:
           path: build/field-acceptance-v1.5.09
           if-no-files-found: error
           retention-days: 14
+      - name: Run v1.5.10 professional research-completeness gates
+        run: >
+          pytest -q
+          tests/unit/completeness/test_models_and_services.py
+          tests/unit/runtime/test_research_completeness_v1_5_10.py
+          tests/unit/reporting/test_research_completeness_v1_5_10.py
+          tests/integration/presentation/test_field_acceptance_v1_5_10.py
+          tests/regression/research_patterns/test_v1_5_10_research_completeness.py
+          tests/regression/architecture/test_release_contract_v1_5_10.py
+      - name: Render generic manufacturing v1.5.10 field acceptance
+        run: >
+          python scripts/render_field_acceptance_v1_5_10.py
+          --input-dir tests/fixtures/field_acceptance/v1_5_10
+          --output-dir build/field-acceptance-v1.5.10
+          --repository-root .
+          --commit-sha "$GITHUB_SHA"
+      - name: Upload v1.5.10 field acceptance artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: v1.5.10-field-acceptance
+          path: build/field-acceptance-v1.5.10
+          if-no-files-found: error
+          retention-days: 14
       - run: pytest -q
       - run: python scripts/release_gate_v1_1.py

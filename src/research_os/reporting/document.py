@@ -106,6 +106,15 @@ class GapClassificationBlock(BaseModel):
     presentation_or_deferred: list[str] = Field(default_factory=list)
 
 
+class ResearchCompletenessBlock(BaseModel):
+    """Display-only payload copied from canonical v1.5.10 completeness artifacts."""
+
+    model_config = ConfigDict(frozen=True)
+    block_type: Literal["research_completeness"] = "research_completeness"
+    kind: str
+    payload: Any
+
+
 ReportBlock = (
     NarrativeBlock
     | FinancialOperatingBlock
@@ -121,6 +130,7 @@ ReportBlock = (
     | LimitationBlock
     | EvidenceNoteBlock
     | GapClassificationBlock
+    | ResearchCompletenessBlock
 )
 
 

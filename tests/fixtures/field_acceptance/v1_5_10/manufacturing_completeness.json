@@ -1,0 +1,177 @@
+{
+  "schema_version": "field-acceptance-case@1.0.0",
+  "case_id": "manufacturing_completeness",
+  "company": {
+    "company_id": "synthetic:manufacturing-completeness",
+    "security_id": "SYNTH-MFG",
+    "exchange": "SYNTHETIC",
+    "display_name": "制造业完整性样本"
+  },
+  "decision_ts": "2026-08-30T00:00:00Z",
+  "evidence_defaults": {
+    "evidence_type": "filing_fact",
+    "period_end": "2026-06-30",
+    "period": "2026H1",
+    "publish_ts": "2026-08-20T00:00:00Z",
+    "unit": "元",
+    "scope": "consolidated",
+    "version": "2026H1",
+    "source_document_id": "synthetic-manufacturing-completeness-2026H1",
+    "confidence_grade": "A",
+    "verification_status": "PRIMARY_VERIFIED",
+    "dataset_version": "field-acceptance-v1.5.10@1",
+    "parser_version": "synthetic-primary-source@1"
+  },
+  "evidence": [
+    {"evidence_id": "ev:synthetic:business-description", "source_table": "business_description", "value": "precision components manufacturing producer", "unit": null},
+    {"evidence_id": "ev:synthetic:revenue", "source_table": "revenue", "value": 4800000000.0},
+    {"evidence_id": "ev:synthetic:revenue-growth", "source_table": "revenue_growth", "value": 0.20, "unit": "ratio"},
+    {"evidence_id": "ev:synthetic:net-profit-parent", "source_table": "net_profit_parent", "value": 180000000.0},
+    {"evidence_id": "ev:synthetic:gross-profit", "source_table": "gross_profit", "value": 1200000000.0},
+    {"evidence_id": "ev:synthetic:gross-margin", "source_table": "gross_margin", "value": 0.25, "unit": "ratio"},
+    {"evidence_id": "ev:synthetic:margin-change", "source_table": "margin_change", "value": -0.01, "unit": "ratio"},
+    {"evidence_id": "ev:synthetic:ocf", "source_table": "ocf", "value": 260000000.0},
+    {"evidence_id": "ev:synthetic:operating-cash-flow", "source_table": "operating_cash_flow", "value": 260000000.0},
+    {"evidence_id": "ev:synthetic:capex-cash", "source_table": "capex_cash", "value": 90000000.0},
+    {"evidence_id": "ev:synthetic:ar-begin", "source_table": "ar_begin", "value": 800000000.0},
+    {"evidence_id": "ev:synthetic:ar-end", "source_table": "ar_end", "value": 1100000000.0},
+    {"evidence_id": "ev:synthetic:ar-growth", "source_table": "ar_growth", "value": 0.375, "unit": "ratio"},
+    {"evidence_id": "ev:synthetic:inventory-begin", "source_table": "inventory_begin", "value": 700000000.0},
+    {"evidence_id": "ev:synthetic:inventory-end", "source_table": "inventory_end", "value": 760000000.0},
+    {"evidence_id": "ev:synthetic:inventory-growth", "source_table": "inventory_growth", "value": 0.0857142857, "unit": "ratio"},
+    {"evidence_id": "ev:synthetic:assets-begin", "source_table": "assets_begin", "value": 7200000000.0},
+    {"evidence_id": "ev:synthetic:assets-end", "source_table": "assets_end", "value": 7600000000.0},
+    {"evidence_id": "ev:synthetic:equity-begin", "source_table": "equity_begin", "value": 3500000000.0},
+    {"evidence_id": "ev:synthetic:equity-end", "source_table": "equity_end", "value": 3650000000.0},
+    {"evidence_id": "ev:synthetic:period-type", "source_table": "period_type", "value": "H1", "unit": null},
+    {"evidence_id": "ev:synthetic:period-start", "source_table": "period_start", "value": "2026-01-01", "unit": null},
+    {"evidence_id": "ev:synthetic:period-end", "source_table": "period_end", "value": "2026-06-30", "unit": null},
+    {"evidence_id": "ev:synthetic:period-days", "source_table": "period_days", "value": 181, "unit": "days"},
+    {"evidence_id": "ev:synthetic:is-cumulative", "source_table": "is_cumulative", "value": true, "unit": null},
+
+    {"evidence_id": "ev:synthetic:revenue-2024", "source_table": "series_revenue_2024", "value": 7200000000.0},
+    {"evidence_id": "ev:synthetic:revenue-2025", "source_table": "series_revenue_2025", "value": 8300000000.0},
+    {"evidence_id": "ev:synthetic:revenue-2026h1", "source_table": "series_revenue_2026h1", "value": 4800000000.0},
+    {"evidence_id": "ev:synthetic:profit-2024", "source_table": "series_profit_2024", "value": 300000000.0},
+    {"evidence_id": "ev:synthetic:profit-2025", "source_table": "series_profit_2025", "value": 340000000.0},
+    {"evidence_id": "ev:synthetic:profit-2026h1", "source_table": "series_profit_2026h1", "value": 180000000.0},
+
+    {"evidence_id": "ev:synthetic:high-end-growth", "source_table": "operating_high_end_growth", "value": 0.42, "unit": "ratio"},
+    {"evidence_id": "ev:synthetic:high-end-margin", "source_table": "operating_high_end_margin", "value": 0.34, "unit": "ratio"},
+    {"evidence_id": "ev:synthetic:legacy-margin", "source_table": "operating_legacy_margin", "value": 0.17, "unit": "ratio"},
+    {"evidence_id": "ev:synthetic:backlog", "source_table": "operating_backlog", "value": 2900000000.0},
+    {"evidence_id": "ev:synthetic:utilization", "source_table": "operating_utilization", "value": 0.78, "unit": "ratio"},
+    {"evidence_id": "ev:synthetic:subsidiary-a-profit", "source_table": "subsidiary_a_profit", "value": 95000000.0},
+    {"evidence_id": "ev:synthetic:subsidiary-b-profit", "source_table": "subsidiary_b_profit", "value": -18000000.0},
+    {"evidence_id": "ev:synthetic:ar-aging", "source_table": "receivable_aging_over_180d", "value": 0.12, "unit": "ratio"},
+    {"evidence_id": "ev:synthetic:wc-contribution", "source_table": "cash_flow_working_capital_contribution", "value": -80000000.0},
+    {"evidence_id": "ev:synthetic:other-adjustments", "source_table": "cash_flow_other_adjustments", "value": 160000000.0},
+
+    {"evidence_id": "ev:synthetic:consensus-a", "source_table": "consensus_revenue_2027_a", "value": 5200000000.0},
+    {"evidence_id": "ev:synthetic:consensus-b", "source_table": "consensus_revenue_2027_b", "value": 5000000000.0},
+    {"evidence_id": "ev:synthetic:consensus-c", "source_table": "consensus_revenue_2027_c", "value": 5400000000.0},
+    {"evidence_id": "ev:synthetic:peer-a-margin", "source_table": "peer_a_high_end_margin", "value": 0.31, "unit": "ratio"},
+    {"evidence_id": "ev:synthetic:peer-b-margin", "source_table": "peer_b_high_end_margin", "value": 0.29, "unit": "ratio"},
+    {"evidence_id": "ev:synthetic:prior-actual", "source_table": "prior_run_actual_revenue_growth", "value": 0.20, "unit": "ratio"}
+  ],
+  "inputs": {
+    "fundamental_state_input": {"value": "UNCERTAIN", "source": "analyst_assumption", "method": "增长与现金、产品结构信号仍需持续验证"},
+    "valuation_state_input": {"value": "UNRELIABLE", "source": "analyst_assumption", "method": "本完整性样本不提供可执行价格估值"},
+    "expectation_state_input": {"value": "MIXED", "source": "analyst_assumption", "method": "一致预期存在分布但未形成单一方向判断"},
+
+    "operating_observations": [
+      {"category": "product_mix", "metric_id": "revenue_growth", "value": 0.42, "unit": "ratio", "period": "2026H1", "segment_label": "高端产品线", "evidence_ids": ["ev:synthetic:high-end-growth"]},
+      {"category": "product_mix", "metric_id": "gross_margin", "value": 0.34, "unit": "ratio", "period": "2026H1", "segment_label": "高端产品线", "evidence_ids": ["ev:synthetic:high-end-margin"]},
+      {"category": "product_mix", "metric_id": "gross_margin", "value": 0.17, "unit": "ratio", "period": "2026H1", "segment_label": "传统产品线", "evidence_ids": ["ev:synthetic:legacy-margin"]},
+      {"category": "orders", "metric_id": "在手订单", "value": 2900000000.0, "unit": "元", "period": "2026H1", "evidence_ids": ["ev:synthetic:backlog"]},
+      {"category": "capacity", "metric_id": "产能利用率", "value": 0.78, "unit": "ratio", "period": "2026H1", "evidence_ids": ["ev:synthetic:utilization"]},
+      {"category": "subsidiary", "metric_id": "净利润", "value": 95000000.0, "unit": "元", "period": "2026H1", "entity_label": "子公司A", "evidence_ids": ["ev:synthetic:subsidiary-a-profit"]},
+      {"category": "subsidiary", "metric_id": "净利润", "value": -18000000.0, "unit": "元", "period": "2026H1", "entity_label": "子公司B", "evidence_ids": ["ev:synthetic:subsidiary-b-profit"]},
+      {"category": "receivables", "metric_id": "180天以上应收占比", "value": 0.12, "unit": "ratio", "period": "2026H1", "evidence_ids": ["ev:synthetic:ar-aging"]}
+    ],
+
+    "financial_time_series": [
+      {
+        "metric_id": "营业收入",
+        "unit": "元",
+        "points": [
+          {"period": "2024A", "period_end": "2024-12-31T00:00:00Z", "value": 7200000000.0, "evidence_ids": ["ev:synthetic:revenue-2024"]},
+          {"period": "2025A", "period_end": "2025-12-31T00:00:00Z", "value": 8300000000.0, "evidence_ids": ["ev:synthetic:revenue-2025"]},
+          {"period": "2026H1", "period_end": "2026-06-30T00:00:00Z", "value": 4800000000.0, "evidence_ids": ["ev:synthetic:revenue-2026h1"]}
+        ]
+      },
+      {
+        "metric_id": "归母净利润",
+        "unit": "元",
+        "points": [
+          {"period": "2024A", "period_end": "2024-12-31T00:00:00Z", "value": 300000000.0, "evidence_ids": ["ev:synthetic:profit-2024"]},
+          {"period": "2025A", "period_end": "2025-12-31T00:00:00Z", "value": 340000000.0, "evidence_ids": ["ev:synthetic:profit-2025"]},
+          {"period": "2026H1", "period_end": "2026-06-30T00:00:00Z", "value": 180000000.0, "evidence_ids": ["ev:synthetic:profit-2026h1"]}
+        ]
+      }
+    ],
+
+    "cash_flow_quality_input": {
+      "net_profit": 180000000.0,
+      "operating_cash_flow": 260000000.0,
+      "working_capital_contribution": -80000000.0,
+      "other_adjustments": 160000000.0,
+      "capex_cash": 90000000.0,
+      "unit": "CNY",
+      "evidence_ids": ["ev:synthetic:net-profit-parent", "ev:synthetic:operating-cash-flow", "ev:synthetic:wc-contribution", "ev:synthetic:other-adjustments", "ev:synthetic:capex-cash"]
+    },
+
+    "consensus_observations": [
+      {"source_id": "source:A", "publish_ts": "2026-08-10T00:00:00Z", "forecast_period": "2027E", "metric": "营业收入", "value": 5200000000.0, "evidence_ids": ["ev:synthetic:consensus-a"]},
+      {"source_id": "source:B", "publish_ts": "2026-08-14T00:00:00Z", "forecast_period": "2027E", "metric": "营业收入", "value": 5000000000.0, "evidence_ids": ["ev:synthetic:consensus-b"]},
+      {"source_id": "source:C", "publish_ts": "2026-08-18T00:00:00Z", "forecast_period": "2027E", "metric": "营业收入", "value": 5400000000.0, "evidence_ids": ["ev:synthetic:consensus-c"]}
+    ],
+
+    "peer_comparables": [
+      {"peer_id": "synthetic:peer-a", "peer_role": "产品线可比", "product_or_segment": "高端产品线", "metric": "gross_margin", "value": 0.31, "period": "2026H1", "period_type": "H1", "scope": "segment", "accounting_definition": "segment gross profit / segment revenue", "frequency": "semiannual", "share_count_convention": "not_applicable", "business_model_interpretation": "precision manufacturing", "unit": "ratio", "evidence_ids": ["ev:synthetic:peer-a-margin"]},
+      {"peer_id": "synthetic:peer-b", "peer_role": "产品线可比", "product_or_segment": "高端产品线", "metric": "gross_margin", "value": 0.29, "period": "2026H1", "period_type": "H1", "scope": "segment", "accounting_definition": "segment gross profit / segment revenue", "frequency": "semiannual", "share_count_convention": "not_applicable", "business_model_interpretation": "precision manufacturing", "unit": "ratio", "evidence_ids": ["ev:synthetic:peer-b-margin"]}
+    ],
+
+    "sensitivities": [
+      {"case_id": "raw-material-up", "driver_id": "raw_material_price", "base_value": 1.0, "shock_label": "原材料价格 +10%", "shock_value": 0.10, "affected_metric": "gross_margin", "result": 0.232, "probability": 0.30, "formula_version": "analyst-sensitivity@1", "assumption_ids": ["assumption:synthetic:raw-material"]},
+      {"case_id": "utilization-down", "driver_id": "capacity_utilization", "base_value": 0.78, "shock_label": "产能利用率 -8pct", "shock_value": -0.08, "affected_metric": "operating_margin", "result_low": 0.08, "result_high": 0.10, "probability": 0.20, "formula_version": "analyst-sensitivity@1", "assumption_ids": ["assumption:synthetic:utilization"]}
+    ],
+
+    "monitoring_rules": [
+      {"rule_id": "ar-growth-watch", "metric": "ar_growth", "operator": "lte", "threshold": 0.25, "frequency": "quarterly", "rationale": "收入增长后的回款质量需要验证", "source_type": "analyst_assumption", "assumption_ids": ["assumption:synthetic:ar-threshold"]},
+      {"rule_id": "margin-watch", "metric": "gross_margin", "operator": "gte", "threshold": 0.24, "frequency": "quarterly", "rationale": "产品结构升级需要体现为综合毛利率稳定", "source_type": "analyst_assumption", "assumption_ids": ["assumption:synthetic:margin-threshold"]}
+    ],
+
+    "verification_calendar": [
+      {"event_id": "next-report", "label": "下一次定期报告", "event_type": "periodic_report", "due_ts": "2026-10-31T00:00:00Z", "status": "scheduled", "information_value": "验证回款、毛利与订单兑现", "evidence_ids": []},
+      {"event_id": "capacity-review", "label": "新增产线利用率验证", "event_type": "capacity_milestone", "status": "pending_date", "information_value": "验证新增资本开支能否形成有效产出", "evidence_ids": []}
+    ],
+
+    "prior_run_review_items": [
+      {"item_id": "prior-revenue-growth", "prior_statement": "下一期收入增速维持约20%", "metric": "revenue_growth", "period": "2026H1", "predicted_value": 0.19, "actual_value": 0.20, "tolerance": 0.03, "actual_evidence_ids": ["ev:synthetic:prior-actual"]}
+    ],
+
+    "valuation_models": {
+      "pe": {"data_quality": 0.8, "earnings_stability": 0.6, "cash_flow_visibility": 0.6, "capital_structure_fit": 0.8, "business_model_fit": 0.8, "forecast_stability": 0.5}
+    },
+    "next_verification_event": {"event_name": "下一次定期报告中的回款、毛利与订单验证", "event_time": "2026-10-31T00:00:00Z"}
+  },
+  "acceptance": {
+    "expected_business_model": "manufacturing",
+    "required_body_terms": ["财务趋势", "经营证据", "现金流质量", "同行与产品线比较", "一致预期分布", "敏感性与情景", "监控规则与验证日历", "上期判断回顾", "方法说明"],
+    "forbidden_body_terms": ["ev:synthetic:", "assumption:synthetic:"],
+    "forbidden_anywhere_terms": [],
+    "audit_only_terms": ["ev:synthetic:"],
+    "required_section_ids": ["financial-trends", "operating-evidence", "cash-flow-quality", "peer-comparison", "consensus-dispersion", "sensitivity-scenarios", "monitoring-calendar", "prior-run-review", "methodology-disclosure", "audit-appendix"]
+  },
+  "research_depth_acceptance": {
+    "required_financial_fact_keys": ["revenue", "revenue_growth", "net_profit_parent", "gross_profit", "gross_margin", "margin_change", "ocf", "capex_cash", "ar_end", "inventory_end"],
+    "required_document_section_ids": ["financial-operating-performance", "financial-trends", "operating-evidence", "cash-flow-quality", "peer-comparison", "consensus-dispersion", "sensitivity-scenarios", "monitoring-calendar", "prior-run-review", "methodology-disclosure"],
+    "required_body_terms": ["核心财务事实", "毛利率同比下降", "财务趋势", "经营证据", "现金流质量", "同行与产品线比较", "一致预期分布", "敏感性与情景", "监控规则与验证日历", "上期判断回顾", "方法说明"],
+    "forbidden_body_terms": ["ev:synthetic:", "assumption:synthetic:"]
+  },
+  "research_completeness_acceptance": {
+    "required_dimensions": ["time_series", "operating_evidence", "cash_flow", "consensus", "peers", "sensitivity", "monitoring_events", "prior_run_validation", "methodology"],
+    "not_applicable_dimensions": []
+  }
+}

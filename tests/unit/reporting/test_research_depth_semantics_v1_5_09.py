@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from research_os.domain.evidence import Evidence
-from research_os.reporting import ResearchViewPresenter
+from research_os.reporting.research_view_v1_5_09 import ResearchViewPresenter
 from research_os.runtime import (
     BaselineFingerprint,
     CompanyRef,

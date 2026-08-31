@@ -1,4 +1,4 @@
-from .composer_v1_5_09 import ResearchReportComposer
+from .composer_v1_5_10 import ResearchReportComposer
 from .document import (
     AuditAppendix,
     CapitalFundingBlock,
@@ -13,13 +13,14 @@ from .document import (
     MonitoringBlock,
     NarrativeBlock,
     ReportSection,
+    ResearchCompletenessBlock,
     ResearchReportDocument,
     StateProvenanceBlock,
     ThesisDebateBlock,
     ValuationBlock,
     ValuationRationaleBlock,
 )
-from .markdown_renderer_v1_5_09 import ResearchReportMarkdownRenderer
+from .markdown_renderer_v1_5_10 import ResearchReportMarkdownRenderer
 from .research_view import (
     HumanReadableCoverageGap,
     HumanReadableDriverEdge,
@@ -43,11 +44,8 @@ from .research_view_v1_5_05 import (
     HumanReadableMonitoring,
     HumanReadableValuationResult,
 )
-from .research_view_v1_5_09 import (
-    HumanReadableFinancialFact,
-    HumanReadableResearchView,
-    ResearchViewPresenter,
-)
+from .research_view_v1_5_09 import HumanReadableFinancialFact
+from .research_view_v1_5_10 import HumanReadableResearchView, ResearchViewPresenter
 from .semantics import (
     DecisionSummaryPresenter,
     HumanReadableDecisionSummary,
@@ -94,6 +92,7 @@ __all__ = [
     "MonitoringBlock",
     "NarrativeBlock",
     "ReportSection",
+    "ResearchCompletenessBlock",
     "ResearchReportComposer",
     "ResearchReportDocument",
     "ResearchReportMarkdownRenderer",
