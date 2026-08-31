@@ -41,8 +41,11 @@ from .research_view import (
 from .research_view_v1_5_05 import (
     HumanReadableExpectationGap,
     HumanReadableMonitoring,
-    HumanReadableResearchView,
     HumanReadableValuationResult,
+)
+from .research_view_v1_5_09 import (
+    HumanReadableFinancialFact,
+    HumanReadableResearchView,
     ResearchViewPresenter,
 )
 from .semantics import (
@@ -72,6 +75,7 @@ __all__ = [
     "HumanReadableExpectationGap",
     "HumanReadableExpectationQuality",
     "HumanReadableFalsifier",
+    "HumanReadableFinancialFact",
     "HumanReadableFundingLoop",
     "HumanReadableMetric",
     "HumanReadableMonitoring",
