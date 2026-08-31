@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.5.9 — 2026-08-31
+
+### Added
+Read-only `FinancialFactSnapshot` (`financial_fact_snapshot@1.0.0`) for material PIT-safe filed financial facts already present in the canonical run; `professional-research-view@1.4.0`; `research-report-composer@1.2.0`; `professional-markdown-renderer@1.1.0`; and dual-status v1.5.09 field acceptance with independent `presentation` and `research_depth` results.
+
+### Changed
+Professional output remains strictly one-way: `ResearchRunResult → HumanReadableResearchView → ResearchReportDocument → MarkdownPresentationArtifact → HtmlPresentationArtifact → PdfPresentationArtifact`. The deeper Presenter/Composer/Markdown layers carry canonical financial facts and relationships forward without recomputing research semantics. Batch field acceptance is fail-closed: `overall_status=PASS` only when both presentation and research depth pass.
+
+### Fixed
+Prevents a visually valid HTML/PDF artifact from being accepted when professional research content is materially thin; preserves Distributor debt, factoring/receivable-transfer, financing-cost and working-capital semantics as distinct concepts; preserves lease-heavy Hospitality capability gaps without fabricated hotel KPIs or lease-adjusted economics; and isolates historical v1.5.08 fingerprints from the current package version.
+
+### Validation
+Release Gate adds `financial_fact_snapshot_v1_5_09`, `research_depth_semantics_v1_5_09`, `professional_output_depth_v1_5_09`, `dual_field_acceptance_v1_5_09`, `three_company_field_depth_v1_5_09`, and `release_contract_v1_5_09` while retaining every historical gate. CI runs real Chromium/PDF rendering for permanent Manufacturing, Distributor, and lease-heavy Hospitality/no-plugin fixtures and uploads both v1.5.08 replay and v1.5.09 acceptance artifacts.
+
+### Migration
+No database or Alembic migration is required. See `docs/migrations/v1.5.09.md`.
+
+### Compatibility
+`CORE_API_VERSION` remains `1.0`; HTML/PDF fingerprints remain `professional-html-renderer@1.0.0` and `professional-pdf-adapter@1.0.0`. No Hospitality Plugin, lease-adjusted valuation engine, second Completion Gate, second Decision Engine, Forecast/Evidence Quality rewrite, automatic trading logic, or company-specific Core logic is introduced.
+
 ## 1.5.8 — 2026-08-30
 
 ### Added
@@ -138,7 +158,7 @@ Release Gate adds `business_model_status_truth`, `coverage_aware_thesis`, `fundi
 No database or Alembic migration is required. Existing machine integrations may continue consuming `ResearchRunResult` and `DecisionSummary`; complete human-facing research should use `ResearchViewPresenter`. See `docs/migrations/v1.5.02.md`.
 
 ### Compatibility
-`CORE_API_VERSION` remains `1.0`. `ResearchCompletionGate`, `ResearchRunResult`, snapshot architecture, legal decision-state set, Router v1.5.01 period semantics and historical snapshot behavior remain compatible. v1.5.02 does not add a Hospitality plugin or company-specific Core logic.
+`CORE_API_VERSION` remains `1.0`. `ResearchRunResult`, `ResearchCompletionGate`, snapshot architecture, legal decision-state set, Router v1.5.01 period semantics and historical snapshot behavior remain compatible. v1.5.02 does not add a Hospitality plugin or company-specific Core logic.
 
 ## 1.5.1 — 2026-08-30
 
