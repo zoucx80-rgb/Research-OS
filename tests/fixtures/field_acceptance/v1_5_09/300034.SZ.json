@@ -1,0 +1,81 @@
+{
+  "schema_version": "field-acceptance-case@1.0.0",
+  "case_id": "300034.SZ",
+  "company": {
+    "company_id": "钢研高纳（300034.SZ）",
+    "security_id": "300034.SZ",
+    "exchange": "SZSE",
+    "display_name": "钢研高纳"
+  },
+  "decision_ts": "2026-08-30T00:00:00Z",
+  "evidence_defaults": {
+    "evidence_type": "filing_fact",
+    "period_end": "2026-06-30",
+    "period": "2026H1",
+    "publish_ts": "2026-08-25T00:00:00Z",
+    "unit": "元",
+    "scope": "consolidated",
+    "version": "2026H1",
+    "source_document_id": "300034.SZ-2026H1-full-report",
+    "source_url": "https://disc.static.szse.cn/disc/disk03/finalpage/2026-08-25/fc6a5e7f-dd11-47f9-b460-c4e67a821115.PDF",
+    "confidence_grade": "A",
+    "verification_status": "PRIMARY_VERIFIED",
+    "dataset_version": "field-acceptance-v1.5.09@1",
+    "parser_version": "manual-primary-source@1"
+  },
+  "evidence": [
+    {"evidence_id": "ev:300034.SZ:business-description", "source_table": "business_description", "value": "高温合金材料制造与生产", "unit": null},
+    {"evidence_id": "ev:300034.SZ:revenue", "source_table": "revenue", "value": 2053495665.67},
+    {"evidence_id": "ev:300034.SZ:revenue-growth", "source_table": "revenue_growth", "value": 0.1304, "unit": "ratio"},
+    {"evidence_id": "ev:300034.SZ:net-profit-parent", "source_table": "net_profit_parent", "value": 102870971.88},
+    {"evidence_id": "ev:300034.SZ:assets-begin", "source_table": "assets_begin", "value": 7951135047.64},
+    {"evidence_id": "ev:300034.SZ:assets-end", "source_table": "assets_end", "value": 7891044594.20},
+    {"evidence_id": "ev:300034.SZ:equity-begin", "source_table": "equity_begin", "value": 3787194180.95},
+    {"evidence_id": "ev:300034.SZ:equity-end", "source_table": "equity_end", "value": 3861814964.90},
+    {"evidence_id": "ev:300034.SZ:cogs", "source_table": "cogs", "value": 1614230635.04},
+    {"evidence_id": "ev:300034.SZ:gross-profit", "source_table": "gross_profit", "value": 439265030.63, "evidence_type": "calculated_metric", "formula_version": "revenue-minus-cogs@1"},
+    {"evidence_id": "ev:300034.SZ:gross-margin", "source_table": "gross_margin", "value": 0.2139108633, "unit": "ratio", "evidence_type": "calculated_metric", "formula_version": "gross-profit-div-revenue@1"},
+    {"evidence_id": "ev:300034.SZ:margin-change", "source_table": "margin_change", "value": -0.0265554378, "unit": "ratio", "evidence_type": "calculated_metric", "formula_version": "h1-yoy-gross-margin-change@1"},
+    {"evidence_id": "ev:300034.SZ:ar-begin", "source_table": "ar_begin", "value": 1220914857.36},
+    {"evidence_id": "ev:300034.SZ:ar-end", "source_table": "ar_end", "value": 1956870704.88},
+    {"evidence_id": "ev:300034.SZ:ar-growth", "source_table": "ar_growth", "value": 0.6027904756, "unit": "ratio", "evidence_type": "calculated_metric", "formula_version": "end-vs-year-end-growth@1"},
+    {"evidence_id": "ev:300034.SZ:inventory-begin", "source_table": "inventory_begin", "value": 1830061290.26},
+    {"evidence_id": "ev:300034.SZ:inventory-end", "source_table": "inventory_end", "value": 1617781116.58},
+    {"evidence_id": "ev:300034.SZ:inventory-growth", "source_table": "inventory_growth", "value": -0.1159962100, "unit": "ratio", "evidence_type": "calculated_metric", "formula_version": "end-vs-year-end-growth@1"},
+    {"evidence_id": "ev:300034.SZ:ocf", "source_table": "ocf", "value": 318569605.91},
+    {"evidence_id": "ev:300034.SZ:operating-cash-flow", "source_table": "operating_cash_flow", "value": 318569605.91},
+    {"evidence_id": "ev:300034.SZ:capex-cash", "source_table": "capex_cash", "value": 48372915.59},
+    {"evidence_id": "ev:300034.SZ:ppe-begin", "source_table": "ppe_begin", "value": 1262993741.79},
+    {"evidence_id": "ev:300034.SZ:ppe-end", "source_table": "ppe_end", "value": 1259500519.92},
+    {"evidence_id": "ev:300034.SZ:period-type", "source_table": "period_type", "value": "H1", "unit": null},
+    {"evidence_id": "ev:300034.SZ:period-start", "source_table": "period_start", "value": "2026-01-01", "unit": null},
+    {"evidence_id": "ev:300034.SZ:period-end", "source_table": "period_end", "value": "2026-06-30", "unit": null},
+    {"evidence_id": "ev:300034.SZ:period-days", "source_table": "period_days", "value": 181, "unit": "days"},
+    {"evidence_id": "ev:300034.SZ:is-cumulative", "source_table": "is_cumulative", "value": true, "unit": null}
+  ],
+  "inputs": {
+    "fundamental_state_input": {"value": "UNCERTAIN", "source": "analyst_assumption", "method": "增长、毛利、应收与现金信号存在分化"},
+    "valuation_state_input": {"value": "UNRELIABLE", "source": "analyst_assumption", "method": "未提供价格与可执行估值所需证据"},
+    "expectation_state_input": {"value": "MIXED", "source": "analyst_assumption", "method": "未提供可审计的一致预期快照"},
+    "valuation_models": {
+      "pe": {"data_quality": 0.9, "earnings_stability": 0.6, "cash_flow_visibility": 0.7, "capital_structure_fit": 0.7, "business_model_fit": 0.8, "forecast_stability": 0.4},
+      "ev_ebitda": {"data_quality": 0.8, "earnings_stability": 0.6, "cash_flow_visibility": 0.6, "capital_structure_fit": 0.8, "business_model_fit": 0.8, "forecast_stability": 0.4},
+      "dcf": {"data_quality": 0.8, "earnings_stability": 0.5, "cash_flow_visibility": 0.5, "capital_structure_fit": 0.7, "business_model_fit": 0.7, "forecast_stability": 0.2}
+    },
+    "next_verification_event": {"event_name": "下一次定期报告中的回款、毛利与资本开支验证", "event_time": "2026-10-31T00:00:00Z"}
+  },
+  "acceptance": {
+    "expected_business_model": "manufacturing",
+    "required_body_terms": ["制造业", "归母利润现金转化率", "应收账款周转天数", "简化自由现金流", "资本开支强度", "估值方法与适用性", "研究缺口分类"],
+    "forbidden_body_terms": ["ev:300034.SZ", "industry:manufacturing"],
+    "forbidden_anywhere_terms": ["订单饱满", "产能利用率改善", "资格认证完成"],
+    "audit_only_terms": ["ev:300034.SZ"],
+    "required_section_ids": ["investment-decision-snapshot", "financial-operating", "capital-funding", "causal-bridge", "thesis-debate", "expectation-forecast", "valuation-methods", "monitoring", "research-gaps", "audit-appendix"]
+  },
+  "research_depth_acceptance": {
+    "required_financial_fact_keys": ["revenue", "revenue_growth", "net_profit_parent", "gross_profit", "gross_margin", "margin_change", "operating_cash_flow", "ocf", "capex_cash", "ar_begin", "ar_end", "ar_growth", "inventory_begin", "inventory_end", "inventory_growth", "ppe_begin", "ppe_end"],
+    "required_document_section_ids": ["financial-operating-performance", "capital-funding", "causal-bridge", "valuation-rationale", "research-gaps"],
+    "required_body_terms": ["核心财务事实", "20.53亿元", "1.03亿元", "4.39亿元", "毛利率同比下降", "-2.66个百分点", "19.57亿元", "60.28%", "16.18亿元", "-11.60%", "3.19亿元", "4837.29万元"],
+    "forbidden_body_terms": ["订单饱满", "产能利用率改善", "资格认证完成"]
+  }
+}
