@@ -9,8 +9,10 @@ from research_os.reporting import (
     AuditAppendix,
     InvestmentDecisionSnapshot,
     ResearchReportDocument,
-    ResearchReportMarkdownRenderer,
     SemanticValue,
+)
+from research_os.reporting.markdown_renderer import (
+    ResearchReportMarkdownRenderer as LegacyMarkdownRenderer,
 )
 
 
@@ -20,6 +22,10 @@ def _renderer_cls():
         "v1.5.08 requires MarkdownArtifactRenderer"
     )
     return presentation.MarkdownArtifactRenderer
+
+
+def _renderer():
+    return _renderer_cls()(renderer=LegacyMarkdownRenderer())
 
 
 def _semantic(code: str, label: str) -> SemanticValue:
@@ -52,21 +58,21 @@ def _document() -> ResearchReportDocument:
 
 
 def test_markdown_artifact_preserves_exact_existing_renderer_bytes_and_version():
-    renderer = _renderer_cls()()
+    renderer = _renderer()
     document = _document()
-    expected = ResearchReportMarkdownRenderer().render(document)
+    expected = LegacyMarkdownRenderer().render(document)
 
     artifact = renderer.render(document)
 
     assert artifact.content == expected
     assert artifact.renderer_version == "professional-markdown-renderer@1.0.0"
-    assert renderer.version == ResearchReportMarkdownRenderer.version
+    assert renderer.version == LegacyMarkdownRenderer.version
 
 
 def test_markdown_artifact_links_to_canonical_document_hash():
     document = _document()
 
-    artifact = _renderer_cls()().render(document)
+    artifact = _renderer().render(document)
 
     assert artifact.source_hash == canonical_document_hash(document)
 
@@ -74,4 +80,4 @@ def test_markdown_artifact_links_to_canonical_document_hash():
 @pytest.mark.parametrize("invalid", [{}, "markdown", object()])
 def test_markdown_artifact_renderer_rejects_non_document_inputs(invalid):
     with pytest.raises(TypeError, match="ResearchReportDocument"):
-        _renderer_cls()().render(invalid)
+        _renderer().render(invalid)
