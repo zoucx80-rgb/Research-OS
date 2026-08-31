@@ -4,8 +4,6 @@ from datetime import datetime, timezone
 
 from research_os.domain.evidence import Evidence
 from research_os.reporting import ResearchViewPresenter
-from research_os.reporting.semantics import DecisionSummaryPresenter
-from research_os.reporting.summary import DecisionSummary
 from research_os.runtime import (
     BaselineFingerprint,
     CompanyRef,
@@ -118,24 +116,21 @@ def test_chinese_view_localizes_builtin_professional_questions_by_semantic_id():
     assert any("订单" in item.question for item in view.question_assessments)
 
 
-def test_decision_summary_confidence_has_scale_and_unknown_machine_code_is_not_material_risk():
-    summary = DecisionSummary(
-        company_id="synthetic:depth-semantics",
-        business_model="manufacturing",
-        primary_thesis="经营信号存在分化。",
-        thesis_state="ACTIVE",
-        fundamental_state="UNCERTAIN",
-        expectation_state="MIXED",
-        valuation_state="UNRELIABLE",
-        evidence_confidence=1.0,
-        top_drivers=["收入"],
-        top_risks=["NEGATIVE_OCF", "UNMAPPED_INTERNAL_CODE"],
-        next_verification_event="下一次定期报告",
-        research_os_version="1.5.9",
+def test_current_view_formats_confidence_and_filters_unknown_machine_risk():
+    result = ResearchRuntimeFactory.default().run_context(
+        _manufacturing_context(),
+        ResearchInputs(),
     )
+    artifacts = dict(result.artifacts)
+    funding = artifacts["capital.funding_loop"]
+    artifacts["capital.funding_loop"] = funding.model_copy(
+        update={"reason_codes": ["NEGATIVE_OCF", "UNMAPPED_INTERNAL_CODE"]}
+    )
+    result = result.model_copy(update={"artifacts": artifacts})
 
-    presented = DecisionSummaryPresenter().present(summary)
+    view = ResearchViewPresenter().build(result)
 
-    assert presented.evidence_confidence == "1.00 / 1.00"
-    assert [item.code for item in presented.top_risks] == ["NEGATIVE_OCF"]
-    assert all("尚未配置中文说明" not in item.label for item in presented.top_risks)
+    assert view.decision_summary.evidence_confidence.endswith("/ 1.00")
+    assert all(item.code != "UNMAPPED_INTERNAL_CODE" for item in view.decision_summary.top_risks)
+    assert all("尚未配置中文说明" not in item.label for item in view.decision_summary.top_risks)
+    assert any("UNMAPPED_INTERNAL_CODE" in item for item in view.presentation_diagnostics)
