@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import subprocess
+import sys
 
 from research_os.presentation import HtmlPresentationArtifact, PdfPresentationArtifact
 
@@ -104,3 +106,15 @@ def test_layout_pass_cannot_mask_missing_research_depth(tmp_path: Path, monkeypa
     assert acceptance["research_depth"]["status"] == "FAIL"
     assert acceptance["overall_status"] == "FAIL"
     assert any("debt_end" in item for item in acceptance["research_depth"]["errors"])
+
+
+def test_v1_5_09_acceptance_script_supports_direct_cli_execution():
+    repository_root = Path(__file__).resolve().parents[3]
+    result = subprocess.run(
+        [sys.executable, "scripts/render_field_acceptance_v1_5_09.py", "--help"],
+        cwd=repository_root,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert "Render v1.5.09 dual-status field acceptance" in result.stdout
