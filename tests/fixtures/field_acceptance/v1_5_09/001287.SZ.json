@@ -1,0 +1,84 @@
+{
+  "schema_version": "field-acceptance-case@1.0.0",
+  "case_id": "001287.SZ",
+  "company": {
+    "company_id": "中电港（001287.SZ）",
+    "security_id": "001287.SZ",
+    "exchange": "SZSE",
+    "display_name": "中电港"
+  },
+  "decision_ts": "2026-08-30T00:00:00Z",
+  "evidence_defaults": {
+    "evidence_type": "filing_fact",
+    "period_end": "2026-06-30",
+    "period": "2026H1",
+    "publish_ts": "2026-08-21T00:00:00Z",
+    "unit": "元",
+    "scope": "consolidated",
+    "version": "2026H1",
+    "source_document_id": "001287.SZ-2026H1-full-report",
+    "source_url": "https://disc.static.szse.cn/disc/disk03/finalpage/2026-08-21/270b87be-ccb0-4fcb-9b3f-7d7e14ec5d0f.PDF",
+    "confidence_grade": "A",
+    "verification_status": "PRIMARY_VERIFIED",
+    "dataset_version": "field-acceptance-v1.5.09@1",
+    "parser_version": "manual-primary-source@1"
+  },
+  "evidence": [
+    {"evidence_id": "ev:001287.SZ:business-description", "source_table": "business_description", "value": "电子元器件授权分销与供应链服务", "unit": null},
+    {"evidence_id": "ev:001287.SZ:revenue", "source_table": "revenue", "value": 73555689191.12},
+    {"evidence_id": "ev:001287.SZ:revenue-growth", "source_table": "revenue_growth", "value": 1.6419, "unit": "ratio"},
+    {"evidence_id": "ev:001287.SZ:cogs", "source_table": "cogs", "value": 71462673207.77},
+    {"evidence_id": "ev:001287.SZ:gross-profit", "source_table": "gross_profit", "value": 2093015983.35, "evidence_type": "calculated_metric", "formula_version": "revenue-minus-cogs@1"},
+    {"evidence_id": "ev:001287.SZ:gross-margin", "source_table": "gross_margin", "value": 0.0284548484, "unit": "ratio", "evidence_type": "calculated_metric", "formula_version": "gross-profit-div-revenue@1"},
+    {"evidence_id": "ev:001287.SZ:avg-ar", "source_table": "avg_ar", "value": 18816791373.035, "evidence_type": "calculated_metric", "formula_version": "period-average@1"},
+    {"evidence_id": "ev:001287.SZ:avg-inventory", "source_table": "avg_inventory", "value": 15301361792.825, "evidence_type": "calculated_metric", "formula_version": "period-average@1"},
+    {"evidence_id": "ev:001287.SZ:avg-ap", "source_table": "avg_ap", "value": 9574409720.35, "evidence_type": "calculated_metric", "formula_version": "period-average@1"},
+    {"evidence_id": "ev:001287.SZ:ar", "source_table": "ar", "value": 26111816804.30},
+    {"evidence_id": "ev:001287.SZ:inventory", "source_table": "inventory", "value": 18347748776.00},
+    {"evidence_id": "ev:001287.SZ:ap", "source_table": "ap", "value": 11180463229.03},
+    {"evidence_id": "ev:001287.SZ:delta-nwc", "source_table": "delta_nwc", "value": 17470717811.52, "evidence_type": "calculated_metric", "formula_version": "end-vs-year-end-nwc-change@1"},
+    {"evidence_id": "ev:001287.SZ:delta-revenue", "source_table": "delta_revenue", "value": 45713994827.72, "evidence_type": "calculated_metric", "formula_version": "h1-yoy-revenue-change@1"},
+    {"evidence_id": "ev:001287.SZ:delta-debt", "source_table": "delta_debt", "value": 16391867949.02, "evidence_type": "calculated_metric", "formula_version": "end-vs-year-end-short-debt-change@1"},
+    {"evidence_id": "ev:001287.SZ:delta-nwc-basis", "source_table": "delta_nwc_comparison_basis", "value": "2026H1_end_vs_2025YE", "unit": null},
+    {"evidence_id": "ev:001287.SZ:delta-revenue-basis", "source_table": "delta_revenue_comparison_basis", "value": "2026H1_vs_2025H1", "unit": null},
+    {"evidence_id": "ev:001287.SZ:delta-debt-basis", "source_table": "delta_debt_comparison_basis", "value": "2026H1_end_vs_2025YE", "unit": null},
+    {"evidence_id": "ev:001287.SZ:short-debt", "source_table": "short_debt", "value": 30037614155.93},
+    {"evidence_id": "ev:001287.SZ:equity", "source_table": "equity", "value": 5814790000.00},
+    {"evidence_id": "ev:001287.SZ:ocf", "source_table": "ocf", "value": -17499985757.60},
+    {"evidence_id": "ev:001287.SZ:operating-cash-flow", "source_table": "operating_cash_flow", "value": -17499985757.60},
+    {"evidence_id": "ev:001287.SZ:net-profit", "source_table": "net_profit", "value": 513045883.85},
+    {"evidence_id": "ev:001287.SZ:interest-expense", "source_table": "interest_expense", "value": 414513575.41},
+    {"evidence_id": "ev:001287.SZ:financing-cost", "source_table": "financing_cost", "value": 616026086.82},
+    {"evidence_id": "ev:001287.SZ:derecognized-receivables", "source_table": "derecognized_receivables", "value": 6103633542.57},
+    {"evidence_id": "ev:001287.SZ:period-type", "source_table": "period_type", "value": "H1", "unit": null},
+    {"evidence_id": "ev:001287.SZ:period-start", "source_table": "period_start", "value": "2026-01-01", "unit": null},
+    {"evidence_id": "ev:001287.SZ:period-end", "source_table": "period_end", "value": "2026-06-30", "unit": null},
+    {"evidence_id": "ev:001287.SZ:period-days", "source_table": "period_days", "value": 181, "unit": "days"},
+    {"evidence_id": "ev:001287.SZ:is-cumulative", "source_table": "is_cumulative", "value": true, "unit": null}
+  ],
+  "inputs": {
+    "fundamental_state_input": {"value": "UNCERTAIN", "source": "analyst_assumption", "method": "增长与利润被营运资金和融资压力抵消"},
+    "valuation_state_input": {"value": "UNRELIABLE", "source": "analyst_assumption", "method": "未提供价格与可执行估值所需证据"},
+    "expectation_state_input": {"value": "MIXED", "source": "analyst_assumption", "method": "未提供可审计的一致预期快照"},
+    "valuation_models": {
+      "pe": {"data_quality": 0.9, "earnings_stability": 0.6, "cash_flow_visibility": 0.1, "capital_structure_fit": 0.1, "business_model_fit": 0.8, "forecast_stability": 0.3},
+      "pb": {"data_quality": 0.9, "earnings_stability": 0.6, "cash_flow_visibility": 0.3, "capital_structure_fit": 0.7, "business_model_fit": 0.8, "forecast_stability": 0.4},
+      "dcf": {"data_quality": 0.8, "earnings_stability": 0.5, "cash_flow_visibility": 0.1, "capital_structure_fit": 0.2, "business_model_fit": 0.5, "forecast_stability": 0.2}
+    },
+    "next_verification_event": {"event_name": "下一次定期报告中的营运资金、融资成本与现金流验证", "event_time": "2026-10-31T00:00:00Z"}
+  },
+  "acceptance": {
+    "expected_business_model": "distributor",
+    "required_body_terms": ["分销业务", "经营现金流为负", "债务融资驱动", "终止确认应收款", "保理或终止确认应收暴露较大", "融资成本", "估值方法与适用性", "比较期间基准"],
+    "forbidden_body_terms": ["ev:001287.SZ", "industry:distributor", "保理余额"],
+    "forbidden_anywhere_terms": ["新增外部股权融资：0", "市场值：0", "主估值区间下限：0"],
+    "audit_only_terms": ["ev:001287.SZ"],
+    "required_section_ids": ["investment-decision-snapshot", "financial-operating", "capital-funding", "causal-bridge", "thesis-debate", "expectation-forecast", "valuation-methods", "monitoring", "research-gaps", "audit-appendix"]
+  },
+  "research_depth_acceptance": {
+    "required_financial_fact_keys": ["revenue", "revenue_growth", "gross_profit", "gross_margin", "operating_cash_flow", "ocf"],
+    "required_document_section_ids": ["financial-operating-performance", "capital-funding", "causal-bridge", "valuation-rationale", "research-gaps"],
+    "required_body_terms": ["核心财务事实", "735.56亿元", "164.19%", "20.93亿元", "2.85%", "-175.00亿元", "163.92亿元", "61.04亿元", "经营现金流为负", "债务融资驱动", "终止确认应收款", "融资成本"],
+    "forbidden_body_terms": ["保理余额（债务）", "终止确认应收款（债务）"]
+  }
+}
