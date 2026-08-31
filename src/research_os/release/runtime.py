@@ -90,6 +90,12 @@ CHECKS: dict[str,str]={
     "presentation_dependency_boundary_v1_5_08":"tests/regression/architecture/test_presentation_dependency_boundary.py",
     "playwright_pdf_v1_5_08":"tests/integration/presentation/test_playwright_pdf_adapter.py",
     "field_acceptance_v1_5_08":"tests/integration/presentation/test_field_acceptance_runner.py",
+    "financial_fact_snapshot_v1_5_09":"tests/unit/runtime/test_financial_fact_snapshot_v1_5_09.py",
+    "research_depth_semantics_v1_5_09":"tests/unit/reporting/test_research_depth_semantics_v1_5_09.py",
+    "professional_output_depth_v1_5_09":"tests/unit/reporting/test_professional_output_depth_v1_5_09.py",
+    "dual_field_acceptance_v1_5_09":"tests/integration/presentation/test_field_acceptance_v1_5_09.py",
+    "three_company_field_depth_v1_5_09":"tests/regression/research_patterns/test_v1_5_09_field_depth_patterns.py",
+    "release_contract_v1_5_09":"tests/regression/architecture/test_release_contract_v1_5_09.py",
 }
 
 ROOT=Path(__file__).resolve().parents[3]
