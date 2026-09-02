@@ -1,76 +1,158 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, Any, Protocol, cast
+
+from research_os.contracts.metrics import MetricResult as ContractMetricResult
+from research_os.contracts.policies import PolicySnapshot
+from research_os.contracts.values import AccountingScope
 from research_os.kpi.distributor import DistributorPack
 from research_os.kpi.manufacturing import ManufacturingPack
 from research_os.plugins.models import ApplicabilityResult, PluginManifest
+from research_os.plugins.protocols import PluginServices, ResearchPlugin
+from research_os.period.models import ReportingPeriod
 from research_os.reporting.contributions import ReportContribution, ResearchQuestionSpec
-from research_os.runtime.context import ResearchContext
-from research_os.runtime.modules import ModuleResult, ModuleSpec
-from research_os.runtime.state import ResearchStateView
+from research_os.router.models import BusinessModelProfile
+from research_os.runtime.context import FactView, ResearchContext
+
+if TYPE_CHECKING:
+    from research_os.plugins.protocols import MetricDefinitionRegistry
 
 
-class _KpiPackAdapterModule:
-    def __init__(self, plugin_id: str, pack):
-        self._pack = pack
-        self.spec = ModuleSpec(
-            module_id=f"{plugin_id}:kpi",
-            module_version=pack.pack_version,
-            requires={"business_model.profile"},
-            provides={"kpi.metrics"},
-        )
+class _KpiFactView(Protocol):
+    reporting_period: ReportingPeriod
+    accounting_scope: AccountingScope
 
-    def run(self, context: ResearchContext, state: ResearchStateView) -> ModuleResult:
-        facts = context.facts.as_mapping()
-        metrics = self._pack.calculate(facts)
-        missing_required = sorted(
-            fact for fact in self._pack.required_facts if context.facts.get(fact) is None
+    def as_mapping(self) -> Mapping[str, Any]: ...
+
+
+class _BuiltinKpiProvider:
+    def __init__(self, *, provider_id: str, pack: Any):
+        self.provider_id = provider_id
+        self.provider_version = pack.pack_version.rsplit("@", 1)[-1]
+        self.__calculate = pack.calculate
+        self.__metric_dependencies = {
+            metric_id: tuple(fact_ids)
+            for metric_id, fact_ids in pack.metric_dependencies.items()
+        }
+
+    def metric_ids(self) -> frozenset[str]:
+        return frozenset(self.__metric_dependencies)
+
+    def calculate(
+        self,
+        facts: FactView,
+        definitions: MetricDefinitionRegistry,
+        policy: PolicySnapshot,
+    ) -> tuple[ContractMetricResult, ...]:
+        typed_facts = cast(_KpiFactView, facts)
+        period = typed_facts.reporting_period
+        scope = typed_facts.accounting_scope
+        values = dict(typed_facts.as_mapping())
+        values.update(
+            {
+                "period_type": period.period_type,
+                "period_start": period.period_start,
+                "period_end": period.period_end,
+                "period_days": period.period_days,
+                "is_cumulative": period.is_cumulative,
+            }
         )
-        evidence_ids = sorted({
-            evidence_id
-            for fact in self._pack.required_facts | self._pack.optional_facts
-            for evidence_id in context.facts.evidence_ids(fact)
-        })
-        return ModuleResult(
-            module_id=self.spec.module_id,
-            status="INSUFFICIENT_EVIDENCE" if missing_required else "PASS",
-            artifacts={"kpi.metrics": metrics},
-            evidence_ids=evidence_ids,
-            diagnostics=(
-                ["missing required facts: " + ", ".join(missing_required)]
-                if missing_required
-                else []
-            ),
-        )
+        calculated_metrics = self.__calculate(values)
+        results = []
+        for item in calculated_metrics:
+            definition = definitions.get(item.metric_id)
+            if definition is None:
+                raise ValueError(f"undefined metric: {item.metric_id}")
+            if (
+                definition.output_unit != "provider-defined"
+                and definition.output_unit != item.unit
+            ):
+                raise ValueError(
+                    f"metric {item.metric_id} unit conflicts with definition: "
+                    f"{item.unit!r} != {definition.output_unit!r}"
+                )
+            dependencies = self.__metric_dependencies[item.metric_id]
+            references = tuple(
+                sorted(
+                    {
+                        reference
+                        for fact_id in dependencies
+                        for reference in facts.evidence_refs(fact_id)
+                    },
+                    key=lambda reference: (
+                        reference.evidence_id,
+                        reference.revision,
+                        reference.content_fingerprint,
+                    ),
+                )
+            )
+            missing_lineage = item.status == "valid" and (
+                not references
+                or any(
+                    facts.get(fact_id) is not None
+                    and not facts.evidence_refs(fact_id)
+                    for fact_id in dependencies
+                )
+            )
+            results.append(
+                ContractMetricResult(
+                    metric_id=item.metric_id,
+                    value=None if missing_lineage else item.value,
+                    unit=item.unit,
+                    status="missing" if missing_lineage else item.status,
+                    formula_version=item.formula_version,
+                    reporting_period=period,
+                    accounting_scope=scope,
+                    evidence_refs=references,
+                    reason_code=(
+                        "MISSING_EVIDENCE" if missing_lineage else item.reason_code
+                    ),
+                    annualized=item.annualized,
+                )
+            )
+        return tuple(results)
 
 
 class ManufacturingIndustryPlugin:
     manifest = PluginManifest(
         plugin_id="industry:manufacturing",
         plugin_type="industry",
-        plugin_version="1.1.0",
-        api_version="1.0",
-        min_research_os_version="1.3.0",
-        provides={"kpi.metrics"},
-        requires={"business_model.profile"},
-        supported_business_models={"manufacturing", "manufacturer"},
+        plugin_version="2.0.0",
+        plugin_api_version="2.0",
+        core_api_specifier="~=2.0",
+        research_os_specifier=">=1.6,<2",
+        supported_business_models=frozenset({"manufacturing", "manufacturer"}),
+        service_capabilities=frozenset({"kpi.metrics", "report.contributions"}),
         priority=100,
         maturity="stable",
     )
 
-    def __init__(self):
-        self._pack = ManufacturingPack()
-
-    def applicability(self, context: ResearchContext) -> ApplicabilityResult:
-        return ApplicabilityResult(
-            applicable=True,
-            score=1.0,
-            rationale=["built-in manufacturing strategy"],
+    def __init__(self) -> None:
+        self._services = PluginServices(
+            kpi_provider=_BuiltinKpiProvider(
+                provider_id="industry:manufacturing:kpi", pack=ManufacturingPack()
+            ),
+            report_contributions=tuple(self._report_contributions()),
         )
 
-    def modules(self):
-        return [_KpiPackAdapterModule(self.manifest.plugin_id, self._pack)]
+    def applicability(
+        self,
+        context: ResearchContext,
+        business_model: BusinessModelProfile,
+    ) -> ApplicabilityResult:
+        applicable = business_model.primary_model in self.manifest.supported_business_models
+        return ApplicabilityResult(
+            applicable=applicable,
+            rule_score=1.0 if applicable else 0.0,
+            rationale=("built-in manufacturing strategy",),
+            evidence_refs=business_model.evidence_refs,
+        )
 
-    def report_contributions(self):
+    def services(self) -> PluginServices:
+        return self._services
+
+    def _report_contributions(self) -> list[ReportContribution]:
         return [
             ReportContribution(
                 contribution_id="manufacturing.operating_engine",
@@ -145,30 +227,41 @@ class DistributorIndustryPlugin:
     manifest = PluginManifest(
         plugin_id="industry:distributor",
         plugin_type="industry",
-        plugin_version="1.2.0",
-        api_version="1.0",
-        min_research_os_version="1.3.0",
-        provides={"kpi.metrics"},
-        requires={"business_model.profile"},
-        supported_business_models={"distributor"},
+        plugin_version="2.0.0",
+        plugin_api_version="2.0",
+        core_api_specifier="~=2.0",
+        research_os_specifier=">=1.6,<2",
+        supported_business_models=frozenset({"distributor"}),
+        service_capabilities=frozenset({"kpi.metrics", "report.contributions"}),
         priority=100,
         maturity="stable",
     )
 
-    def __init__(self):
-        self._pack = DistributorPack()
-
-    def applicability(self, context: ResearchContext) -> ApplicabilityResult:
-        return ApplicabilityResult(
-            applicable=True,
-            score=1.0,
-            rationale=["built-in distributor strategy"],
+    def __init__(self) -> None:
+        self._services = PluginServices(
+            kpi_provider=_BuiltinKpiProvider(
+                provider_id="industry:distributor:kpi", pack=DistributorPack()
+            ),
+            report_contributions=tuple(self._report_contributions()),
         )
 
-    def modules(self):
-        return [_KpiPackAdapterModule(self.manifest.plugin_id, self._pack)]
+    def applicability(
+        self,
+        context: ResearchContext,
+        business_model: BusinessModelProfile,
+    ) -> ApplicabilityResult:
+        applicable = business_model.primary_model in self.manifest.supported_business_models
+        return ApplicabilityResult(
+            applicable=applicable,
+            rule_score=1.0 if applicable else 0.0,
+            rationale=("built-in distributor strategy",),
+            evidence_refs=business_model.evidence_refs,
+        )
 
-    def report_contributions(self):
+    def services(self) -> PluginServices:
+        return self._services
+
+    def _report_contributions(self) -> list[ReportContribution]:
         return [
             ReportContribution(
                 contribution_id="distributor.working_capital",
@@ -247,5 +340,5 @@ class DistributorIndustryPlugin:
 
 
 class BuiltinPluginProvider:
-    def plugins(self):
-        return [DistributorIndustryPlugin(), ManufacturingIndustryPlugin()]
+    def plugins(self) -> tuple[ResearchPlugin, ...]:
+        return (DistributorIndustryPlugin(), ManufacturingIndustryPlugin())

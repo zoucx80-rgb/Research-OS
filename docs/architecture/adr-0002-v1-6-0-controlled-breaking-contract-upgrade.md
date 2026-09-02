@@ -60,7 +60,7 @@ Core API 2.0 使用 `ArtifactKey[T]`、`ArtifactDefinition[T]`、`ArtifactWrite[
 
 ### 6. Snapshot Schema 2.0 是持久化审计合同
 
-Snapshot 使用规范化 JSON、显式 Schema/Codec/Hash 版本和 SHA-256。Snapshot Repository 为 append-only；旧 1.x Snapshot 只读，不原地重写。
+Snapshot 使用规范化 JSON、显式 Schema/Codec/Hash 版本和 SHA-256。Snapshot Repository 为 append-only。当前包只读写 Schema 2.0，不提供旧 Snapshot Reader、转换器或原地重写；历史 Snapshot 只在对应历史提交的 isolated replay 中使用。
 
 ### 7. 历史重放绑定历史提交
 
@@ -109,7 +109,7 @@ HistoricalReplayExecutor 显式绑定目标 worktree 的解释器、依赖和 `s
 
 ### 为 1.x 和 2.x 长期维护两套正式 Runtime
 
-否决。只保留一次性输入迁移工具和旧 Snapshot 只读 Reader，不保留第二套长期研究执行路径。
+否决。不提供一次性输入迁移工具、旧 Snapshot Reader 或第二套研究执行路径；集成方重建 v2 输入和插件，历史复现只在历史提交中执行。
 
 ### 将系统拆成微服务
 
@@ -127,4 +127,4 @@ HistoricalReplayExecutor 显式绑定目标 worktree 的解释器、依赖和 `s
 4. 1.5.08–1.5.12 历史 replay 在对应历史提交中通过；
 5. 1.6.0 当前 acceptance 同时验证机器语义与 Markdown/HTML/PDF；
 6. 生产源码不得包含验收公司身份特例；
-7. Core API 1.0 和 Plugin API 1.0 对 1.6.0 明确失败并给出可操作迁移错误。
+7. 当前包只暴露 Core API 2.0、Plugin API 2.0、Snapshot 2.0 和新的 application command/result，且不含 v1 compatibility surface。

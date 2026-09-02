@@ -1,35 +1,61 @@
 from datetime import datetime, timezone
 
-from research_os.plugins.models import ApplicabilityResult, PluginManifest
+import pytest
+
+from research_os.application.command import ResearchRunOptions
+from research_os.contracts.evidence import EvidenceRef
+from research_os.contracts.values import AccountingScope
+from research_os.period.models import ReportingPeriod
+from research_os.plugins.models import (
+    ApplicabilityResult,
+    PluginManifest,
+    SupportAssessment,
+)
+from research_os.plugins.protocols import PluginServices
 from research_os.plugins.registry import PluginRegistry
-from research_os.plugins.resolver import StrategyResolver
+from research_os.plugins.resolver import StrategyResolutionError, StrategyResolver
 from research_os.router.models import BusinessModelProfile
 from research_os.runtime.context import (
     BaselineFingerprint,
     CompanyRef,
-    LegacyEvidenceView,
-    LegacyFactView,
+    EvidenceView,
+    FactView,
     ResearchContext,
-    ResearchOptions,
 )
 
 
-def _context(options=None):
+def _context():
+    decision_ts = datetime(2026, 8, 29, tzinfo=timezone.utc)
+    company_id = "synthetic:resolver"
     return ResearchContext(
         run_id="run:resolver",
-        company=CompanyRef(company_id="synthetic:resolver"),
-        decision_ts=datetime(2026, 8, 29, tzinfo=timezone.utc),
+        company=CompanyRef(company_id=company_id),
+        decision_ts=decision_ts,
         baseline=BaselineFingerprint(
             repository_full_name="zoucx80-rgb/Research-OS",
             repository_id=1350382205,
             branch="main",
             commit_sha="a" * 40,
-            research_os_version="1.3.0",
-            core_api_version="1.0",
+            research_os_version="1.6.0",
+            core_api_version="2.0",
         ),
-        evidence=LegacyEvidenceView([]),
-        facts=LegacyFactView(values={}, evidence_by_fact={}),
-        options=options or ResearchOptions(),
+        evidence=EvidenceView([], company_id=company_id, decision_ts=decision_ts),
+        facts=FactView(
+            company_id=company_id,
+            decision_ts=decision_ts,
+            values={},
+            evidence_refs_by_fact={},
+            reporting_period=ReportingPeriod(period_type="FY"),
+            accounting_scope=AccountingScope(),
+        ),
+    )
+
+
+def _reference(evidence_id="ev:model"):
+    return EvidenceRef(
+        evidence_id=evidence_id,
+        revision=1,
+        content_fingerprint="a" * 64,
     )
 
 
@@ -39,7 +65,7 @@ def _profile(primary="manufacturing", secondary=None):
         primary_model=primary,
         secondary_models=secondary or [],
         confidence=0.9,
-        evidence_ids=["ev:model"],
+        evidence_refs=(_reference(),),
         router_version="router@test",
     )
 
@@ -49,186 +75,261 @@ def _manifest(
     *,
     plugin_type="industry",
     models=None,
-    provides=None,
-    requires=None,
+    service_capabilities=frozenset({"kpi.metrics"}),
     priority=100,
 ):
     return PluginManifest(
         plugin_id=plugin_id,
         plugin_type=plugin_type,
         plugin_version="1.0.0",
-        api_version="1.0",
-        min_research_os_version="1.3.0",
-        provides=set(provides or {"kpi.synthetic"}),
-        requires=set(requires or {"business_model.profile"}),
-        supported_business_models=set(models or []),
+        plugin_api_version="2.0",
+        core_api_specifier="~=2.0",
+        research_os_specifier=">=1.6,<2",
+        supported_business_models=frozenset(models or []),
+        service_capabilities=service_capabilities,
         priority=priority,
         maturity="stable",
     )
 
 
+class _KpiProvider:
+    provider_id = "synthetic:kpi"
+    provider_version = "1.0.0"
+
+    def metric_ids(self):
+        return frozenset({"kpi.synthetic"})
+
+    def calculate(self, facts, definitions, policy):
+        return ()
+
+
 class IndustryPlugin:
-    def __init__(self, plugin_id, *, models, score=1.0, priority=100):
+    def __init__(
+        self,
+        plugin_id,
+        *,
+        models,
+        score=1.0,
+        priority=100,
+        evidence_refs=(),
+    ):
         self.manifest = _manifest(plugin_id, models=models, priority=priority)
         self.score = score
+        self.evidence_refs = evidence_refs
+        self.seen_profile = None
 
-    def applicability(self, context):
+    def applicability(self, context, business_model):
+        self.seen_profile = business_model
         return ApplicabilityResult(
             applicable=self.score > 0,
-            score=self.score,
-            rationale=[f"score={self.score}"],
+            rule_score=self.score,
+            rationale=(f"rule_score={self.score}",),
+            evidence_refs=self.evidence_refs,
         )
 
-    def modules(self):
-        return []
-
-    def report_contributions(self):
-        return []
+    def services(self):
+        return PluginServices(kpi_provider=_KpiProvider())
 
 
 class MethodologyPlugin:
-    def __init__(self, plugin_id, *, requires, supported=True):
+    def __init__(self, plugin_id, *, supported=True, evidence_refs=()):
         self.manifest = _manifest(
             plugin_id,
             plugin_type="methodology",
-            provides={f"methodology.{plugin_id}"},
-            requires=requires,
+            service_capabilities=frozenset(),
         )
         self.supported = supported
+        self.evidence_refs = evidence_refs
+        self.seen_capabilities = None
 
-    def supports(self, context, state):
-        return self.supported
+    def supports(self, context, available_capabilities):
+        self.seen_capabilities = available_capabilities
+        return SupportAssessment(
+            supported=self.supported,
+            evidence_refs=self.evidence_refs,
+        )
 
-    def modules(self):
-        return []
+    def services(self):
+        return PluginServices()
 
 
 def _registry(*plugins):
-    registry = PluginRegistry(core_api_version="1.0", research_os_version="1.3.0")
+    registry = PluginRegistry(core_api_version="2.0", research_os_version="1.6.0")
     for plugin in plugins:
         registry.register(plugin)
     return registry
 
 
-def test_resolver_automatically_selects_matching_industry_plugin():
+def _resolve(profile, context, registry, options=None):
+    return StrategyResolver().resolve(
+        profile,
+        context,
+        registry,
+        options or ResearchRunOptions(),
+    )
+
+
+def test_resolver_selects_matching_industry_plugin_using_profile_argument():
     plugin = IndustryPlugin("industry:manufacturing", models={"manufacturing"})
-    result = StrategyResolver().resolve(_profile(), _context(), _registry(plugin))
+
+    result = _resolve(_profile(), _context(), _registry(plugin))
 
     assert [p.plugin_id for p in result.industry_plugins] == ["industry:manufacturing"]
-    assert result.coverage_gaps == []
+    assert plugin.seen_profile is not None
+    assert plugin.seen_profile.primary_model == "manufacturing"
 
 
-def test_resolver_emits_coverage_gap_without_silent_core_fallback():
-    result = StrategyResolver().resolve(
+def test_resolver_rejects_invalid_applicability_result_as_public_error():
+    plugin = IndustryPlugin("industry:invalid", models={"manufacturing"})
+    plugin.applicability = lambda context, profile: {"applicable": True}
+
+    with pytest.raises(StrategyResolutionError) as captured:
+        _resolve(_profile(), _context(), _registry(plugin))
+
+    assert captured.value.context["operation"] == "applicability"
+    assert captured.value.context["run_id"] == "run:resolver"
+
+
+def test_resolver_emits_coverage_gap_without_a_compatible_industry_service():
+    result = _resolve(
         _profile(primary="consumer"),
         _context(),
         _registry(),
     )
 
-    assert result.industry_plugins == []
+    assert result.industry_plugins == ()
     assert result.coverage_gaps[0].gap_type == "industry_strategy"
     assert result.coverage_gaps[0].business_model == "consumer"
 
 
-def test_resolver_distinguishes_unsupported_taxonomy_from_missing_plugin():
-    profile = _profile(primary="unknown").model_copy(
-        update={
-            "classification_status": "unsupported_taxonomy",
-            "classification_reason": "no_supported_business_model_match",
-        }
-    )
+def test_resolver_prefers_higher_rule_score():
+    lower = IndustryPlugin("industry:lower", models={"manufacturing"}, score=0.6)
+    higher = IndustryPlugin("industry:higher", models={"manufacturing"}, score=0.9)
 
-    result = StrategyResolver().resolve(profile, _context(), _registry())
-
-    assert result.industry_plugins == []
-    assert len(result.coverage_gaps) == 1
-    gap = result.coverage_gaps[0]
-    assert gap.gap_type == "business_model_taxonomy"
-    assert gap.business_model == "unknown"
-    assert gap.reason_code == "UNSUPPORTED_BUSINESS_MODEL_TAXONOMY"
-    assert gap.fallback_available is True
-    assert "industry_strategy" in gap.affected_capabilities
-
-
-def test_resolver_distinguishes_insufficient_model_evidence():
-    profile = _profile(primary="unknown").model_copy(
-        update={
-            "classification_status": "insufficient_evidence",
-            "classification_reason": "no_usable_business_model_evidence",
-        }
-    )
-
-    result = StrategyResolver().resolve(profile, _context(), _registry())
-
-    assert result.industry_plugins == []
-    assert len(result.coverage_gaps) == 1
-    gap = result.coverage_gaps[0]
-    assert gap.gap_type == "business_model_evidence"
-    assert gap.reason_code == "INSUFFICIENT_BUSINESS_MODEL_EVIDENCE"
-    assert gap.fallback_available is True
-
-
-def test_recognized_hospitality_gets_industry_strategy_gap():
-    profile = _profile(primary="hospitality")
-
-    result = StrategyResolver().resolve(profile, _context(), _registry())
-
-    assert result.industry_plugins == []
-    assert len(result.coverage_gaps) == 1
-    gap = result.coverage_gaps[0]
-    assert gap.gap_type == "industry_strategy"
-    assert gap.business_model == "hospitality"
-    assert gap.reason_code == "NO_COMPATIBLE_INDUSTRY_PLUGIN"
-    assert gap.fallback_available is True
-
-
-def test_resolver_prefers_higher_applicability_score():
-    lower = IndustryPlugin("industry:lower", models={"manufacturing"}, score=0.6, priority=1)
-    higher = IndustryPlugin("industry:higher", models={"manufacturing"}, score=0.9, priority=999)
-
-    result = StrategyResolver().resolve(_profile(), _context(), _registry(lower, higher))
+    result = _resolve(_profile(), _context(), _registry(lower, higher))
 
     assert [p.plugin_id for p in result.industry_plugins] == ["industry:higher"]
 
 
-def test_resolver_breaks_equal_score_by_priority_then_plugin_id():
-    zeta = IndustryPlugin("industry:zeta", models={"manufacturing"}, score=0.8, priority=20)
-    beta = IndustryPlugin("industry:beta", models={"manufacturing"}, score=0.8, priority=10)
-    alpha = IndustryPlugin("industry:alpha", models={"manufacturing"}, score=0.8, priority=10)
-
-    result = StrategyResolver().resolve(_profile(), _context(), _registry(zeta, beta, alpha))
-
-    assert [p.plugin_id for p in result.industry_plugins] == ["industry:alpha"]
-
-
-def test_resolver_selects_only_supported_methodology_with_satisfied_requirements():
-    industry = IndustryPlugin("industry:manufacturing", models={"manufacturing"})
-    selected = MethodologyPlugin("methodology:selected", requires={"kpi.synthetic"}, supported=True)
-    unsupported = MethodologyPlugin("methodology:unsupported", requires={"kpi.synthetic"}, supported=False)
-    unsatisfied = MethodologyPlugin("methodology:unsatisfied", requires={"missing.capability"}, supported=True)
-
-    result = StrategyResolver().resolve(
-        _profile(),
-        _context(),
-        _registry(industry, selected, unsupported, unsatisfied),
+def test_resolver_retains_only_selected_applicability_lineage():
+    lower_ref = _reference("ev:lower")
+    selected_ref = _reference("ev:selected")
+    lower = IndustryPlugin(
+        "industry:lower",
+        models={"manufacturing"},
+        score=0.6,
+        evidence_refs=(lower_ref,),
+    )
+    selected = IndustryPlugin(
+        "industry:selected",
+        models={"manufacturing"},
+        score=0.9,
+        evidence_refs=(selected_ref,),
     )
 
-    assert [p.plugin_id for p in result.methodology_plugins] == ["methodology:selected"]
+    result = _resolve(_profile(), _context(), _registry(lower, selected))
+
+    assert result.evidence_refs == (_reference(), selected_ref)
+
+
+def test_resolver_passes_service_capabilities_to_methodology_plugin():
+    industry = IndustryPlugin("industry:manufacturing", models={"manufacturing"})
+    methodology = MethodologyPlugin("methodology:uses-kpi")
+
+    result = _resolve(
+        _profile(), _context(), _registry(industry, methodology)
+    )
+
+    assert [p.plugin_id for p in result.methodology_plugins] == ["methodology:uses-kpi"]
+    assert methodology.seen_capabilities == frozenset(
+        {"business_model.profile", "kpi.metrics"}
+    )
+
+
+def test_resolver_retains_selected_methodology_support_lineage():
+    industry = IndustryPlugin("industry:manufacturing", models={"manufacturing"})
+    support_ref = _reference("ev:method-support")
+    methodology = MethodologyPlugin(
+        "methodology:valuation-forecast",
+        evidence_refs=(support_ref,),
+    )
+
+    result = _resolve(
+        _profile(),
+        _context(),
+        _registry(industry, methodology),
+    )
+
+    assert result.methodology_plugins[0].evidence_refs == (support_ref,)
+    assert result.evidence_refs == (support_ref, _reference())
 
 
 def test_explicit_industry_override_records_rationale():
     automatic = IndustryPlugin("industry:auto", models={"manufacturing"}, score=0.9)
     override = IndustryPlugin("industry:override", models={"manufacturing"}, score=0.1)
-    context = _context(
-        ResearchOptions(
-            industry_plugin_override="industry:override",
-            override_rationale="analyst selected alternate strategy",
-        )
+    context = _context()
+    options = ResearchRunOptions(
+        industry_plugin_override="industry:override",
+        override_rationale="analyst selected alternate strategy",
     )
 
-    result = StrategyResolver().resolve(
-        _profile(), context, _registry(automatic, override)
+    result = _resolve(
+        _profile(), context, _registry(automatic, override), options
     )
 
     assert [p.plugin_id for p in result.industry_plugins] == ["industry:override"]
     assert any("analyst selected alternate strategy" in item for item in result.rationale)
+
+
+def test_missing_industry_override_reports_plugin_and_run_context():
+    options = ResearchRunOptions(
+        industry_plugin_override="industry:missing",
+        override_rationale="analyst override",
+    )
+
+    with pytest.raises(StrategyResolutionError) as captured:
+        _resolve(_profile(), _context(), _registry(), options)
+
+    assert captured.value.context == {
+        "plugin_id": "industry:missing",
+        "run_id": "run:resolver",
+    }
+
+
+def test_resolver_wraps_industry_applicability_exception() -> None:
+    plugin = IndustryPlugin("industry:broken", models={"manufacturing"})
+
+    def explode(context, business_model):
+        raise RuntimeError("applicability exploded")
+
+    plugin.applicability = explode
+
+    with pytest.raises(StrategyResolutionError) as captured:
+        _resolve(_profile(), _context(), _registry(plugin))
+
+    assert isinstance(captured.value.__cause__, RuntimeError)
+    assert captured.value.context == {
+        "plugin_id": "industry:broken",
+        "run_id": "run:resolver",
+        "operation": "applicability",
+    }
+
+
+def test_resolver_wraps_methodology_support_exception() -> None:
+    industry = IndustryPlugin("industry:ok", models={"manufacturing"})
+    methodology = MethodologyPlugin("methodology:broken")
+
+    def explode(context, available_capabilities):
+        raise RuntimeError("support exploded")
+
+    methodology.supports = explode
+
+    with pytest.raises(StrategyResolutionError) as captured:
+        _resolve(_profile(), _context(), _registry(industry, methodology))
+
+    assert isinstance(captured.value.__cause__, RuntimeError)
+    assert captured.value.context == {
+        "plugin_id": "methodology:broken",
+        "run_id": "run:resolver",
+        "operation": "supports",
+    }

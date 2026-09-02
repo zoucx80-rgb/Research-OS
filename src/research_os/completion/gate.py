@@ -1,87 +1,48 @@
-from .models import ResearchCompletionInput, ResearchCompletionResult
+from __future__ import annotations
+
+from collections.abc import Iterable
+
+from research_os.completion.models import ExecutionCompletionResult
+from research_os.contracts.errors import CompletionEvaluationError
+from research_os.runtime.module_plan import ModulePlan
+from research_os.runtime.modules import ModuleResult
 
 
-REQUIRED_MODULES = (
-    "Repository Preflight",
-    "PIT Validation",
-    "Evidence Lineage",
-    "Financial Sanity",
-    "Business Model Router",
-    "KPI Pack",
-    "Capital Efficiency",
-    "Funding Loop",
-    "Driver Graph",
-    "Thesis",
-    "Anti-Thesis",
-    "Falsifiers",
-    "Expectation Evidence",
-    "Forecast Discipline",
-    "Valuation Fitness",
-    "Valuation Execution",
-    "Decision State",
-    "Next Verification Event",
-    "Temporal Consistency",
-)
+class ExecutionCompletionEvaluator:
+    """Evaluate execution completion from compiled plans and module outcomes."""
 
+    def evaluate(
+        self,
+        plans: Iterable[ModulePlan],
+        module_results: Iterable[ModuleResult],
+    ) -> ExecutionCompletionResult:
+        modules = {
+            module.spec.module_id: module.spec
+            for plan in plans
+            for module in plan.modules
+        }
+        statuses = {}
+        for result in module_results:
+            if result.module_id not in modules:
+                raise CompletionEvaluationError(
+                    f"module result is not part of the compiled plans: {result.module_id}"
+                )
+            if result.module_id in statuses:
+                raise CompletionEvaluationError(
+                    f"duplicate module result: {result.module_id}"
+                )
+            statuses[result.module_id] = result.status
 
-_CAPABILITY_ALIASES = {
-    "fundamental": "FUNDAMENTAL",
-    "fundamentals": "FUNDAMENTAL",
-    "expectation": "EXPECTATION",
-    "expectation_gap": "EXPECTATION",
-    "beat": "EXPECTATION",
-    "miss": "EXPECTATION",
-    "priced_in": "EXPECTATION",
-    "priced in": "EXPECTATION",
-    "forecast": "FORECAST",
-    "valuation": "VALUATION",
-    "target_price": "VALUATION",
-    "target price": "VALUATION",
-    "fair_value": "VALUATION",
-    "fair value": "VALUATION",
-    "decision": "DECISION",
-    "decision_state": "DECISION",
-    "decision state": "DECISION",
-}
-_VALID_CAPABILITIES = {"FUNDAMENTAL", "EXPECTATION", "FORECAST", "VALUATION", "DECISION"}
-
-
-def normalize_claim_capabilities(values: list[str]) -> set[str]:
-    capabilities: set[str] = set()
-    for value in values:
-        text = str(value).strip()
-        upper = text.upper()
-        if upper in _VALID_CAPABILITIES:
-            capabilities.add(upper)
-            continue
-        alias = _CAPABILITY_ALIASES.get(text.lower())
-        if alias is not None:
-            capabilities.add(alias)
-    return capabilities
-
-
-class ResearchCompletionGate:
-    def evaluate(self, item: ResearchCompletionInput) -> ResearchCompletionResult:
-        blocking: list[str] = []
-        capabilities = normalize_claim_capabilities(item.claimed_conclusions)
-        for module in REQUIRED_MODULES:
-            status = item.module_statuses.get(module)
-            if status is None or status == "FAIL":
-                blocking.append(module)
-                continue
-            if status == "INSUFFICIENT_EVIDENCE":
-                if module == "Expectation Evidence":
-                    if "EXPECTATION" in capabilities:
-                        blocking.append(module)
-                elif module == "Valuation Execution":
-                    if "VALUATION" in capabilities:
-                        blocking.append(module)
-                else:
-                    blocking.append(module)
-            elif status == "NOT_APPLICABLE" and module not in {"Forecast Discipline"}:
-                blocking.append(module)
-        return ResearchCompletionResult(
+        blocking = tuple(
+            sorted(
+                module_id
+                for module_id, spec in modules.items()
+                if spec.required_for_completion
+                and statuses.get(module_id) not in {"PASS", "NOT_APPLICABLE"}
+            )
+        )
+        return ExecutionCompletionResult(
             final_status="INCOMPLETE" if blocking else "COMPLETE",
-            blocking_modules=blocking,
-            module_statuses=dict(item.module_statuses),
+            blocking_capabilities=blocking,
+            module_statuses=statuses,
         )

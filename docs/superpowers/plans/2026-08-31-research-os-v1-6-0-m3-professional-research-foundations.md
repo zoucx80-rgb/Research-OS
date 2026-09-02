@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- 复用 1.5.12 Semantic Claims、Semantic Preservation 和 Valuation Reconciliation。
+- 以当前 v2 Semantic Claims、Semantic Preservation 和 Valuation Reconciliation 为合同；`behavior_baseline_sha` 仅为缺陷理解和历史 replay 参考证据。
 - 不在 Renderer 中补专业逻辑。
 - 所有结论阈值来自版本化 Policy。
 - 不将启发式 Rule Score 伪装为概率。
@@ -33,7 +33,7 @@
 - [ ] 写 RED：Money 币种/尺度、Ratio 表示、Quantity 单位和 UTC 时间规则。
 - [ ] 写 RED：Accounting Standard、Consolidation、Segment、Geography、Continuing Operations 可区分。
 - [ ] 写 RED：不同币种或 Scope 不得直接相加/比较。
-- [ ] 实现向后读取裸 scalar 的 LegacyValue Adapter；当前新 Artifact 使用类型化值。
+- [ ] 将所有当前财务 Artifact 替换为类型化值；不实现裸 scalar LegacyValue Adapter 或双读取表面。
 
 ### Task 2：MetricDefinitionRegistry
 
@@ -48,12 +48,12 @@
 - Create: `tests/unit/metrics/test_registry.py`
 - Create: `tests/integration/metrics/test_existing_kpi_migration.py`
 
-- [ ] 复用 M1 Task 0 已冻结的制造/分销 KPI characterization，不重新生成不同基线。
+- [ ] 使用 M1 Task 0 的参考证据理解历史缺陷；当前 KPI contract tests 只验证 v2 公式、类型、missingness 和 lineage。
 - [ ] 写 RED：同 ID 不同公式/单位/Kind/Scope 定义冲突。
 - [ ] 写 RED：期间敏感 Metric 缺 ReportingPeriod 时返回 reason code。
 - [ ] 注册 safe ratio、average、turnover、ROE/ROIC、working-capital 等通用定义。
 - [ ] KPI Pack 改为选择 definition + 提供事实，不复制公共公式。
-- [ ] 迁移后 v1.5.12 数值、missingness 和 lineage 保持。
+- [ ] 当前 v2 MetricResult 保留类型化 missingness 和 revision-bound lineage；不以 v1.5.12 API 或输出等同性作为兼容门禁。
 
 ### Task 3：PolicyRegistry
 
@@ -128,7 +128,7 @@
 - Create: `tests/unit/valuation/test_method_fitness_v2.py`
 - Create: `tests/integration/runtime/test_valuation_pipeline_v2.py`
 
-- [ ] 为 1.5.12 reconciliation 建立不可回归测试。
+- [ ] 为 v2 reconciliation 的统一估值状态和经济理由建立不可回归测试；历史结果仅由历史 replay 验证。
 - [ ] 写 RED：`SUPPORTED`/`CONDITIONALLY_SUPPORTED`/`SANITY_CHECK_ONLY`/`CONTRAINDICATED`/`INSUFFICIENT_EVIDENCE` 状态。
 - [ ] 写 RED：每个状态必须有经济 reason codes；版本号不得进入 analytical rationale。
 - [ ] 写 RED：不同 basis/role 继续由 Reconciler 返回 disagreement/not comparable。
@@ -183,7 +183,7 @@
 ### Task 11：M3 出口门禁
 
 - [ ] 现有 Manufacturing/Distributor golden 数值无意外漂移。
-- [ ] v1.5.12 语义保持和估值对账测试全绿。
+- [ ] v2 语义保持和估值对账测试全绿；历史 1.5.12 行为由 isolated replay 验证。
 - [ ] 新值对象/Metric/Policy/Router/Thesis/Decision/Valuation/Forecast/Peer/Postmortem 测试全绿。
 - [ ] 运行 Hypothesis 属性测试。
 - [ ] 确认任何缺失、不可比或无 Benchmark 场景都不产生伪专业结论。

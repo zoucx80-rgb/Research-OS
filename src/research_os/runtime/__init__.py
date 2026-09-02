@@ -1,34 +1,43 @@
-"""Stable Research OS runtime contracts."""
+"""Core API 2.0 runtime contracts."""
 
 from .context import (
     BaselineFingerprint,
     CompanyRef,
+    EvidenceSource,
     EvidenceView,
     FactView,
     KnowledgeView,
-    LegacyEvidenceView,
-    LegacyFactView,
     ResearchContext,
-    ResearchOptions,
 )
-from .factory import PluginProvider, ResearchRuntime, ResearchRuntimeFactory
-from .inputs import ResearchInputs
-from .result import ComponentFingerprint, ResearchRunResult
+from .engine import (
+    FinalizedExecution,
+    ModuleExecutionError,
+    PipelineDefinitionError,
+    ResearchEngine,
+    TypedExecutionResult,
+)
+from .module_plan import ModulePlan, ModulePlanCompilationError, ModulePlanCompiler
+from .modules import ModuleResult, ModuleSpec, ResearchModule
+from .state import ResearchStateView
 
 __all__ = [
     "BaselineFingerprint",
     "CompanyRef",
-    "ComponentFingerprint",
+    "EvidenceSource",
     "EvidenceView",
     "FactView",
+    "FinalizedExecution",
     "KnowledgeView",
-    "LegacyEvidenceView",
-    "LegacyFactView",
-    "PluginProvider",
+    "ModuleExecutionError",
+    "ModulePlan",
+    "ModulePlanCompilationError",
+    "ModulePlanCompiler",
+    "ModuleResult",
+    "ModuleSpec",
+    "PipelineDefinitionError",
     "ResearchContext",
-    "ResearchInputs",
-    "ResearchOptions",
-    "ResearchRunResult",
-    "ResearchRuntime",
-    "ResearchRuntimeFactory",
+    "ResearchEngine",
+    "ResearchModule",
+    "TypedExecutionResult",
+    "ResearchStateView",
 ]

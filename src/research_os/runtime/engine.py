@@ -1,107 +1,222 @@
 from __future__ import annotations
 
-import heapq
-from collections import defaultdict
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, cast
 
+from research_os.contracts.artifacts import (
+    ArtifactCatalog,
+    ArtifactSnapshot,
+    ArtifactStore,
+    ArtifactWrite,
+)
+from research_os.contracts.errors import ArtifactContractError, ResearchExecutionError
 from research_os.runtime.context import ResearchContext
+from research_os.runtime.module_plan import ModulePlan
 from research_os.runtime.modules import ModuleResult, ResearchModule
-from research_os.runtime.state import ResearchState
+from research_os.runtime.state import ResearchStateView
+
+if TYPE_CHECKING:
+    from research_os.completion.models import ExecutionCompletionResult
+    from research_os.readiness.models import ResearchReadinessAssessment
 
 
-class PipelineDefinitionError(ValueError):
-    pass
+class PipelineDefinitionError(ResearchExecutionError):
+    code = "PIPELINE_DEFINITION_ERROR"
 
 
-class ModuleExecutionError(RuntimeError):
-    pass
+class ModuleExecutionError(ResearchExecutionError):
+    code = "MODULE_EXECUTION_FAILED"
+
+
+@dataclass(frozen=True, slots=True)
+class TypedExecutionResult:
+    snapshot: ArtifactSnapshot
+    module_results: tuple[ModuleResult, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class FinalizedExecution:
+    execution: TypedExecutionResult
+    completion: ExecutionCompletionResult
+    readiness: ResearchReadinessAssessment
 
 
 class ResearchEngine:
-    def __init__(self, modules: list[ResearchModule]):
-        self._modules = tuple(modules)
+    def finalize(
+        self,
+        *,
+        plans: tuple[ModulePlan, ...],
+        execution: TypedExecutionResult,
+        catalog: ArtifactCatalog,
+        readiness_evaluator: object,
+    ) -> FinalizedExecution:
+        """Run the sole post-module semantic sequence inside the Engine boundary."""
+        from research_os.completion import ExecutionCompletionEvaluator
+        from research_os.readiness import ResearchReadinessEvaluator
 
-    def _ordered_modules(self) -> list[ResearchModule]:
-        modules_by_id: dict[str, ResearchModule] = {}
-        providers: dict[str, str] = {}
+        if not isinstance(readiness_evaluator, ResearchReadinessEvaluator):
+            raise TypeError("readiness_evaluator must be ResearchReadinessEvaluator")
+        completion = ExecutionCompletionEvaluator().evaluate(
+            plans,
+            execution.module_results,
+        )
+        readiness = readiness_evaluator.evaluate(
+            completion,
+            execution.snapshot,
+        )
+        from research_os.runtime.core_artifacts import RESEARCH_READINESS
 
-        for module in self._modules:
-            module_id = module.spec.module_id
-            if module_id in modules_by_id:
-                raise PipelineDefinitionError(f"duplicate module_id: {module_id}")
-            modules_by_id[module_id] = module
-            for capability in module.spec.provides:
-                existing = providers.get(capability)
-                if existing is not None:
-                    raise PipelineDefinitionError(
-                        f"duplicate provider for capability {capability}: {existing}, {module_id}"
-                    )
-                providers[capability] = module_id
-
-        dependencies: dict[str, set[str]] = {module_id: set() for module_id in modules_by_id}
-        dependents: dict[str, set[str]] = defaultdict(set)
-        for module_id, module in modules_by_id.items():
-            for capability in module.spec.requires:
-                provider = providers.get(capability)
-                if provider is None:
-                    raise PipelineDefinitionError(
-                        f"module {module_id} requires missing capability {capability}"
-                    )
-                dependencies[module_id].add(provider)
-                dependents[provider].add(module_id)
-
-        indegree = {module_id: len(required) for module_id, required in dependencies.items()}
-        ready = [module_id for module_id, degree in indegree.items() if degree == 0]
-        heapq.heapify(ready)
-        ordered_ids: list[str] = []
-
-        while ready:
-            module_id = heapq.heappop(ready)
-            ordered_ids.append(module_id)
-            for dependent in sorted(dependents.get(module_id, ())):
-                indegree[dependent] -= 1
-                if indegree[dependent] == 0:
-                    heapq.heappush(ready, dependent)
-
-        if len(ordered_ids) != len(modules_by_id):
-            unresolved = sorted(module_id for module_id, degree in indegree.items() if degree > 0)
-            raise PipelineDefinitionError(
-                f"dependency cycle detected among modules: {', '.join(unresolved)}"
+        readiness_store = ArtifactStore(catalog)
+        readiness_store.write(
+            cast(
+                ArtifactWrite[object],
+                ArtifactWrite(
+                    key=RESEARCH_READINESS,
+                    value=readiness,
+                    producer_id="core:research-readiness",
+                ),
             )
+        )
+        finalized_execution = TypedExecutionResult(
+            snapshot=execution.snapshot.merged_with(readiness_store.freeze()),
+            module_results=execution.module_results,
+        )
+        return FinalizedExecution(
+            execution=finalized_execution,
+            completion=completion,
+            readiness=readiness,
+        )
 
-        return [modules_by_id[module_id] for module_id in ordered_ids]
+    def execute(
+        self,
+        plan: ModulePlan,
+        context: ResearchContext,
+        catalog: ArtifactCatalog,
+        initial_snapshot: ArtifactSnapshot | None = None,
+    ) -> TypedExecutionResult:
+        """Execute a compiled Core API 2.0 plan through the sole module invoker."""
+        if (
+            initial_snapshot is not None
+            and plan.initial_snapshot is not None
+            and initial_snapshot is not plan.initial_snapshot
+        ):
+            raise PipelineDefinitionError(
+                "initial snapshot differs from the snapshot validated by the plan"
+            )
+        base_snapshot = (
+            initial_snapshot
+            or plan.initial_snapshot
+            or ArtifactStore(catalog).freeze()
+        )
+        writes = ArtifactStore(catalog)
+        module_results: list[ModuleResult] = []
 
-    def run(self, context: ResearchContext) -> ResearchState:
-        ordered = self._ordered_modules()
-        state = ResearchState()
-
-        for module in ordered:
+        for module in plan.modules:
+            result = self._invoke_module(
+                module,
+                context,
+                ResearchStateView(base_snapshot.merged_with(writes.freeze())),
+            )
             module_id = module.spec.module_id
-            try:
-                result = module.run(context, state.view())
-            except Exception as exc:
-                raise ModuleExecutionError(f"module {module_id} failed") from exc
-
-            if not isinstance(result, ModuleResult):
-                raise PipelineDefinitionError(
-                    f"module {module_id} returned invalid result type {type(result).__name__}"
-                )
             if result.module_id != module_id:
                 raise PipelineDefinitionError(
-                    f"module result identity mismatch: expected {module_id}, got {result.module_id}"
+                    f"module result identity mismatch: expected {module_id}, "
+                    f"got {result.module_id}",
+                    context={"module_id": module_id},
                 )
 
-            undeclared = set(result.artifacts) - set(module.spec.provides)
-            if undeclared:
+            if result.status == "FAIL":
+                raise ModuleExecutionError(
+                    f"module {module_id} reported FAIL",
+                    context={"module_id": module_id, "run_id": context.run_id},
+                )
+
+            declared = set(module.spec.provides)
+            written: set[object] = set()
+            for write in result.writes:
+                if not isinstance(write, ArtifactWrite):
+                    raise PipelineDefinitionError(
+                        f"module {module_id} returned invalid artifact write type "
+                        f"{type(write).__name__}",
+                        context={"module_id": module_id},
+                    )
+                if write.key not in declared:
+                    raise PipelineDefinitionError(
+                        f"module {module_id} returned undeclared artifact write: "
+                        f"{write.key.artifact_id}@{write.key.schema_version}",
+                        context={"module_id": module_id},
+                    )
+                if write.producer_id != module_id:
+                    raise PipelineDefinitionError(
+                        f"module {module_id} artifact producer ID mismatch: "
+                        f"got {write.producer_id}",
+                        context={"module_id": module_id},
+                    )
+                if not isinstance(write.value, write.key.value_type):
+                    raise PipelineDefinitionError(
+                        f"module {module_id} artifact runtime value type mismatch for "
+                        f"{write.key.artifact_id}: expected "
+                        f"{write.key.value_type.__name__}, "
+                        f"got {type(write.value).__name__}",
+                        context={"module_id": module_id},
+                    )
+                if write.key in written:
+                    raise PipelineDefinitionError(
+                        f"module {module_id} returned duplicate artifact writes for "
+                        f"{write.key.artifact_id}@{write.key.schema_version}",
+                        context={"module_id": module_id},
+                    )
+                written.add(write.key)
+
+            missing = declared - written
+            if missing:
+                missing_artifacts = ", ".join(
+                    f"{key.artifact_id}@{key.schema_version}"
+                    for key in sorted(missing, key=lambda key: key.identity)
+                )
                 raise PipelineDefinitionError(
-                    f"module {module_id} returned undeclared artifacts: {', '.join(sorted(undeclared))}"
+                    f"module {module_id} returned missing declared artifact writes: "
+                    f"{missing_artifacts}",
+                    context={"module_id": module_id},
                 )
-
-            overwritten = set(result.artifacts) & set(state.artifacts)
-            if overwritten:
+            try:
+                for write in result.writes:
+                    writes.write(write)
+            except ArtifactContractError as exc:
                 raise PipelineDefinitionError(
-                    f"module {module_id} attempted artifact overwrite: {', '.join(sorted(overwritten))}"
-                )
+                    f"module {module.spec.module_id} returned invalid artifact "
+                    f"writes: {exc}",
+                    context={"module_id": module.spec.module_id},
+                ) from exc
+            module_results.append(result)
 
-            state._record(result)
+        return TypedExecutionResult(
+            snapshot=base_snapshot.merged_with(writes.freeze()),
+            module_results=tuple(module_results),
+        )
 
-        return state
+    @staticmethod
+    def _invoke_module(
+        module: ResearchModule,
+        context: ResearchContext,
+        state: ResearchStateView,
+    ) -> ModuleResult:
+        module_id = module.spec.module_id
+        try:
+            result = module.run(context, state)
+        except Exception as exc:
+            error_context = {"module_id": module_id}
+            run_id = getattr(context, "run_id", None)
+            if isinstance(run_id, str):
+                error_context["run_id"] = run_id
+            raise ModuleExecutionError(
+                f"module {module_id} failed",
+                context=error_context,
+            ) from exc
+        if not isinstance(result, ModuleResult):
+            raise PipelineDefinitionError(
+                f"module {module_id} returned invalid result type "
+                f"{type(result).__name__}",
+                context={"module_id": module_id},
+            )
+        return result

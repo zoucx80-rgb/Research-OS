@@ -1,46 +1,23 @@
 from __future__ import annotations
 
-import copy
-from types import MappingProxyType
-from typing import Any, Mapping
+from typing import TypeVar
+
+from research_os.contracts.artifacts import ArtifactKey, ArtifactSnapshot
+
+
+T = TypeVar("T")
 
 
 class ResearchStateView:
-    def __init__(self, artifacts: dict[str, Any]):
-        self._artifacts = artifacts
+    def __init__(self, snapshot: ArtifactSnapshot):
+        self._snapshot = snapshot
 
-    def get(self, capability: str, default: Any = None) -> Any:
-        if capability not in self._artifacts:
-            return default
-        return copy.deepcopy(self._artifacts[capability])
+    def get(self, key: ArtifactKey[T]) -> T | None:
+        if not isinstance(key, ArtifactKey):
+            raise TypeError("typed state requires an ArtifactKey")
+        return self._snapshot.get(key)
 
-    def __contains__(self, capability: str) -> bool:
-        return capability in self._artifacts
-
-    def as_mapping(self) -> Mapping[str, Any]:
-        return MappingProxyType(copy.deepcopy(self._artifacts))
-
-
-class ResearchState:
-    def __init__(self):
-        self._artifacts: dict[str, Any] = {}
-        self._module_results: dict[str, Any] = {}
-
-    def view(self) -> ResearchStateView:
-        return ResearchStateView(self._artifacts)
-
-    def get(self, capability: str, default: Any = None) -> Any:
-        return self.view().get(capability, default)
-
-    @property
-    def artifacts(self) -> Mapping[str, Any]:
-        return MappingProxyType(copy.deepcopy(self._artifacts))
-
-    @property
-    def module_results(self) -> Mapping[str, Any]:
-        return MappingProxyType(dict(self._module_results))
-
-    def _record(self, result: Any) -> None:
-        self._module_results[result.module_id] = result
-        for capability, value in result.artifacts.items():
-            self._artifacts[capability] = copy.deepcopy(value)
+    def require(self, key: ArtifactKey[T]) -> T:
+        if not isinstance(key, ArtifactKey):
+            raise TypeError("typed state requires an ArtifactKey")
+        return self._snapshot.require(key)

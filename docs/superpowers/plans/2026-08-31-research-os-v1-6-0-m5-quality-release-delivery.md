@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 将全部 1.6.0 变更纳入可重复验证的工程门禁，完成版本元数据、数据库/包/历史回放/真实 PDF 验证，并生成相对 v1.5.12 基线只有一个 commit 的用户推送包。
+**Goal:** 将全部 1.6.0 变更纳入可重复验证的工程门禁，完成版本元数据、数据库/包/隔离历史回放/真实 PDF 验证，并生成相对重新核验的 `delivery_parent_sha` 只有一个 commit 的用户推送包。
 
 **Architecture:** CI 各 Job 执行独立责任，Release Gate 只聚合已登记 Verification Packs。最终工作树先验证，再 squash 为一个 release commit，之后在该最终 commit 上重新完整验证并生成包。
 
@@ -15,7 +15,7 @@
 - 不以“单元测试通过”代替完整发布验证。
 - 不在 squash 前后的不同代码状态之间复用测试结论。
 - 最终 commit 生成后必须重新运行全部门禁。
-- `behavior_baseline_sha=72ab06c619678b35c31cf7edef7547849e803d16` 仅用于 characterization；交付父提交在 M1 启动时冻结为包含本次设计修订的最新 `main` HEAD，远端继续前进时先核对、整合并更新父提交。
+- `behavior_baseline_sha=72ab06c619678b35c31cf7edef7547849e803d16` 仅为缺陷理解和历史 replay 的参考证据，不是当前 v2 兼容门禁；`delivery_parent_sha` 是实际 main 父提交，最终交付前必须重新核验，远端继续前进时先核对、整合并更新记录。
 - 远端 main 漂移且未完成整合时停止，不覆盖新提交。
 - 不 force-push，不重写 v1.5.12 及更早历史。
 
@@ -105,7 +105,7 @@ release-gate
 - [ ] ADR 状态转为 Accepted。
 - [ ] Manifest 组件版本与实际类/模块版本一致。
 - [ ] Public metadata 等于 Manifest projection。
-- [ ] CHANGELOG 明确 breaking migration、历史兼容和数据库迁移。
+- [ ] CHANGELOG 明确 clean-break 升级、isolated historical replay 和数据库迁移。
 - [ ] README 示例全部可执行。
 
 ### Task 7：预提交完整验证

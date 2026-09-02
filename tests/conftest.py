@@ -2,20 +2,20 @@ from datetime import date, datetime, timezone
 
 import pytest
 
-from research_os.completion.gate import REQUIRED_MODULES, ResearchCompletionGate
-from research_os.completion.models import ResearchCompletionInput, ResearchCompletionResult
-from research_os.decision.models import DecisionStateRecord
-from research_os.plugins.resolver import StrategyResolution
-from research_os.router.models import BusinessModelProfile
-from research_os.runtime.context import BaselineFingerprint, CompanyRef
-from research_os.runtime.result import ResearchRunResult
-from research_os.snapshots.service import SnapshotService
-from research_os.thesis.models import Falsifier, Thesis
-from research_os.version import RESEARCH_OS_VERSION
-
 
 @pytest.fixture
 def canonical_report_result_factory():
+    from research_os.completion.gate import REQUIRED_MODULES, ResearchCompletionGate
+    from research_os.completion.models import ResearchCompletionInput, ResearchCompletionResult
+    from research_os.decision.models import DecisionStateRecord
+    from research_os.plugins.resolver import StrategyResolution
+    from research_os.router.models import BusinessModelProfile
+    from research_os.runtime.context import BaselineFingerprint, CompanyRef
+    from research_os.runtime.result import ResearchRunResult
+    from research_os.snapshots.service import SnapshotService
+    from research_os.thesis.models import Falsifier, Thesis
+    from research_os.version import RESEARCH_OS_VERSION
+
     def make(
         *,
         completion: ResearchCompletionResult | None = None,

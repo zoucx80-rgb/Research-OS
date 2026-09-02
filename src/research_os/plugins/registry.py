@@ -1,96 +1,147 @@
 from __future__ import annotations
 
-import re
 from typing import Any
 
+from packaging.specifiers import SpecifierSet
+from packaging.version import InvalidVersion, Version
+
+from research_os.contracts.errors import (
+    PluginContractError,
+    PluginError,
+    PluginVersionUnsupportedError,
+)
 from research_os.plugins.models import PluginManifest
+from research_os.plugins.protocols import KpiProvider, PluginServices
 
 
-class PluginCompatibilityError(ValueError):
-    pass
+class DuplicatePluginError(PluginError):
+    code = "PLUGIN_DUPLICATE"
 
 
-class DuplicatePluginError(ValueError):
-    pass
-
-
-_SEMVER_RE = re.compile(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$")
-
-
-def _semver(value: str, label: str) -> tuple[int, int, int]:
-    match = _SEMVER_RE.fullmatch(value.strip())
-    if match is None:
-        raise PluginCompatibilityError(
-            f"{label} must use MAJOR.MINOR.PATCH semantic versioning: {value!r}"
-        )
-    return tuple(int(part) for part in match.groups())
+def _version(value: str, label: str) -> Version:
+    try:
+        return Version(value)
+    except InvalidVersion as exc:
+        raise PluginVersionUnsupportedError(
+            f"{label} must be a valid PEP 440 version",
+            context={"version_label": label, "version_value": value},
+        ) from exc
 
 
 class PluginRegistry:
     def __init__(self, *, core_api_version: str, research_os_version: str):
-        if not core_api_version.strip():
-            raise ValueError("core_api_version must be non-empty")
+        self._core_api_version = _version(core_api_version, "core_api_version")
+        self._research_os_version = _version(
+            research_os_version, "Research OS version"
+        )
         self.core_api_version = core_api_version
         self.research_os_version = research_os_version
-        self._research_os_semver = _semver(research_os_version, "Research OS version")
         self._plugins: dict[str, Any] = {}
+        self._services: dict[str, PluginServices] = {}
 
     @staticmethod
-    def _validate_shape(plugin: Any, manifest: PluginManifest) -> None:
+    def _validate_shape(plugin: Any, manifest: PluginManifest) -> PluginServices:
         if manifest.plugin_type == "industry":
-            required = ("applicability", "modules", "report_contributions")
+            required = ("applicability", "services")
         else:
-            required = ("supports", "modules")
-        missing = [name for name in required if not callable(getattr(plugin, name, None))]
+            required = ("supports", "services")
+        missing = [
+            name for name in required if not callable(getattr(plugin, name, None))
+        ]
         if missing:
-            raise PluginCompatibilityError(
+            raise PluginContractError(
                 f"{manifest.plugin_type} plugin {manifest.plugin_id} is missing contract methods: "
-                + ", ".join(missing)
+                + ", ".join(missing),
+                context={"plugin_id": manifest.plugin_id},
             )
+        try:
+            services = plugin.services()
+        except Exception as exc:
+            raise PluginContractError(
+                f"plugin {manifest.plugin_id} services() failed",
+                context={"plugin_id": manifest.plugin_id},
+            ) from exc
+        if not isinstance(services, PluginServices):
+            raise PluginContractError(
+                f"plugin {manifest.plugin_id} services() must return PluginServices",
+                context={"plugin_id": manifest.plugin_id},
+            )
+        if services.kpi_provider is not None:
+            if not isinstance(services.kpi_provider, KpiProvider):
+                raise PluginContractError(
+                    f"plugin {manifest.plugin_id} kpi_provider does not satisfy "
+                    "KpiProvider",
+                    context={"plugin_id": manifest.plugin_id},
+                )
+            _version(
+                services.kpi_provider.provider_version,
+                f"plugin {manifest.plugin_id} KPI provider version",
+            )
+            if not services.kpi_provider.provider_id.strip():
+                raise PluginContractError(
+                    f"plugin {manifest.plugin_id} KPI provider_id must be non-empty",
+                    context={"plugin_id": manifest.plugin_id},
+                )
+        actual_capabilities = frozenset(
+            capability
+            for capability, present in (
+                ("kpi.metrics", services.kpi_provider is not None),
+                ("valuation.methods", bool(services.valuation_methods)),
+                ("forecast.methods", bool(services.forecast_methods)),
+                ("policy.contributions", bool(services.policy_contributions)),
+                ("report.contributions", bool(services.report_contributions)),
+            )
+            if present
+        )
+        if manifest.service_capabilities != actual_capabilities:
+            raise PluginContractError(
+                f"plugin {manifest.plugin_id} service_capabilities do not match "
+                "services(); "
+                f"declared={sorted(manifest.service_capabilities)}, "
+                f"actual={sorted(actual_capabilities)}",
+                context={"plugin_id": manifest.plugin_id},
+            )
+        return services
 
     def _validate_compatibility(self, manifest: PluginManifest) -> None:
-        if manifest.api_version != self.core_api_version:
-            raise PluginCompatibilityError(
-                f"plugin {manifest.plugin_id} api_version {manifest.api_version} is incompatible "
-                f"with core api {self.core_api_version}"
+        core_api_specifier = SpecifierSet(manifest.core_api_specifier)
+        if self._core_api_version not in core_api_specifier:
+            raise PluginVersionUnsupportedError(
+                f"plugin {manifest.plugin_id} is incompatible with core API "
+                f"{self.core_api_version}; required {manifest.core_api_specifier}",
+                context={
+                    "plugin_id": manifest.plugin_id,
+                    "core_api_version": self.core_api_version,
+                    "required_specifier": manifest.core_api_specifier,
+                },
             )
-
-        _semver(manifest.plugin_version, f"plugin {manifest.plugin_id} version")
-        minimum = _semver(
-            manifest.min_research_os_version,
-            f"plugin {manifest.plugin_id} min Research OS version",
-        )
-        maximum = None
-        if manifest.max_research_os_version is not None:
-            maximum = _semver(
-                manifest.max_research_os_version,
-                f"plugin {manifest.plugin_id} max Research OS version",
-            )
-            if maximum < minimum:
-                raise PluginCompatibilityError(
-                    f"plugin {manifest.plugin_id} Research OS version range is invalid"
-                )
-
-        if self._research_os_semver < minimum or (
-            maximum is not None and self._research_os_semver > maximum
-        ):
-            upper = manifest.max_research_os_version or "unbounded"
-            raise PluginCompatibilityError(
+        research_os_specifier = SpecifierSet(manifest.research_os_specifier)
+        if self._research_os_version not in research_os_specifier:
+            raise PluginVersionUnsupportedError(
                 f"plugin {manifest.plugin_id} is incompatible with Research OS "
-                f"{self.research_os_version}; supported range is "
-                f"{manifest.min_research_os_version}..{upper}"
+                f"{self.research_os_version}; required "
+                f"{manifest.research_os_specifier}",
+                context={
+                    "plugin_id": manifest.plugin_id,
+                    "research_os_version": self.research_os_version,
+                    "required_specifier": manifest.research_os_specifier,
+                },
             )
 
     def register(self, plugin: Any) -> None:
         manifest = getattr(plugin, "manifest", None)
         if not isinstance(manifest, PluginManifest):
-            raise PluginCompatibilityError("plugin must expose a PluginManifest as manifest")
+            raise PluginContractError("plugin must expose a PluginManifest as manifest")
         if manifest.plugin_id in self._plugins:
-            raise DuplicatePluginError(f"duplicate plugin_id: {manifest.plugin_id}")
+            raise DuplicatePluginError(
+                f"duplicate plugin_id: {manifest.plugin_id}",
+                context={"plugin_id": manifest.plugin_id},
+            )
 
-        self._validate_shape(plugin, manifest)
+        services = self._validate_shape(plugin, manifest)
         self._validate_compatibility(manifest)
         self._plugins[manifest.plugin_id] = plugin
+        self._services[manifest.plugin_id] = services
 
     def manifests(self, plugin_type: str | None = None) -> list[PluginManifest]:
         manifests = [plugin.manifest for plugin in self._plugins.values()]
@@ -100,3 +151,15 @@ class PluginRegistry:
 
     def get(self, plugin_id: str) -> Any | None:
         return self._plugins.get(plugin_id)
+
+    def require(self, plugin_id: str) -> Any:
+        plugin = self.get(plugin_id)
+        if plugin is None:
+            raise PluginContractError(
+                f"plugin is not registered: {plugin_id}",
+                context={"plugin_id": plugin_id},
+            )
+        return plugin
+
+    def services(self, plugin_id: str) -> PluginServices | None:
+        return self._services.get(plugin_id)

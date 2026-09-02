@@ -1,0 +1,35 @@
+{
+  "behavior_baseline_sha": "72ab06c619678b35c31cf7edef7547849e803d16",
+  "fixture_kind": "v1_5_12_valuation_reconciliation_characterization",
+  "inputs": [
+    {
+      "range_id": "pe",
+      "model_id": "pe",
+      "role": "model_implied",
+      "basis": "equity_per_share",
+      "currency": "CNY",
+      "low": 12.0,
+      "high": 18.0,
+      "evidence_ids": ["ev:pe"]
+    },
+    {
+      "range_id": "ev-ebitda",
+      "model_id": "ev-ebitda",
+      "role": "model_implied",
+      "basis": "equity_per_share",
+      "currency": "CNY",
+      "low": 15.0,
+      "high": 20.0,
+      "evidence_ids": ["ev:ev-ebitda"]
+    }
+  ],
+  "expected": {
+    "status": "INTERSECTION",
+    "method": "mathematical_intersection",
+    "low": 15.0,
+    "high": 18.0,
+    "basis": "equity_per_share",
+    "currency": "CNY",
+    "included_range_ids": ["pe", "ev-ebitda"]
+  }
+}

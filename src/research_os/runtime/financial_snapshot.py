@@ -5,6 +5,8 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from research_os.contracts.artifacts import ArtifactKey, ArtifactWrite
+from research_os.contracts.evidence import EvidenceRef, EvidenceSet
 from research_os.runtime.context import ResearchContext
 from research_os.runtime.modules import ModuleResult, ModuleSpec
 from research_os.runtime.state import ResearchStateView
@@ -35,6 +37,8 @@ SUPPORTED_FINANCIAL_FACT_KEYS: tuple[str, ...] = (
     "ppe_end",
 )
 
+EVIDENCE_PIT = ArtifactKey("evidence.pit", "2.0", EvidenceSet)
+
 
 class FinancialFact(BaseModel):
     """One PIT-supported canonical financial fact for downstream projection."""
@@ -47,7 +51,7 @@ class FinancialFact(BaseModel):
     period: str | None = None
     period_end: date | None = None
     formula_version: str | None = None
-    evidence_ids: list[str] = Field(default_factory=list)
+    evidence_refs: tuple[EvidenceRef, ...] = Field(default_factory=tuple)
 
 
 class FinancialFactSnapshot(BaseModel):
@@ -55,16 +59,17 @@ class FinancialFactSnapshot(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
-    facts: list[FinancialFact] = Field(default_factory=list)
+    facts: tuple[FinancialFact, ...] = Field(default_factory=tuple)
+
+
+FINANCIAL_FACT_SNAPSHOT = ArtifactKey(
+    "financial.fact_snapshot", "2.0", FinancialFactSnapshot
+)
 
 
 def build_financial_fact_snapshot(context: ResearchContext) -> FinancialFactSnapshot:
     """Copy approved facts only when their as-of evidence supports the exact value."""
 
-    pit_ids = {
-        item.evidence_id
-        for item in context.evidence.as_of(context.decision_ts)
-    }
     facts: list[FinancialFact] = []
 
     for fact_key in SUPPORTED_FINANCIAL_FACT_KEYS:
@@ -72,17 +77,17 @@ def build_financial_fact_snapshot(context: ResearchContext) -> FinancialFactSnap
         if value is None:
             continue
 
-        supporting = []
-        for evidence_id in context.facts.evidence_ids(fact_key):
-            if evidence_id not in pit_ids:
-                continue
-            evidence = context.evidence.get(evidence_id)
-            if evidence is not None and evidence.value == value:
-                supporting.append(evidence)
+        supporting: list[tuple[EvidenceRef, Any]] = []
+        for reference in context.facts.evidence_refs(fact_key):
+            evidence = context.evidence.get(reference)
+            if evidence is not None and (
+                evidence.value == value or evidence.normalized_value == value
+            ):
+                supporting.append((reference, evidence))
         if not supporting:
             continue
 
-        primary = supporting[0]
+        primary = supporting[0][1]
         facts.append(
             FinancialFact(
                 fact_key=fact_key,
@@ -91,41 +96,52 @@ def build_financial_fact_snapshot(context: ResearchContext) -> FinancialFactSnap
                 period=primary.period,
                 period_end=primary.period_end,
                 formula_version=primary.formula_version,
-                evidence_ids=[item.evidence_id for item in supporting],
+                evidence_refs=tuple(reference for reference, _ in supporting),
             )
         )
 
-    return FinancialFactSnapshot(facts=facts)
+    return FinancialFactSnapshot(facts=tuple(facts))
 
 
 class FinancialFactSnapshotModule:
     spec = ModuleSpec(
         module_id="core:financial-fact-snapshot",
         module_version="1.0.0",
-        requires={"evidence.pit"},
-        provides={"financial.fact_snapshot"},
+        requires=frozenset((EVIDENCE_PIT,)),
+        provides=frozenset((FINANCIAL_FACT_SNAPSHOT,)),
         required_for_completion=False,
     )
 
     def run(self, context: ResearchContext, state: ResearchStateView) -> ModuleResult:
-        if not list(state.get("evidence.pit", []) or []):
+        evidence = state.require(EVIDENCE_PIT)
+        if not evidence.items:
             return ModuleResult(
                 module_id=self.spec.module_id,
                 status="INSUFFICIENT_EVIDENCE",
-                artifacts={"financial.fact_snapshot": FinancialFactSnapshot()},
+                writes=(
+                    ArtifactWrite(
+                        key=FINANCIAL_FACT_SNAPSHOT,
+                        value=FinancialFactSnapshot(),
+                        producer_id=self.spec.module_id,
+                    ),
+                ),
             )
 
         snapshot = build_financial_fact_snapshot(context)
-        evidence_ids = list(
-            dict.fromkeys(
-                evidence_id
-                for item in snapshot.facts
-                for evidence_id in item.evidence_ids
-            )
+        evidence_refs = tuple(
+            reference
+            for fact in snapshot.facts
+            for reference in fact.evidence_refs
         )
         return ModuleResult(
             module_id=self.spec.module_id,
             status="PASS" if snapshot.facts else "INSUFFICIENT_EVIDENCE",
-            artifacts={"financial.fact_snapshot": snapshot},
-            evidence_ids=evidence_ids,
+            writes=(
+                ArtifactWrite(
+                    key=FINANCIAL_FACT_SNAPSHOT,
+                    value=snapshot,
+                    producer_id=self.spec.module_id,
+                    evidence_refs=evidence_refs,
+                ),
+            ),
         )

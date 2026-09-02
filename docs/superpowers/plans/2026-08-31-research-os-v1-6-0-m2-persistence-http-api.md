@@ -15,7 +15,7 @@
 - M1 的 `ArtifactSnapshot`、`ResearchRunResult` 和 `RunVersionSet` 已冻结。
 - M1 冻结的 revision-bound `FactView`/`EvidenceRef` 是唯一事实输入边界；SQL 查询不得把 ID 存在误当作具体 revision 有效。
 - 正式存储不得使用全局内存字典；内存 Repository 仅为测试适配器。
-- 旧 Snapshot 只读，不改 hash、不补字段、不重新研究。
+- 当前包只处理 Snapshot Schema 2.0；不提供旧 Snapshot Reader、转换器或 v1 parser。历史 Snapshot 只在 isolated historical replay 中执行。
 - API 首期只读，不增加交易、研究结论修改或任意 SQL 查询能力。
 
 ---
@@ -113,19 +113,7 @@ class SnapshotCodecV2:
 - [ ] 写 RED：篡改数据库 payload 或版本后 `verify()` 返回明确失败原因。
 - [ ] SnapshotWriter 不改变 Artifact 值，只序列化最终 Snapshot。
 
-### Task 7：v1 Snapshot 只读 Reader
-
-**Files:**
-- Create: `src/research_os/compat/__init__.py`
-- Create: `src/research_os/compat/v1/__init__.py`
-- Create: `src/research_os/compat/v1/snapshots.py`
-- Create: `tests/unit/compat/test_v1_snapshot_reader.py`
-
-- [ ] 写 RED：读取 1.x payload 保留原版本/hash/字段。
-- [ ] 写 RED：Reader 不允许 save、upgrade-in-place 或产生 1.6 Decision。
-- [ ] 提供 `LegacySnapshotView` 和明确 `READ_ONLY_LEGACY_SNAPSHOT` 状态。
-
-### Task 8：Query Service
+### Task 7：Query Service
 
 **Files:**
 - Create: `src/research_os/api/query.py`
@@ -146,7 +134,7 @@ class ResearchQueryService:
 - [ ] Query Service 只依赖 Repository/Projector Port。
 - [ ] Artifact Query 必须返回 Schema、Provider 和 Evidence metadata。
 
-### Task 9：HTTP API v1 合同
+### Task 8：HTTP API v1 合同
 
 **Files:**
 - Create: `src/research_os/api/contracts.py`
@@ -162,7 +150,7 @@ class ResearchQueryService:
 - [ ] 实现 middleware、exception handlers 和 typed DTO。
 - [ ] 删除正式 `ResearchReadStore` 默认路径；内存 Query Adapter 放到 tests helper。
 
-### Task 10：M2 出口门禁
+### Task 9：M2 出口门禁
 
 - [ ] `alembic upgrade head -> downgrade -1 -> upgrade head` 通过。
 - [ ] Snapshot restart/tamper/append-only tests 通过。

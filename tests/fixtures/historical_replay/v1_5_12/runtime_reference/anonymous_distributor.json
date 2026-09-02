@@ -1,0 +1,67 @@
+{
+  "behavior_baseline_sha": "72ab06c619678b35c31cf7edef7547849e803d16",
+  "fixture_kind": "v1_5_12_runtime_characterization",
+  "context": {
+    "company_id": "synthetic:compat-distributor",
+    "decision_ts": "2026-08-29T00:00:00+00:00",
+    "facts": {
+      "business_description": "electronic component distribution",
+      "revenue": 1000.0,
+      "cogs": 970.0,
+      "gross_profit": 30.0,
+      "avg_ar": 160.0,
+      "avg_inventory": 140.0,
+      "avg_ap": 80.0,
+      "ar": 180.0,
+      "inventory": 150.0,
+      "ap": 90.0,
+      "delta_nwc": 80.0,
+      "delta_revenue": 200.0,
+      "delta_debt": 60.0,
+      "ocf": 20.0,
+      "net_profit": 25.0,
+      "nopat": 24.0,
+      "avg_invested_capital": 300.0,
+      "period_type": "FY"
+    }
+  },
+  "inputs": {
+    "versions": {
+      "dataset_version": "synthetic@1",
+      "parser_version": "synthetic@1",
+      "formula_version": "synthetic@1",
+      "router_version": "router@1.0.0",
+      "kpi_pack_version": "auto",
+      "driver_model_version": "driver@1",
+      "forecast_version": "none",
+      "valuation_version": "none",
+      "report_version": "runtime@1",
+      "core_api_version": "1.0"
+    }
+  },
+  "expected": {
+    "business_model": "distributor",
+    "kpi_module_status": "PASS",
+    "kpi_pack_ids": ["distributor"],
+    "kpi_metrics": {
+      "ccc_days": {"value": 80.97731958762887, "status": "valid", "unit": "days", "reason_code": null, "evidence_ids": ["evidence:avg_ap", "evidence:avg_ar", "evidence:avg_inventory", "evidence:cogs", "evidence:revenue"]},
+      "cash_conversion": {"value": 0.8, "status": "valid", "unit": "percent", "reason_code": null, "evidence_ids": ["evidence:net_profit", "evidence:ocf"]},
+      "funding_loop_debt_share": {"value": null, "status": "missing", "unit": "percent", "reason_code": "COMPARISON_BASIS_REQUIRED", "evidence_ids": ["evidence:delta_debt", "evidence:delta_nwc"]},
+      "roic": {"value": 0.08, "status": "valid", "unit": "percent", "reason_code": null, "evidence_ids": ["evidence:avg_invested_capital", "evidence:nopat"]}
+    },
+    "financial_fact_snapshot": {
+      "facts": [
+        {"fact_key": "revenue", "value": 1000.0, "unit": null, "period": null, "period_end": null, "formula_version": null, "evidence_ids": ["evidence:revenue"]},
+        {"fact_key": "gross_profit", "value": 30.0, "unit": null, "period": null, "period_end": null, "formula_version": null, "evidence_ids": ["evidence:gross_profit"]},
+        {"fact_key": "ocf", "value": 20.0, "unit": null, "period": null, "period_end": null, "formula_version": null, "evidence_ids": ["evidence:ocf"]}
+      ]
+    },
+    "completion": {
+      "final_status": "INCOMPLETE",
+      "blocking_modules": ["Repository Preflight", "Funding Loop", "Valuation Fitness", "Next Verification Event", "Temporal Consistency"],
+      "module_statuses": {
+        "Repository Preflight": "INSUFFICIENT_EVIDENCE", "PIT Validation": "PASS", "Evidence Lineage": "PASS", "Financial Sanity": "PASS", "Business Model Router": "PASS", "KPI Pack": "PASS", "Capital Efficiency": "PASS", "Funding Loop": "INSUFFICIENT_EVIDENCE", "Driver Graph": "PASS", "Thesis": "PASS", "Anti-Thesis": "PASS", "Falsifiers": "PASS", "Expectation Evidence": "INSUFFICIENT_EVIDENCE", "Forecast Discipline": "NOT_APPLICABLE", "Valuation Fitness": "INSUFFICIENT_EVIDENCE", "Valuation Execution": "INSUFFICIENT_EVIDENCE", "Decision State": "PASS", "Next Verification Event": "INSUFFICIENT_EVIDENCE", "Temporal Consistency": "INSUFFICIENT_EVIDENCE"
+      }
+    }
+  }
+}

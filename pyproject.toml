@@ -14,11 +14,14 @@ dependencies = [
   "numpy>=2",
   "statsmodels>=0.14",
   "scikit-learn>=1.5",
+  "packaging>=24,<27",
 ]
 
 [project.optional-dependencies]
 test = [
   "pytest>=8,<10",
+  "hypothesis>=6,<7",
+  "mypy>=1.15,<2",
   "httpx2>=2,<3",
   "alembic>=1.13,<2",
   "pypdf>=6,<7",
@@ -29,9 +32,6 @@ pdf = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
-
-[tool.setuptools.package-data]
-research_os = ["runtime/*.sha256"]
 
 [tool.setuptools.dynamic]
 version = {attr = "research_os.version.RESEARCH_OS_VERSION"}

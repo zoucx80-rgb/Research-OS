@@ -1,0 +1,34 @@
+{
+  "behavior_baseline_sha": "72ab06c619678b35c31cf7edef7547849e803d16",
+  "fixture_kind": "v1_5_12_runtime_characterization",
+  "context": {
+    "company_id": "synthetic:compat-manufacturer",
+    "decision_ts": "2026-08-29T00:00:00+00:00",
+    "facts": {
+      "business_description": "precision manufacturing",
+      "revenue": 1000.0,
+      "net_profit_parent": 50.0,
+      "assets_begin": 800.0,
+      "assets_end": 900.0,
+      "equity_begin": 400.0,
+      "equity_end": 450.0,
+      "period_type": "FY"
+    }
+  },
+  "inputs": {
+    "versions": {
+      "dataset_version": "synthetic@1", "parser_version": "synthetic@1", "formula_version": "synthetic@1", "router_version": "router@1.0.0", "kpi_pack_version": "auto", "driver_model_version": "driver@1", "forecast_version": "none", "valuation_version": "none", "report_version": "runtime@1", "core_api_version": "1.0"
+    }
+  },
+  "expected": {
+    "business_model": "manufacturing",
+    "kpi_module_status": "PASS",
+    "kpi_pack_ids": ["manufacturing"],
+    "kpi_metrics": {
+      "roe": {"value": 0.11764705882352942, "status": "valid", "unit": "percent", "reason_code": null, "evidence_ids": ["evidence:assets_begin", "evidence:assets_end", "evidence:equity_begin", "evidence:equity_end", "evidence:net_profit_parent", "evidence:revenue"]},
+      "net_margin": {"value": 0.05, "status": "valid", "unit": "percent", "reason_code": null, "evidence_ids": ["evidence:net_profit_parent", "evidence:revenue"]},
+      "cash_conversion_parent": {"value": null, "status": "missing", "unit": "x", "reason_code": null, "evidence_ids": ["evidence:net_profit_parent"]},
+      "inventory_days": {"value": null, "status": "missing", "unit": "days", "reason_code": null, "evidence_ids": []}
+    }
+  }
+}

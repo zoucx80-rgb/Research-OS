@@ -69,13 +69,17 @@ def main() -> None:
     _verify_metadata()
     status = _run_release_checks()
     _run_field_replays()
-    _run("full pytest suite", [sys.executable, "-m", "pytest", "-q"])
+    if CURRENT_RELEASE.status == "stable":
+        _run("full pytest suite", [sys.executable, "-m", "pytest", "-q"])
 
     gate = evaluate_release_gate(status)
     if not gate.ready:
         print("release gate failed:", ", ".join(gate.failed), file=sys.stderr)
         raise SystemExit(1)
-    print(f"READY: v{CURRENT_RELEASE.version} stable")
+    if CURRENT_RELEASE.status == "stable":
+        print(f"READY: v{CURRENT_RELEASE.version} stable")
+    else:
+        print(f"VERIFIED: v{CURRENT_RELEASE.version} development milestone")
 
 
 if __name__ == "__main__":

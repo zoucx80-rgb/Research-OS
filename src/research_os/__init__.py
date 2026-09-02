@@ -1,4 +1,17 @@
-from .version import CORE_API_VERSION, RESEARCH_OS_VERSION
+from .version import (
+    CORE_API_VERSION,
+    HTTP_API_VERSION,
+    PLUGIN_API_VERSION,
+    RESEARCH_OS_VERSION,
+    SNAPSHOT_SCHEMA_VERSION,
+)
 
 __version__ = RESEARCH_OS_VERSION
-__all__ = ["CORE_API_VERSION", "RESEARCH_OS_VERSION", "__version__"]
+__all__ = [
+    "CORE_API_VERSION",
+    "HTTP_API_VERSION",
+    "PLUGIN_API_VERSION",
+    "RESEARCH_OS_VERSION",
+    "SNAPSHOT_SCHEMA_VERSION",
+    "__version__",
+]

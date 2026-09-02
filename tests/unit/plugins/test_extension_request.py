@@ -41,7 +41,7 @@ def test_coverage_gap_can_be_serialized_as_safe_extension_request_without_regist
     )
 
 
-def test_existing_coverage_gap_constructor_remains_backward_compatible():
+def test_coverage_gap_uses_frozen_v2_defaults():
     gap = CoverageGap(
         gap_type="industry_strategy",
         business_model="consumer",
@@ -49,5 +49,5 @@ def test_existing_coverage_gap_constructor_remains_backward_compatible():
     )
 
     assert gap.reason_code is None
-    assert gap.affected_capabilities == []
+    assert gap.affected_capabilities == ()
     assert gap.fallback_available is None

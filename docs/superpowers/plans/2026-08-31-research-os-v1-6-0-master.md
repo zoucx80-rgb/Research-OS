@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 基于 Research OS 1.5.12 单提交基线，完成 Core API 2.0、Plugin API 2.0、Snapshot Schema 2.0、HTTP API v1、专业研究基础模型与工程门禁，并将全部变更压缩为一个可由用户 fast-forward 到 `main` 的 Research OS 1.6.0 release commit。
+**Goal:** 基于重新核验的 `delivery_parent_sha`，完成 Core API 2.0、Plugin API 2.0、Snapshot Schema 2.0、HTTP API v1、专业研究基础模型与工程门禁，并将全部变更压缩为一个可由用户 fast-forward 到 `main` 的 Research OS 1.6.0 release commit。
 
 **Architecture:** 保持模块化单体。Phase A/Phase B 模块计划都由唯一 `ResearchEngine` 执行；类型化 Artifact Snapshot 是运行结果、快照和报告投影的统一语义边界；插件提供领域服务；数据库、HTTP、Git 历史重放和浏览器 PDF 位于适配器层。
 
@@ -12,10 +12,10 @@
 
 ## Global Constraints
 
-- 行为基线：`72ab06c619678b35c31cf7edef7547849e803d16`（仅用于 1.5.12 characterization）。
-- 交付父提交：M1 启动时冻结的、包含本次设计修订的最新 `main` HEAD（实施证据记录精确 SHA）。评审时 main 为 `812b6212410723bc80ed6222b5c78bbc74917390`。
+- 行为基线：`72ab06c619678b35c31cf7edef7547849e803d16`（仅为缺陷理解和历史 replay 的参考证据，不是当前 v2 兼容门禁）。
+- 交付父提交：实际最新 `main` HEAD；M1 启动和最终交付前都必须重新核验并记录精确 SHA。评审时 main 为 `812b6212410723bc80ed6222b5c78bbc74917390`。
 - 产品版本：`1.6.0`；Core API：`2.0`；Plugin API：`2.0`；Snapshot Schema：`2.0`；HTTP API：`v1`。
-- v1.5.12 的 Semantic Preservation、Claim Strength、Threshold Context 与 Valuation Reconciliation 必须保留。
+- 当前 v2 必须保留 Semantic Preservation、Claim Strength、Threshold Context 与 Valuation Reconciliation 的定义边界；历史实现和结果只在其各自提交中 replay。
 - 历史 1.5.08–1.5.12 fixtures、结果和提交不得被改写。
 - `src/research_os` 不得包含验收公司身份特例。
 - 除 `ResearchEngine` 外，生产代码不得调用 `ResearchModule.run()`。
@@ -49,8 +49,8 @@ M2 Persistence/API   M3 Professional Foundations
 
 | 里程碑 | 核心输出 | 进入条件 | 退出条件 |
 |---|---|---|---|
-| M1 | Core API 2.0、类型化 Artifact、唯一 Engine、Plugin API 2.0、RunCommand/Result、Completion/Readiness | v1.5.12 基线与 CI 已确认 | 新旧入口边界明确，所有 Core 契约测试和单执行器架构测试通过 |
-| M2 | Snapshot 2.0、SQL Repository、UnitOfWork、HTTP API v1、1.x 只读 Reader | M1 ArtifactSnapshot/Result 稳定 | 重启持久化、篡改检测、迁移、PIT 查询和 OpenAPI 契约通过 |
+| M1 | Core API 2.0、类型化 Artifact、唯一 Engine、Plugin API 2.0、RunCommand/Result、Completion/Readiness | delivery parent 与 CI 已确认 | 只公开 v2 入口，所有 Core 契约测试和单执行器架构测试通过 |
+| M2 | Snapshot 2.0、SQL Repository、UnitOfWork、HTTP API v1 | M1 ArtifactSnapshot/Result 稳定 | 重启持久化、篡改检测、保留事实的 SQL 升级、PIT 查询和 OpenAPI 契约通过 |
 | M3 | 财务值对象、Metric/Policy Registry、Router、Thesis Portfolio、Valuation、Forecast、Peers、Postmortem | M1 类型化 Artifact/Plugin 服务稳定 | 专业领域单元/属性/集成测试通过，缺失与不可比继续失败关闭 |
 | M4 | 稳定当前 Reporting、语义指纹、commit-addressed 历史 replay、1.6 acceptance | M1–M3 结果合同稳定 | 1.5.08–1.5.12 replay 与 1.6 Markdown/HTML/PDF 通过 |
 | M5 | 工程门禁、发布元数据、单提交和完整交付包 | M1–M4 全绿 | release pipeline、包安装、安全检查和单提交验证全部通过 |
@@ -110,7 +110,7 @@ test "$(git rev-list --count \
 ## Definition of Done
 
 - [ ] 设计文档、ADR、Migration 和五个详细计划均在仓库中。
-- [ ] Core/Plugin API 1.0 对 1.6.0 明确失败并给出迁移说明。
+- [ ] 当前包只公开 Core API 2.0、Plugin API 2.0、Snapshot 2.0 和新的 application command/result，不含 v1 compatibility surface。
 - [ ] 所有运行语义只由 Engine Module 产生。
 - [ ] Snapshot 可持久化、重启读取、规范哈希和检测篡改。
 - [ ] HTTP API v1 使用 Query Port 与标准 Problem Details。

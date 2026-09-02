@@ -1,4 +1,11 @@
-from .models import ModuleStatus, ResearchCompletionInput, ResearchCompletionResult
-from .gate import REQUIRED_MODULES, ResearchCompletionGate
+from research_os.contracts.errors import CompletionEvaluationError
 
-__all__ = ["ModuleStatus", "ResearchCompletionInput", "ResearchCompletionResult", "REQUIRED_MODULES", "ResearchCompletionGate"]
+from .gate import ExecutionCompletionEvaluator
+from .models import ExecutionCompletionResult, FinalStatus
+
+__all__ = [
+    "CompletionEvaluationError",
+    "ExecutionCompletionEvaluator",
+    "ExecutionCompletionResult",
+    "FinalStatus",
+]

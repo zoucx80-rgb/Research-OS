@@ -1,0 +1,13 @@
+{
+  "behavior_baseline_sha": "72ab06c619678b35c31cf7edef7547849e803d16",
+  "research_os_version": "1.5.12",
+  "core_api_version": "1.0",
+  "verification_mode": "detached_worktree_with_explicit_historical_src",
+  "verified_on": "2026-09-02",
+  "files": {
+    "runtime_reference/anonymous_distributor.json": "dfd7ea0da60996990185f5737820bff8841dc071ea056ed26c57e60e6f1bc32e",
+    "runtime_reference/anonymous_manufacturer.json": "cc5cdfd3efd61e2e1c71ce78dba5980c92d78a957e1d361c4c173f93e98f3526",
+    "report_reference/anonymous_manufacturer.json": "2f89e8b8c2e223adf216f06785b08bd0aba06a9d4ea73e244280d23a2bf2f01d",
+    "report_reference/valuation_reconciliation.json": "a3d1b925e64fe2682a9ceccf19f78b300471554d96f54fdabb3c34924a0d7c3c"
+  }
+}

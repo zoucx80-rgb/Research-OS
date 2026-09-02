@@ -22,7 +22,7 @@
 本修订关闭 2026-09-01 评审的 R1-R7，并统一 R8-R11。以下条款优先于本文件早期示例、旧计划步骤和旧命令：
 
 - 所有事实读取必须经过绑定 `company_id + decision_ts` 的不可变 `FactView`；每个引用使用 `EvidenceRef(evidence_id, revision, content_fingerprint)`，旧的无 cutoff `get(evidence_id)` 不得进入 v2 运行边界。
-- `behavior_baseline_sha` 用于 1.5.12 行为刻画，`delivery_parent_sha` 用于开发和最终 fast-forward 发布；不得 reset 或改写已发布的设计提交。
+- `behavior_baseline_sha` 仅作 1.5.12 缺陷理解和历史 replay 的参考证据，不是当前 v2 兼容门禁；`delivery_parent_sha` 用于开发和最终 fast-forward 发布，且必须在最终交付前重新核验；不得 reset 或改写已发布的设计提交。
 - KPI Provider 唯一签名为 `calculate(facts, definitions, policy) -> tuple[MetricResult, ...]`，其最小依赖类型在 M1 冻结，M3 只实现公式和策略。
 - Snapshot 明确冻结“研究语义指纹投影”和“快照完整性指纹投影”；`SnapshotDescriptor` 在持久化后组装，不进入自身哈希输入。
 - Completion 在唯一 Engine 末端、且排除 Readiness 后评估；Readiness 随后消费完成结果和内容 Artifact，Finalizer 只投影。
@@ -130,7 +130,7 @@ class ResearchApplication:
         ...
 ```
 
-`ResearchRuntimeFactory` 不再是正式公共入口。迁移期可在 `research_os.compat.v1` 提供明确转换函数，但不得再创建另一套 Runtime。
+`ResearchRuntimeFactory` 不再是当前公共入口。Core API 2.0 仅通过新的 application command/result 运行；调用方必须重建输入，包内不提供 `compat/v1` 转换函数、adapter 或第二套 Runtime。
 
 ### 6.2 ResearchRunCommand
 
@@ -151,10 +151,12 @@ class ResearchRunCommand(BaseModel):
 ```
 
 每个子输入只被对应领域模块依赖。不得再让所有模块共同依赖一个无限膨胀的 DTO。
+插件选择、外部版本与持久化选项只由 `ResearchRunCommand.options` 持有，
+`ResearchContext` 不保存第二份运行选项。
 
 ### 6.3 Revision-bound PIT Context
 
-`ResearchContext` 在 Phase A 创建不可变 `FactView`，并拒绝任何不属于目标公司的记录：
+Phase A 为 `ResearchContext` 创建不可变、同公司同 cutoff 的 `EvidenceView` 与 `FactView`，并拒绝任何不属于目标公司的记录：
 
 ```python
 class EvidenceRef(BaseModel):
@@ -162,14 +164,22 @@ class EvidenceRef(BaseModel):
     revision: int
     content_fingerprint: str
 
-class FactView(Protocol):
+class EvidenceView(Protocol):
     company_id: str
     decision_ts: datetime
     def get(self, ref: EvidenceRef) -> RawEvidence: ...
     def refs(self) -> tuple[EvidenceRef, ...]: ...
+
+class FactView(Protocol):
+    company_id: str
+    decision_ts: datetime
+    reporting_period: ReportingPeriod
+    accounting_scope: AccountingScope
+    def get(self, fact_id: str, default: object | None = None) -> object | None: ...
+    def evidence_refs(self, fact_id: str) -> tuple[EvidenceRef, ...]: ...
 ```
 
-`FactView` 在构造时按 `publish_ts <= decision_ts` 选择每个证据 ID 的具体 revision，并冻结其值和 lineage。模块、Provider、旧输入迁移和 FinancialFactSnapshot 只能读取该视图；不得接受裸 `evidence_id` 或调用无 cutoff 的 legacy `get`。同一 run 内数据变化、未来 revision、revision 输入顺序变化和跨公司引用必须被测试为失败或结果不变。
+`EvidenceView` 在构造时按 `publish_ts <= decision_ts` 选择每个证据 ID 的具体 revision；`FactView` 冻结事实值、期间、范围和 revision-bound lineage。`ResearchContext` 校验所有事实引用都能在 `EvidenceView` 中解析，且原始事实值受引用证据的 raw/normalized value 支持。后续模块、Provider 和 FinancialFactSnapshot 只能读取这两个冻结视图；不得接受裸 `evidence_id` 或调用无 cutoff 的 `get`。同一 run 内数据变化、未来 revision、revision 输入顺序变化和跨公司引用必须被测试为失败或结果不变。
 
 ### 6.3 ResearchRunResult
 
@@ -223,7 +233,7 @@ class ArtifactWrite(BaseModel, Generic[T]):
     key: ArtifactKey[T]
     value: T
     producer_id: str
-    evidence_ids: tuple[str, ...] = ()
+    evidence_refs: tuple[EvidenceRef, ...] = ()
 
 class ArtifactSnapshot:
     def require(self, key: ArtifactKey[T]) -> T: ...
@@ -296,6 +306,8 @@ Expectation -> Forecast -> Valuation -> Decision -> Monitoring -> Readiness
 6. `RunFinalizer` 只组合模块结果、版本和指纹，不产生研究语义；
 7. `SnapshotWriter` 持久化最终结果。
 
+Repository Preflight 必须读取实际 checkout 的 Git HEAD、分支和远端仓库身份，并与 Context 中冻结的 repository ID/full name、产品版本和 Core API 版本共同核验；仅验证调用方自报 SHA 的格式不构成通过证据。
+
 `ResolvedStrategyModule` 将预计算的 StrategyResolution 作为 Engine 产物写入，因此最终语义 Artifact 仍全部由 Engine 产生。
 
 ## 9. Plugin API 2.0
@@ -317,6 +329,8 @@ class PluginManifest(BaseModel):
     priority: int = 100
     maturity: Literal["experimental", "candidate", "stable", "deprecated"]
 ```
+
+行业 `ApplicabilityResult` 与方法 `SupportAssessment` 都携带其判断实际使用的 `EvidenceRef`。被选中的 `ResolvedPlugin` 保留自身选择 lineage，`StrategyResolution` 再汇总所有选中插件的引用写入 Artifact envelope；不得用裸 Evidence ID 表示估值或预测方法的支持依据。
 
 ### 9.2 Plugin Services
 
@@ -356,6 +370,7 @@ HTTP_API_VERSION = "v1"
 - Research OS 自有组件版本只来自 Manifest 或实际选中组件；
 - 调用方不能用 `versions` 字典覆盖内置组件；
 - 外部 dataset/parser/model 版本通过 `ExternalVersionInputs` 提供；
+- `ComponentFingerprint` 必须绑定实际加载实现内容及其 ID/version/API，不能只对身份字符串再次哈希；
 - Snapshot、Audit Appendix 和 API 元数据由同一 `RunVersionSet` 生成；
 - 任何不一致都使发布门禁失败。
 
@@ -432,7 +447,7 @@ class ResearchSnapshotV2(BaseModel):
 
 哈希输入冻结为两种投影：
 
-1. **研究语义指纹**：`company`、`decision_ts`、`behavior_baseline_sha`、实际组件/Policy/Metric/外部数据版本、EvidenceRef（含 revision 和内容指纹）、输入假设、类型化 Artifact 内容、Completion/Readiness。排除 `run_id`、`snapshot_id`、`created_at`、展示格式和指纹自身。
+1. **研究语义指纹**：`company`、`decision_ts`、该次运行实际采用的方法论与代码基线、实际组件/Policy/Metric/外部数据版本、EvidenceRef（含 revision 和内容指纹）、输入假设、类型化 Artifact 内容、Completion/Readiness。排除 `run_id`、`snapshot_id`、`created_at`、展示格式、历史评审用 `behavior_baseline_sha` 和指纹自身。
 2. **快照完整性指纹**：完整持久化 envelope（ID、时间、Schema、Codec、研究语义投影及 Artifact fingerprints），排除完整性指纹自身。
 
 `ArtifactKey(artifact_id, schema_version)` 只允许查受控 codec/decoder；未知 Schema、未知类型或动态 import 路径一律拒绝。Decimal、UTC 时间、枚举、有序序列、无序集合和 missingness 的规范编码必须固定并保持精度。相同研究输入在不同 run ID 下语义指纹相同，完整性指纹可不同。`ResearchSnapshotDescriptor` 在持久化成功后组装，不进入自身哈希输入。
@@ -455,9 +470,9 @@ class UnitOfWork(Protocol):
 
 提供 `InMemorySnapshotRepository` 用于单元测试，`SqlSnapshotRepository` 用于正式运行。
 
-### 12.4 1.x 兼容
+### 12.4 Clean-break Snapshot boundary
 
-`research_os.compat.v1.snapshot_reader` 只读取旧 Snapshot 并投影为 `LegacySnapshotView`。不得把旧快照原地升级或重新计算历史结论。
+当前包只解码和持久化 Snapshot Schema 2.0。旧 Snapshot 不在当前进程读取、转换或重新计算；需要历史复现时，HistoricalReplayExecutor 必须在其不可变历史提交中启动对应 runner。
 
 ## 13. Persistence 与 Evidence
 
@@ -760,7 +775,8 @@ class ReplayProfile(BaseModel):
 ```text
 ContractError
   ├─ ArtifactContractError
-  ├─ PluginCompatibilityError
+  ├─ PluginContractError
+  │    └─ PluginVersionUnsupportedError
   ├─ PlanCompilationError
   └─ SnapshotSchemaError
 
@@ -832,11 +848,11 @@ delivery_parent_sha -> 唯一 v1.6.0 release commit
 
 ### 27.2 契约
 
-- Core API/Plugin API 1.0 对 1.6.0 明确不兼容；
+- 当前包只公开 Core API 2.0、Plugin API 2.0、Snapshot 2.0 和新的 application command/result；
 - 所有新 Artifact 有类型、Schema 版本和 Provider；
 - Product/Core/Plugin/Snapshot/HTTP 版本独立且一致；
 - Snapshot 可在进程重启后读取和验证；
-- v1 Snapshot 可只读，不被重算。
+- 当前运行不读取、转换或重算 v1 Snapshot；历史复现由 isolated executor 在历史提交完成。
 
 ### 27.3 业务
 

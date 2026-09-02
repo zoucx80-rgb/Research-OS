@@ -40,7 +40,10 @@ def test_build_safe_version_leaf_is_the_single_product_identity_source():
 def test_release_gate_derives_required_checks_from_manifest_packs():
     resolved = resolve_release_checks(CURRENT_RELEASE)
     assert tuple(resolved) == REQUIRED
-    assert "release-governance" in CURRENT_RELEASE.verification_packs
+    assert CURRENT_RELEASE.verification_packs == (
+        "m1-core-runtime",
+        "release-governance",
+    )
     assert resolved["release_governance"] == (
         "tests/regression/architecture/test_release_governance.py"
     )
@@ -60,22 +63,13 @@ def test_field_replay_profiles_are_unique_and_historical_profiles_are_frozen():
     ids = [profile.profile_id for profile in profiles]
     assert len(ids) == len(set(ids))
     assert ids == list(CURRENT_RELEASE.field_replay_profiles)
+    assert profiles == ()
 
     for profile_id in ("field-v1.5.08", "field-v1.5.09", "field-v1.5.10", "field-v1.5.11"):
         assert REPLAY_REGISTRY[profile_id].frozen is True
     assert REPLAY_REGISTRY["field-v1.5.12"].frozen is False
 
-    for profile in profiles:
-        assert Path(profile.runner_script).exists()
-        assert Path(profile.fixture_dir).exists()
-
-
-def test_current_field_replay_uses_stable_acceptance_core_not_historical_runner_scripts():
-    current = REPLAY_REGISTRY["field-v1.5.12"]
-    source = Path(current.runner_script).read_text(encoding="utf-8")
-    assert "research_os.acceptance" in source
-    for historical_version in ("v1_5_08", "v1_5_09", "v1_5_10"):
-        assert f"render_field_acceptance_{historical_version}" not in source
+    assert CURRENT_RELEASE.status == "development"
 
 
 def test_ci_uses_stable_release_pipeline_instead_of_patch_specific_blocks():

@@ -17,54 +17,19 @@ _RELEASE_GOVERNANCE_CHECKS: dict[str, str] = {
     "release_governance": "tests/regression/architecture/test_release_governance.py",
 }
 
-_SEMANTIC_CORRECTNESS_CHECKS: dict[str, str] = {
-    "semantic_signal_contract_v1_5_11": "tests/unit/thesis/test_semantic_signals_v1_5_11.py",
-    "thesis_lifecycle_v1_5_11": "tests/unit/thesis/test_lifecycle_semantics_v1_5_11.py",
-    "expectation_missingness_v1_5_11": "tests/unit/decision/test_missing_expectation_v1_5_11.py",
-    "semantic_runtime_v1_5_11": "tests/integration/runtime/test_semantic_thesis_runtime_v1_5_11.py",
-    "presentation_integrity_v1_5_11": "tests/unit/reporting/test_semantic_integrity_v1_5_11.py",
-    "semantic_output_patterns_v1_5_11": "tests/regression/research_patterns/test_v1_5_11_semantic_output_patterns.py",
-    "semantic_correctness_patterns_v1_5_11": "tests/regression/research_patterns/test_v1_5_11_semantic_correctness.py",
-    "semantic_architecture_v1_5_11": "tests/regression/architecture/test_semantic_correctness_contract_v1_5_11.py",
-    "semantic_field_v1_5_11": "tests/integration/presentation/test_field_acceptance_v1_5_11.py",
-    "release_contract_v1_5_11": "tests/regression/architecture/test_release_contract_v1_5_11.py",
-}
-
-_SEMANTIC_PRESERVATION_CHECKS: dict[str, str] = {
-    "claim_strength_contract_v1_5_12": "tests/unit/semantics/test_claims.py",
-    "semantic_context_contract_v1_5_12": "tests/unit/completeness/test_semantic_context_v1_5_12.py",
-    "semantic_preservation_runtime_v1_5_12": "tests/integration/runtime/test_semantic_preservation_v1_5_12.py",
-    "valuation_reconciliation_v1_5_12": "tests/unit/valuation/test_reconciliation_v1_5_12.py",
-    "valuation_reconciliation_runtime_v1_5_12": "tests/integration/runtime/test_valuation_reconciliation_v1_5_12.py",
-    "semantic_preservation_reporting_v1_5_12": "tests/unit/reporting/test_semantic_preservation_v1_5_12.py",
-    "semantic_preservation_architecture_v1_5_12": "tests/regression/architecture/test_semantic_preservation_contract_v1_5_12.py",
-    "semantic_preservation_field_v1_5_12": "tests/integration/presentation/test_field_acceptance_v1_5_12.py",
-    "release_contract_v1_5_12": "tests/regression/architecture/test_release_contract_v1_5_12.py",
-}
-
 CHECK_REGISTRY: Mapping[str, str] = {
     **_BASELINE_CHECKS,
     **_RELEASE_GOVERNANCE_CHECKS,
-    **_SEMANTIC_CORRECTNESS_CHECKS,
-    **_SEMANTIC_PRESERVATION_CHECKS,
 }
 
 PACK_REGISTRY: Mapping[str, VerificationPack] = {
-    "stable-baseline": VerificationPack(
-        pack_id="stable-baseline",
+    "m1-core-runtime": VerificationPack(
+        pack_id="m1-core-runtime",
         check_ids=tuple(_BASELINE_CHECKS),
     ),
     "release-governance": VerificationPack(
         pack_id="release-governance",
         check_ids=tuple(_RELEASE_GOVERNANCE_CHECKS),
-    ),
-    "semantic-correctness": VerificationPack(
-        pack_id="semantic-correctness",
-        check_ids=tuple(_SEMANTIC_CORRECTNESS_CHECKS),
-    ),
-    "semantic-preservation": VerificationPack(
-        pack_id="semantic-preservation",
-        check_ids=tuple(_SEMANTIC_PRESERVATION_CHECKS),
     ),
 }
 

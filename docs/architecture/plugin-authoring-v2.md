@@ -60,9 +60,15 @@ class MethodologyPlugin(Protocol):
     ) -> SupportAssessment: ...
 
     def services(self) -> PluginServices: ...
+
+class SupportAssessment(BaseModel):
+    supported: bool
+    rationale: tuple[str, ...] = ()
+    evidence_refs: tuple[EvidenceRef, ...] = ()
+    limitations: tuple[str, ...] = ()
 ```
 
-方法插件可以贡献估值方法、预测评估器或 Policy，但不能改变 Completion 和 Decision 的唯一权威。
+方法插件可以贡献估值方法、预测评估器或 Policy，但不能改变 Completion 和 Decision 的唯一权威。`SupportAssessment.evidence_refs` 必须包含支持该方法选择的具体 revision；选中的 `ResolvedPlugin` 和 `StrategyResolution` 保留同一 lineage。纯能力匹配未读取证据时该字段可以为空。
 
 ## 5. PluginServices
 
@@ -100,7 +106,7 @@ class KpiProvider(Protocol):
 
 KPI Provider 选择业务适用指标和输入映射；通用 MetricDefinition/Formula 由 Core Registry 拥有。Provider 不得重新定义不兼容的通用指标。
 
-`FactView`、`ReportingPeriod`、`AccountingScope`、`MetricResult`、`PolicySnapshot` 和只读 `MetricDefinitionRegistry` 的最小公共形状在 M1 冻结。`ReportingPeriod`/`AccountingScope` 由 revision-bound FactSnapshot/FactView 携带，Provider 不接受另一套临时 `calculate(facts, period) -> MetricSet` 签名。内置和外部插件运行同一个 contract test；旧 API 1.0 插件返回 `PLUGIN_API_V1_REMOVED`。
+`FactView`、`ReportingPeriod`、`AccountingScope`、`MetricResult`、`PolicySnapshot` 和只读 `MetricDefinitionRegistry` 的最小公共形状在 M1 冻结。`ReportingPeriod`/`AccountingScope` 由 revision-bound FactSnapshot/FactView 携带，Provider 不接受另一套临时 `calculate(facts, period) -> MetricSet` 签名。内置和外部插件运行同一个 contract test；发现的插件必须声明并实现 API 2.0。
 
 ## 7. Valuation/Forecast Method
 
@@ -165,11 +171,11 @@ Core 使用 `importlib.metadata.entry_points()` 读取，并按 Plugin ID 确定
 
 测试使用匿名 synthetic fixtures。真实公司 fixture 仅可作为冻结 acceptance evidence。
 
-## 12. Plugin API 1.0 迁移
+## 12. Clean-break upgrade
 
-`modules()` 不再是正式 Plugin API。迁移方式：
+`modules()` 不再是正式 Plugin API。集成方必须重写插件：
 
 - KPI Module 迁移为 `KpiProvider`；
 - Report contributions 原类型可映射到 2.0 类型；
 - Manifest 将 `api_version` 改为 `plugin_api_version`，并明确 Core/Product specifier；
-- v1 兼容工具可以解析并生成迁移报告，但不在 1.6 当前运行中执行旧插件。
+- 重新构建、安装并发现新的 API 2.0 分发包；当前包不解析、适配或执行 API 1.0 插件。

@@ -1,0 +1,26 @@
+{
+  "behavior_baseline_sha": "72ab06c619678b35c31cf7edef7547849e803d16",
+  "fixture_kind": "v1_5_12_report_characterization",
+  "context": {
+    "company_id": "synthetic:compat-manufacturer",
+    "decision_ts": "2026-08-30T00:00:00+00:00",
+    "facts": {"business_description": "precision manufacturing", "revenue": 1000.0}
+  },
+  "inputs": {
+    "versions": {"dataset_version": "synthetic@1", "parser_version": "synthetic@1", "formula_version": "synthetic@1", "report_version": "semantic-preservation@1"},
+    "sensitivity": {
+      "case_id": "raw-material-up", "driver_id": "raw_material_price", "shock_label": "raw material +5%", "shock_value": 0.05, "affected_metric": "gross_margin", "result": -0.02, "formula_version": "sensitivity@1", "material_assumptions": [{"assumption_id": "assumption:price", "label": "selling price remains constant", "value": true, "source_type": "analyst_assumption"}], "model_boundary": "mechanical sensitivity, not a forecast", "applicability": "one reporting period with unchanged volume and mix"
+    },
+    "monitoring": {
+      "rule_id": "margin-watch", "metric": "gross_margin", "operator": "gte", "threshold": 0.25, "frequency": "quarterly", "rationale": "research warning line for margin recovery", "source_type": "analyst_assumption", "threshold_type": "analyst_defined_monitoring", "threshold_source": "analyst monitoring policy", "comparison_basis": "quarterly reported gross margin", "applicability": "consolidated manufacturing operations"
+    }
+  },
+  "expected": {
+    "presentation_version": "professional-research-view@1.7.0",
+    "semantic_preservation": {"status": "PASS", "violations": [], "sensitivity_fingerprint": "100aaa67c93a57ab8e5936741d14cc0833513e1cd1f7b62c37b986700f02143a", "monitoring_fingerprint": "8bdfcdc53fc8431ae4354a1845f120feab642fcac126f05aa2c2ffea0884911e"},
+    "sensitivity_view_payload": [{"case_id": "raw-material-up", "driver_id": "raw_material_price", "base_value": null, "shock_label": "raw material +5%", "shock_value": 0.05, "affected_metric": "gross_margin", "result": -0.02, "result_low": null, "result_high": null, "probability": null, "formula_version": "sensitivity@1", "material_assumptions": [{"assumption_id": "assumption:price", "label": "selling price remains constant", "value": true, "unit": null, "source_type": "analyst_assumption"}], "model_boundary": "mechanical sensitivity, not a forecast", "applicability": "one reporting period with unchanged volume and mix", "caveats": [], "evidence_ids": [], "assumption_ids": []}],
+    "monitoring_view_payload": [{"rule_id": "margin-watch", "metric": "gross_margin", "operator": "gte", "threshold": 0.25, "frequency": "quarterly", "rationale": "research warning line for margin recovery", "source_type": "analyst_assumption", "threshold_type": "analyst_defined_monitoring", "threshold_source": "analyst monitoring policy", "comparison_basis": "quarterly reported gross margin", "applicability": "consolidated manufacturing operations", "evidence_ids": [], "assumption_ids": []}],
+    "sensitivity_document_payload": [{"case_id": "raw-material-up", "driver_id": "raw_material_price", "base_value": null, "shock_label": "raw material +5%", "shock_value": 0.05, "affected_metric": "gross_margin", "result": -0.02, "result_low": null, "result_high": null, "probability": null, "formula_version": "sensitivity@1", "material_assumptions": [{"label": "selling price remains constant", "value": true, "unit": null, "source_type": "analyst_assumption"}], "model_boundary": "mechanical sensitivity, not a forecast", "applicability": "one reporting period with unchanged volume and mix", "caveats": []}],
+    "monitoring_document_payload": {"rules": [{"rule_id": "margin-watch", "metric": "gross_margin", "operator": "gte", "threshold": 0.25, "frequency": "quarterly", "rationale": "research warning line for margin recovery", "source_type": "analyst_assumption", "threshold_type": "analyst_defined_monitoring", "threshold_source": "analyst monitoring policy", "comparison_basis": "quarterly reported gross margin", "applicability": "consolidated manufacturing operations"}], "events": []}
+  }
+}

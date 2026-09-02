@@ -5,7 +5,13 @@ from types import MappingProxyType
 from typing import Mapping
 import re
 
-from research_os.version import CORE_API_VERSION, RESEARCH_OS_VERSION
+from research_os.version import (
+    CORE_API_VERSION,
+    HTTP_API_VERSION,
+    PLUGIN_API_VERSION,
+    RESEARCH_OS_VERSION,
+    SNAPSHOT_SCHEMA_VERSION,
+)
 
 
 _SEMVER = re.compile(r"^\d+\.\d+\.\d+$")
@@ -23,6 +29,9 @@ class ReleaseManifest:
 
     version: str
     core_api_version: str
+    plugin_api_version: str
+    snapshot_schema_version: str
+    http_api_version: str
     status: str
     module_versions: Mapping[str, str]
     verification_packs: tuple[str, ...]
@@ -33,6 +42,12 @@ class ReleaseManifest:
             raise ValueError(f"invalid Research OS version: {self.version!r}")
         if not self.core_api_version:
             raise ValueError("core_api_version must not be empty")
+        if not self.plugin_api_version:
+            raise ValueError("plugin_api_version must not be empty")
+        if not self.snapshot_schema_version:
+            raise ValueError("snapshot_schema_version must not be empty")
+        if not self.http_api_version:
+            raise ValueError("http_api_version must not be empty")
         if self.status not in {"development", "stable"}:
             raise ValueError(f"unsupported release status: {self.status!r}")
         if len(self.verification_packs) != len(set(self.verification_packs)):
@@ -45,6 +60,9 @@ class ReleaseManifest:
         return {
             "research_os_version": self.version,
             "core_api_version": self.core_api_version,
+            "plugin_api_version": self.plugin_api_version,
+            "snapshot_schema_version": self.snapshot_schema_version,
+            "http_api_version": self.http_api_version,
             "status": self.status,
             "module_versions": dict(self.module_versions),
         }
@@ -53,45 +71,20 @@ class ReleaseManifest:
 CURRENT_RELEASE = ReleaseManifest(
     version=RESEARCH_OS_VERSION,
     core_api_version=CORE_API_VERSION,
-    status="stable",
+    plugin_api_version=PLUGIN_API_VERSION,
+    snapshot_schema_version=SNAPSHOT_SCHEMA_VERSION,
+    http_api_version=HTTP_API_VERSION,
+    status="development",
     module_versions={
-        "finance_core": "2.0.1",
-        "router": "1.2.0",
-        "driver_engine": "1.4.0",
-        "thesis_engine": "1.2.0",
-        "expectation_engine": "1.2.0",
-        "valuation": "2.2.0",
-        "evidence_lineage": "2.0.0",
-        "safety_gates": "1.0.0",
-        "period_semantics": "1.1.0",
-        "missing_value_semantics": "1.1.0",
-        "funding_loop": "1.1.0",
-        "kpi_applicability": "1.0.0",
-        "completion_gate": "1.1.0",
-        "report_template": "3.1.2",
-        "semantic_presentation": "1.0.0",
-        "semantic_research_view": "1.7.0",
-        "semantic_preservation": "1.0.0",
-        "semantic_claims": "1.0.0",
-        "valuation_reconciliation": "1.0.0",
+        "repository_preflight": "2.0.0",
+        "pit_lineage": "2.0.0",
         "financial_fact_snapshot": "1.0.0",
-        "research_completeness": "1.0.0",
-        "report_composer": "1.4.0",
-        "markdown_renderer": "1.4.0",
-        "html_renderer": "1.0.0",
-        "pdf_adapter": "1.0.0",
+        "business_model": "2.0.0",
+        "resolved_strategy": "2.0.0",
+        "kpi_provider": "2.0.0",
+        "completion_evaluator": "2.0.0",
+        "readiness_evaluator": "2.0.0",
     },
-    verification_packs=(
-        "stable-baseline",
-        "release-governance",
-        "semantic-correctness",
-        "semantic-preservation",
-    ),
-    field_replay_profiles=(
-        "field-v1.5.08",
-        "field-v1.5.09",
-        "field-v1.5.10",
-        "field-v1.5.11",
-        "field-v1.5.12",
-    ),
+    verification_packs=("m1-core-runtime", "release-governance"),
+    field_replay_profiles=(),
 )

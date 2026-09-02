@@ -1,8 +1,8 @@
-# Research OS 1.6.0 M4：Reporting、Presentation 与历史重放实施计划
+# Research OS 1.6.0 M4：当前 Reporting 与隔离历史重放实施计划
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 将 Core API 2.0 的类型化结果无损投影为专业报告，移除活跃补丁版本继承，并使 1.5.08–1.5.12 历史验收在各自 release commit 中真实重放。
+**Goal:** 将 Core API 2.0 的类型化结果无损投影为当前专业报告，移除活跃补丁版本继承，并在各自 release commit 中隔离重放 1.5.08–1.5.12 历史研究。
 
 **Architecture:** 当前 Reporting 使用稳定文件名和组合策略；历史代码不被当前 Python import。HistoricalReplayExecutor 使用 Git detached worktree 运行历史提交。现有 Document→Markdown→HTML→PDF 哈希链保持不变。
 
@@ -13,22 +13,22 @@
 ## Global Constraints
 
 - Presentation 只格式化，不推导研究语义。
-- v1.5.12 Semantic Fingerprint 扩展而非删除。
+- 当前 v2 Semantic Fingerprint 保留所需研究语义；历史指纹仅由历史提交的 replay 验证。
 - 历史 replay 不修改历史 fixtures，不读取 1.6 当前实现。
 - 当前源码不复制完整历史实现。
 - 历史 replay 必须隔离目标 worktree 的解释器、依赖和 `sys.path`，清理/绑定 `GITHUB_SHA`，并断言导入路径、产品/API 版本和 Git HEAD 与 Profile 一致；无依赖锁时不声称字节级重现。
+- M1 clean-break 删除 v1 runtime 后，旧的当前进程 runtime/reporting/presentation 测试不属于 M1 development gate；M4 必须将其替换为 v2 测试或删除，禁止为恢复旧测试收集而添加兼容 shim，并在 M4 出口恢复当前完整测试集可收集。
 
 ---
 
-### Task 1：复用 M1 冻结的 1.5.12 报告行为
+### Task 1：登记历史 replay 参考证据
 
 **Files:**
-- Create: `tests/fixtures/compat/v1_5_12/report_contract/*.json`
-- Create: `tests/regression/reporting/test_v1_5_12_characterization.py`
+- Create: `tests/fixtures/historical_replay/v1_5_12/report_reference/*.json`
+- Create: `tests/regression/replay/test_v1_5_12_reference.py`
 
-- [ ] 读取 M1 Task 0 已生成的匿名 synthetic characterization 及其来源 SHA；不得在 M4 重新生成或改变基线。
-- [ ] 固定 Semantic Preservation、Claim、Threshold、Sensitivity、Valuation Reconciliation 的可见字段。
-- [ ] 固定 Audit Appendix 的版本、Evidence/Assumption IDs 和 Hash 关系。
+- [ ] 读取 M1 Task 0 已生成的匿名 historical reference 及其来源 SHA；不得在 M4 重新生成或改变该参考。
+- [ ] 将 Semantic Preservation、Claim、Threshold、Sensitivity、Valuation Reconciliation 和 Audit Appendix 关系用于解释历史重放偏差，不把它们作为当前 v2 输出等同性门禁。
 
 ### Task 2：稳定当前 ResearchViewPresenter
 
@@ -42,7 +42,7 @@
 - [ ] 写 RED：Presenter 只能消费 revision-bound Artifact lineage，不得通过 evidence ID 重新查询未来 revision。
 - [ ] 写 RED：所有语义限定词、Schema、Provider、Evidence lineage 保留。
 - [ ] 写 RED：不导入 Thesis/Decision/Valuation Engine。
-- [ ] 将 1.5.12 当前行为组合进稳定 `research_view.py`，不通过历史类继承。
+- [ ] 在稳定 `research_view.py` 实现当前 v2 展示合同，不通过历史类继承或复制历史实现。
 
 ### Task 3：稳定 Composer 与 Markdown Renderer
 
@@ -69,7 +69,7 @@
 - [ ] Result/View/Document 三层指纹必须一致；任一缺失失败关闭。
 - [ ] 写 RED：研究语义指纹排除 run_id/snapshot_id/created_at/展示格式；相同研究输入不同 run ID 指纹相同，完整性指纹覆盖完整 envelope。
 - [ ] Display-only 格式化字段不进入语义指纹，避免格式变更污染研究语义。
-- [ ] 保持 v1.5.12 sensitivity/monitoring qualifier 验证。
+- [ ] 验证当前 v2 sensitivity/monitoring qualifier 的 typed Artifact lineage。
 
 ### Task 5：Presentation Bundle 回归
 
@@ -141,7 +141,7 @@ class ReplayProfile(BaseModel):
 
 - [ ] 示例使用匿名 synthetic 数据并可由测试执行。
 - [ ] 文档明确 Product 1.6.0 与 Core/Plugin 2.0 的版本关系。
-- [ ] 文档明确旧 Snapshot 只读、历史 replay 与当前重新研究的区别。
+- [ ] 文档明确当前包不读取或转换旧 Snapshot，且历史 replay 与当前重新研究的区别。
 
 ### Task 9：M4 出口门禁
 

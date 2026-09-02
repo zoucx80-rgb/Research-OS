@@ -1,9 +1,10 @@
 import re
 from collections import defaultdict
 
+from research_os.contracts.evidence import EvidenceRef, evidence_content_fingerprint
 from research_os.domain.evidence import Evidence
 
-from .models import BusinessModelProfile
+from .models import BusinessModelProfile, ClassificationStatus
 
 
 class BusinessModelRouter:
@@ -46,10 +47,17 @@ class BusinessModelRouter:
     def classify(self, company_id: str, evidence: list[Evidence]) -> BusinessModelProfile:
         records = {e.source_table or e.evidence_id: e for e in evidence}
         values = {key: item.value for key, item in records.items()}
-        scores = defaultdict(float)
+        scores: defaultdict[str, float] = defaultdict(float)
+        used_records: dict[str, Evidence] = {}
+
+        def use(key: str) -> None:
+            if item := records.get(key):
+                used_records[item.evidence_id] = item
 
         raw_desc = values.get("business_description")
         desc = "" if raw_desc is None else str(raw_desc).strip().lower()
+        if desc:
+            use("business_description")
         if any(x in desc for x in ("distribution", "distributor", "分销", "流通")):
             scores["distributor"] += 0.5
         if any(x in desc for x in ("manufacturing", "manufacturer", "制造", "生产")):
@@ -76,6 +84,10 @@ class BusinessModelRouter:
             isinstance(value, (int, float)) and value >= self.LEASE_MATERIALITY_THRESHOLD
             for value in (rou, lease_liabilities)
         )
+        if isinstance(rou, (int, float)):
+            use("right_of_use_assets_to_assets")
+        if isinstance(lease_liabilities, (int, float)):
+            use("lease_liabilities_to_assets")
 
         if (
             isinstance(inv, (int, float))
@@ -83,17 +95,22 @@ class BusinessModelRouter:
             and self._is_annual_period(records.get("inventory_to_revenue"))
         ):
             scores["distributor"] += 0.2
+            use("inventory_to_revenue")
         if isinstance(fa, (int, float)) and fa <= 0.08 and not lease_heavy:
             scores["distributor"] += 0.15
+            use("fixed_asset_to_assets")
         if isinstance(gm, (int, float)) and gm <= 0.10:
             scores["distributor"] += 0.15
+            use("gross_margin")
         if isinstance(fa, (int, float)) and fa >= 0.20:
             scores["manufacturing"] += 0.25
+            use("fixed_asset_to_assets")
         if isinstance(gm, (int, float)) and gm >= 0.15:
             scores["manufacturing"] += 0.15
+            use("gross_margin")
 
         if scores:
-            classification_status = "classified"
+            classification_status: ClassificationStatus = "classified"
             classification_reason = "supported_business_model_signal"
         else:
             scores["unknown"] = 0.5
@@ -106,13 +123,20 @@ class BusinessModelRouter:
 
         ranked = sorted(scores.items(), key=lambda x: x[1], reverse=True)
         primary, score = ranked[0]
-        secondary = [m for m, s in ranked[1:] if s >= 0.3]
+        secondary = tuple(m for m, s in ranked[1:] if s >= 0.3)
         return BusinessModelProfile(
             company_id=company_id,
             primary_model=primary,
             secondary_models=secondary,
             confidence=min(1.0, max(0.5, score)),
-            evidence_ids=[e.evidence_id for e in evidence],
+            evidence_refs=tuple(
+                EvidenceRef(
+                    evidence_id=item.evidence_id,
+                    revision=item.revision_no,
+                    content_fingerprint=evidence_content_fingerprint(item),
+                )
+                for item in used_records.values()
+            ),
             router_version=self.version,
             classification_status=classification_status,
             classification_reason=classification_reason,
