@@ -28,8 +28,6 @@ from .result import (
     RunVersionSet,
     VersionIdentity,
 )
-from .service import PluginProvider, ResearchApplication
-
 __all__ = [
     "ExpectationResearchInput",
     "ExternalVersionInputs",
@@ -55,3 +53,11 @@ __all__ = [
     "VersionIdentity",
     "ComponentFingerprint",
 ]
+
+
+def __getattr__(name: str) -> object:
+    if name in {"PluginProvider", "ResearchApplication"}:
+        from . import service
+
+        return getattr(service, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

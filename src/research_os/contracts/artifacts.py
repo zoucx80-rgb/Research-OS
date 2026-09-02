@@ -338,6 +338,12 @@ class ArtifactSnapshot:
         envelope = self._find(key)
         return None if envelope is None else copy.deepcopy(envelope)
 
+    def envelopes(self) -> tuple[ArtifactEnvelope[object], ...]:
+        return tuple(
+            copy.deepcopy(self._envelopes[identity])
+            for identity in sorted(self._envelopes)
+        )
+
     def merged_with(self, other: ArtifactSnapshot) -> ArtifactSnapshot:
         overlap = set(self._envelopes) & set(other._envelopes)
         if overlap:

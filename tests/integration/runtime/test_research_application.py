@@ -7,13 +7,18 @@ import subprocess
 
 import pytest
 from pydantic import ValidationError
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
+from research_os.adapters.persistence.schema import PersistenceBase
+from research_os.adapters.persistence.unit_of_work import SqlUnitOfWork
 from research_os.application import ResearchApplication, ResearchRunCommand
 from research_os.application.bootstrap import (
     RepositoryAttestation,
     RepositoryPreflightError,
 )
 from research_os.contracts.values import AccountingScope
+from research_os.contracts.errors import PersistenceError
 from research_os.domain.evidence import Evidence
 from research_os.runtime import (
     BaselineFingerprint,
@@ -34,7 +39,11 @@ DECISION_TS = datetime(2026, 9, 2, tzinfo=timezone.utc)
 COMPANY_ID = "synthetic:application"
 
 
-def _command(values: dict[str, object] | None = None) -> ResearchRunCommand:
+def _command(
+    values: dict[str, object] | None = None,
+    *,
+    run_id: str = "run:application",
+) -> ResearchRunCommand:
     values = dict(values or {})
     period_type = str(values.pop("period_type", "FY"))
     evidence = tuple(
@@ -63,7 +72,7 @@ def _command(values: dict[str, object] | None = None) -> ResearchRunCommand:
     }
     return ResearchRunCommand(
         context=ResearchContext(
-            run_id="run:application",
+            run_id=run_id,
             company=CompanyRef(company_id=COMPANY_ID),
             decision_ts=DECISION_TS,
             baseline=BaselineFingerprint(
@@ -103,7 +112,13 @@ class _RepositoryAttestor:
 
 
 def _application() -> ResearchApplication:
-    return ResearchApplication.build(repository_attestor=_RepositoryAttestor())
+    engine = create_engine("sqlite+pysqlite:///:memory:")
+    PersistenceBase.metadata.create_all(engine)
+    sessions = sessionmaker(engine, expire_on_commit=False)
+    return ResearchApplication.build(
+        repository_attestor=_RepositoryAttestor(),
+        unit_of_work_factory=lambda: SqlUnitOfWork(sessions),
+    )
 
 
 def test_application_returns_auditable_incomplete_result_without_evidence_or_plugin():
@@ -112,17 +127,29 @@ def test_application_returns_auditable_incomplete_result_without_evidence_or_plu
     assert result.run_id == "run:application"
     assert result.execution_completion.final_status == "INCOMPLETE"
     assert result.research_readiness.final_status == "NOT_READY"
-    assert result.snapshot is None
+    assert result.snapshot is not None
     assert result.artifacts.require(STRATEGY_RESOLUTION).coverage_gaps
     assert result.artifacts.require(KPI_METRICS).metrics == ()
     assert "core:kpi-provider" in result.execution_completion.blocking_capabilities
+
+
+def test_application_fails_closed_when_snapshot_persistence_is_unconfigured():
+    application = ResearchApplication.build(repository_attestor=_RepositoryAttestor())
+
+    with pytest.raises(PersistenceError, match="UnitOfWork"):
+        application.run(_command())
 
 
 def test_application_build_keeps_plugin_registries_run_scoped():
     application = _application()
 
     first = application.run(_command({"business_description": "precision manufacturing"}))
-    second = application.run(_command({"business_description": "precision manufacturing"}))
+    second = application.run(
+        _command(
+            {"business_description": "precision manufacturing"},
+            run_id="run:application:second",
+        )
+    )
 
     assert first.strategy_resolution == second.strategy_resolution
 

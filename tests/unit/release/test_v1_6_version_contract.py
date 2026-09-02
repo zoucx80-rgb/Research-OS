@@ -35,7 +35,7 @@ def test_generated_public_metadata_matches_the_v1_6_manifest():
     assert metadata == CURRENT_RELEASE.to_public_metadata()
 
 
-def test_development_manifest_lists_only_implemented_m1_components():
+def test_development_manifest_lists_implemented_m1_and_m2_components():
     assert CURRENT_RELEASE.module_versions == {
         "repository_preflight": "2.0.0",
         "pit_lineage": "2.0.0",
@@ -45,4 +45,8 @@ def test_development_manifest_lists_only_implemented_m1_components():
         "kpi_provider": "2.0.0",
         "completion_evaluator": "2.0.0",
         "readiness_evaluator": "2.0.0",
+        "snapshot_codec": "2.0.0",
+        "sql_persistence": "2.0.0",
+        "research_query": "1.0.0",
+        "http_api": "1.0.0",
     }

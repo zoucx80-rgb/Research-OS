@@ -13,6 +13,10 @@
     "resolved_strategy": "2.0.0",
     "kpi_provider": "2.0.0",
     "completion_evaluator": "2.0.0",
-    "readiness_evaluator": "2.0.0"
+    "readiness_evaluator": "2.0.0",
+    "snapshot_codec": "2.0.0",
+    "sql_persistence": "2.0.0",
+    "research_query": "1.0.0",
+    "http_api": "1.0.0"
   }
 }

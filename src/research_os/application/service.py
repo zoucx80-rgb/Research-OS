@@ -23,8 +23,11 @@ from research_os.application.result import (
     RunVersionSet,
     VersionIdentity,
 )
-from research_os.contracts.errors import PluginContractError
-from research_os.contracts.errors import RepositoryPreflightError
+from research_os.contracts.errors import (
+    PersistenceError,
+    PluginContractError,
+    RepositoryPreflightError,
+)
 from research_os.plugins.builtins import BuiltinPluginProvider
 from research_os.plugins.discovery import discover_plugins
 from research_os.plugins.registry import PluginRegistry
@@ -39,6 +42,7 @@ from research_os.runtime.core_artifacts import (
 )
 from research_os.runtime.engine import ResearchEngine, TypedExecutionResult
 from research_os.runtime.module_plan import ModulePlan
+from research_os.snapshots.service import SnapshotService, UnitOfWorkFactory
 
 
 def _implementation_files(component: object) -> tuple[tuple[str, Path], ...]:
@@ -142,12 +146,16 @@ class ResearchApplication:
         self,
         plugin_providers: tuple[PluginProvider, ...] = (),
         repository_attestor: RepositoryAttestor | None = None,
+        unit_of_work_factory: UnitOfWorkFactory | None = None,
+        snapshot_service: SnapshotService | None = None,
     ) -> None:
         self._engine = ResearchEngine()
         self._readiness = ResearchReadinessEvaluator()
         self._finalizer = RunFinalizer()
         self._plugin_providers = plugin_providers
         self._repository_attestor = repository_attestor or GitRepositoryAttestor()
+        self._unit_of_work_factory = unit_of_work_factory
+        self._snapshot_service = snapshot_service or SnapshotService()
 
     @classmethod
     def build(
@@ -155,8 +163,15 @@ class ResearchApplication:
         *,
         plugin_providers: Iterable[PluginProvider] = (),
         repository_attestor: RepositoryAttestor | None = None,
+        unit_of_work_factory: UnitOfWorkFactory | None = None,
+        snapshot_service: SnapshotService | None = None,
     ) -> ResearchApplication:
-        return cls(tuple(plugin_providers), repository_attestor)
+        return cls(
+            tuple(plugin_providers),
+            repository_attestor,
+            unit_of_work_factory,
+            snapshot_service,
+        )
 
     def _preflight(self, command: ResearchRunCommand) -> RepositoryAttestation:
         try:
@@ -344,7 +359,7 @@ class ResearchApplication:
             finalized.execution,
             registry,
         )
-        return self._finalizer.finalize(
+        result = self._finalizer.finalize(
             command=command,
             execution=finalized.execution,
             strategy=strategy,
@@ -352,4 +367,16 @@ class ResearchApplication:
             readiness=finalized.readiness,
             versions=versions,
             component_fingerprints=components,
+        )
+        if not command.options.persist_snapshot:
+            return result
+        if self._unit_of_work_factory is None:
+            raise PersistenceError(
+                "snapshot persistence requires a UnitOfWork factory",
+                context={"run_id": result.run_id},
+            )
+        return self._snapshot_service.persist(
+            command=command,
+            result=result,
+            unit_of_work_factory=self._unit_of_work_factory,
         )

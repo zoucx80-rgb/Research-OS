@@ -197,6 +197,24 @@ def test_snapshot_uses_typed_keys_and_missing_require_fails_closed():
         snapshot._envelopes = {}  # type: ignore[misc]
 
 
+def test_snapshot_exposes_sorted_copied_envelopes_for_persistence():
+    first = ArtifactKey("z.artifact", "2.0", dict)
+    second = ArtifactKey("a.artifact", "2.0", dict)
+    catalog = ArtifactCatalog()
+    catalog.register(ArtifactDefinition(first, ArtifactMode.EXCLUSIVE))
+    catalog.register(ArtifactDefinition(second, ArtifactMode.EXCLUSIVE))
+    store = ArtifactStore(catalog)
+    store.write(ArtifactWrite(first, {"value": 1}, "z-provider"))
+    store.write(ArtifactWrite(second, {"value": 2}, "a-provider"))
+
+    snapshot = store.freeze()
+    envelopes = snapshot.envelopes()
+    envelopes[0].value["value"] = 999
+
+    assert [item.key.artifact_id for item in envelopes] == ["a.artifact", "z.artifact"]
+    assert snapshot.require(second) == {"value": 2}
+
+
 class _FingerprintStatus(StrEnum):
     PASS = "PASS"
 

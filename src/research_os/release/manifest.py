@@ -84,7 +84,15 @@ CURRENT_RELEASE = ReleaseManifest(
         "kpi_provider": "2.0.0",
         "completion_evaluator": "2.0.0",
         "readiness_evaluator": "2.0.0",
+        "snapshot_codec": "2.0.0",
+        "sql_persistence": "2.0.0",
+        "research_query": "1.0.0",
+        "http_api": "1.0.0",
     },
-    verification_packs=("m1-core-runtime", "release-governance"),
+    verification_packs=(
+        "m1-core-runtime",
+        "m2-persistence-http",
+        "release-governance",
+    ),
     field_replay_profiles=(),
 )

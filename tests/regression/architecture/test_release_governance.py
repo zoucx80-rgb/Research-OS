@@ -42,8 +42,18 @@ def test_release_gate_derives_required_checks_from_manifest_packs():
     assert tuple(resolved) == REQUIRED
     assert CURRENT_RELEASE.verification_packs == (
         "m1-core-runtime",
+        "m2-persistence-http",
         "release-governance",
     )
+    assert resolved["snapshot_schema_v2"] == "tests/unit/snapshots"
+    assert resolved["snapshot_canonicalization_v2"] == "tests/property/snapshots"
+    assert resolved["sql_persistence_v2"] == "tests/integration/storage"
+    assert resolved["runtime_snapshot_transaction_v2"] == (
+        "tests/integration/runtime/test_run_snapshot_transaction.py"
+    )
+    assert resolved["http_api_v1_unit"] == "tests/unit/api"
+    assert resolved["http_api_v1_integration"] == "tests/integration/api"
+    assert resolved["http_api_v1_contract"] == "tests/contract/api"
     assert resolved["release_governance"] == (
         "tests/regression/architecture/test_release_governance.py"
     )

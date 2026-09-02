@@ -16,9 +16,21 @@ class VerificationPack:
 _RELEASE_GOVERNANCE_CHECKS: dict[str, str] = {
     "release_governance": "tests/regression/architecture/test_release_governance.py",
 }
+_M2_PERSISTENCE_HTTP_CHECKS: dict[str, str] = {
+    "snapshot_schema_v2": "tests/unit/snapshots",
+    "snapshot_canonicalization_v2": "tests/property/snapshots",
+    "sql_persistence_v2": "tests/integration/storage",
+    "runtime_snapshot_transaction_v2": (
+        "tests/integration/runtime/test_run_snapshot_transaction.py"
+    ),
+    "http_api_v1_unit": "tests/unit/api",
+    "http_api_v1_integration": "tests/integration/api",
+    "http_api_v1_contract": "tests/contract/api",
+}
 
 CHECK_REGISTRY: Mapping[str, str] = {
     **_BASELINE_CHECKS,
+    **_M2_PERSISTENCE_HTTP_CHECKS,
     **_RELEASE_GOVERNANCE_CHECKS,
 }
 
@@ -26,6 +38,10 @@ PACK_REGISTRY: Mapping[str, VerificationPack] = {
     "m1-core-runtime": VerificationPack(
         pack_id="m1-core-runtime",
         check_ids=tuple(_BASELINE_CHECKS),
+    ),
+    "m2-persistence-http": VerificationPack(
+        pack_id="m2-persistence-http",
+        check_ids=tuple(_M2_PERSISTENCE_HTTP_CHECKS),
     ),
     "release-governance": VerificationPack(
         pack_id="release-governance",

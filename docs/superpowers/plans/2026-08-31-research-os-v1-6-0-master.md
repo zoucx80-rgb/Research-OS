@@ -112,8 +112,8 @@ test "$(git rev-list --count \
 - [ ] 设计文档、ADR、Migration 和五个详细计划均在仓库中。
 - [ ] 当前包只公开 Core API 2.0、Plugin API 2.0、Snapshot 2.0 和新的 application command/result，不含 v1 compatibility surface。
 - [ ] 所有运行语义只由 Engine Module 产生。
-- [ ] Snapshot 可持久化、重启读取、规范哈希和检测篡改。
-- [ ] HTTP API v1 使用 Query Port 与标准 Problem Details。
+- [x] Snapshot 可持久化、重启读取、规范哈希和检测篡改。
+- [x] HTTP API v1 使用 Query Port 与标准 Problem Details。
 - [ ] 专业研究基础合同均保留 Evidence/Assumption/Basis/Applicability。
 - [ ] 当前 Reporting 不依赖补丁版本继承。
 - [ ] 历史 replay 在各自 commit 中执行。

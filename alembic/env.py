@@ -5,12 +5,12 @@ from sqlalchemy import engine_from_config, pool
 from alembic import context
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'src'))
-from research_os.storage.models import Base
+from research_os.adapters.persistence.schema import PersistenceBase
 config=context.config
 if config.config_file_name is not None: fileConfig(config.config_file_name)
 url=os.environ.get('DATABASE_URL')
 if url: config.set_main_option('sqlalchemy.url',url)
-target_metadata=Base.metadata
+target_metadata=PersistenceBase.metadata
 
 def run_migrations_offline():
     context.configure(url=config.get_main_option('sqlalchemy.url'),target_metadata=target_metadata,literal_binds=True,compare_type=True)
