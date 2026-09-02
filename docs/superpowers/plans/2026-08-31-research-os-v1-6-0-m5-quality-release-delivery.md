@@ -15,7 +15,8 @@
 - 不以“单元测试通过”代替完整发布验证。
 - 不在 squash 前后的不同代码状态之间复用测试结论。
 - 最终 commit 生成后必须重新运行全部门禁。
-- 远端 main 不是冻结基线时停止，不覆盖新提交。
+- `behavior_baseline_sha=72ab06c619678b35c31cf7edef7547849e803d16` 仅用于 characterization；交付父提交在 M1 启动时冻结为包含本次设计修订的最新 `main` HEAD，远端继续前进时先核对、整合并更新父提交。
+- 远端 main 漂移且未完成整合时停止，不覆盖新提交。
 - 不 force-push，不重写 v1.5.12 及更早历史。
 
 ---
@@ -83,7 +84,7 @@ release-gate
 
 ### Task 5：数据库和 Snapshot 发布验证
 
-- [ ] 从 1.5.12 migration head 复制数据库，执行 upgrade。
+- [ ] 从真实 1.5.12 migration head 复制数据库，执行 upgrade。
 - [ ] 验证旧 Evidence 行数、hash 和查询结果不变。
 - [ ] 写入 1.6 Run/Snapshot，重启进程后读取和 verify。
 - [ ] 篡改 payload、version、fingerprint 各一次，验证失败关闭。
@@ -131,18 +132,17 @@ python scripts/verify_distribution.py dist/*.whl
 
 ### Task 8：压缩为唯一 release commit
 
-- [ ] `git fetch origin main`。
-- [ ] 验证 `origin/main` 仍是 `72ab06c619678b35c31cf7edef7547849e803d16`。
+- [ ] `git fetch origin main` 并核对当前远端 HEAD 与 M1 记录的 delivery parent；若继续前进则先审查整合。
 - [ ] 保存工作树备份和预 squash diff。
-- [ ] `git reset --soft <baseline>`，确认 staged files 完整。
+- [ ] 保留已发布设计提交，在核验后的 delivery parent 上整理 staged files；不得 reset 到 behavior baseline 或改写历史。
 - [ ] 创建唯一 commit：
 
 ```text
 release: architecture convergence and professional research foundation v1.6.0
 ```
 
-- [ ] 验证基线到 HEAD 的 commit count 精确为 1。
-- [ ] 验证父提交精确为冻结基线。
+- [ ] 验证 delivery parent 到 HEAD 的 commit count 精确为 1。
+- [ ] 验证最终父提交精确为核验后的 delivery parent，历史 release SHA 不变且远端 main 是 HEAD 的祖先。
 
 ### Task 9：最终 commit 后重新验证
 

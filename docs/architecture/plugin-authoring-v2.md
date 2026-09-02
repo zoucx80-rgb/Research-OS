@@ -78,6 +78,8 @@ class PluginServices:
 
 服务对象必须有稳定 `provider_id` 和组件版本。插件不得要求 Core 读取 `_pack` 等私有属性。
 
+Plugin API 2.0 首期不支持通用 `ModuleContribution`。若未来需要模块扩展，必须先通过新的公共合同/ADR 定义可声明依赖和 Artifact 的受控形状；插件始终不能自行执行 Module。
+
 ## 6. KPI Provider
 
 ```python
@@ -98,6 +100,8 @@ class KpiProvider(Protocol):
 
 KPI Provider 选择业务适用指标和输入映射；通用 MetricDefinition/Formula 由 Core Registry 拥有。Provider 不得重新定义不兼容的通用指标。
 
+`FactView`、`ReportingPeriod`、`AccountingScope`、`MetricResult`、`PolicySnapshot` 和只读 `MetricDefinitionRegistry` 的最小公共形状在 M1 冻结。`ReportingPeriod`/`AccountingScope` 由 revision-bound FactSnapshot/FactView 携带，Provider 不接受另一套临时 `calculate(facts, period) -> MetricSet` 签名。内置和外部插件运行同一个 contract test；旧 API 1.0 插件返回 `PLUGIN_API_V1_REMOVED`。
+
 ## 7. Valuation/Forecast Method
 
 方法必须：
@@ -108,7 +112,7 @@ KPI Provider 选择业务适用指标和输入映射；通用 MetricDefinition/F
 - 缺输入时返回 `INSUFFICIENT_EVIDENCE`；
 - 不从产品/renderer 版本推导经济结论。
 
-Forecast 方法还必须提供 PIT cutoff、Benchmark、样本外验证和 Model Card。
+Forecast 方法还必须提供 `train_cutoff`、每个 fold 的 feature availability、label maturity、`evaluation_ts`、Benchmark、样本外验证和 Model Card。Realized outcome 只可用于其成熟后的历史评估，不能进入当时训练输入。
 
 ## 8. Report Contribution
 

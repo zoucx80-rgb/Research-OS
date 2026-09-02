@@ -12,13 +12,17 @@
 
 ## Global Constraints
 
-- 冻结基线：`72ab06c619678b35c31cf7edef7547849e803d16`。
+- 行为基线：`72ab06c619678b35c31cf7edef7547849e803d16`（仅用于 1.5.12 characterization）。
+- 交付父提交：M1 启动时冻结的、包含本次设计修订的最新 `main` HEAD（实施证据记录精确 SHA）。评审时 main 为 `812b6212410723bc80ed6222b5c78bbc74917390`。
 - 产品版本：`1.6.0`；Core API：`2.0`；Plugin API：`2.0`；Snapshot Schema：`2.0`；HTTP API：`v1`。
 - v1.5.12 的 Semantic Preservation、Claim Strength、Threshold Context 与 Valuation Reconciliation 必须保留。
 - 历史 1.5.08–1.5.12 fixtures、结果和提交不得被改写。
 - `src/research_os` 不得包含验收公司身份特例。
 - 除 `ResearchEngine` 外，生产代码不得调用 `ResearchModule.run()`。
 - Engine 返回后不得新增或覆盖 canonical semantic Artifact。
+- Phase A 创建绑定 `company_id + decision_ts` 的不可变 FactView，所有 EvidenceRef 固定具体 revision 和 content fingerprint。
+- M1 冻结正式 KPI Provider 签名及 ReportingPeriod/AccountingScope/MetricResult/PolicySnapshot/Registry 最小形状，M3 只能实现不改形状。
+- Completion 在 Engine 末端先评估，Readiness 随后消费 Completion 和内容 Artifact；合法不完整结果为 `INCOMPLETE + NOT_READY`。
 - Presentation 不得重算财务、Thesis、估值、Decision、Completion 或 Readiness。
 - 不引入微服务、内部事件总线、通用工作流框架或重量级 DI 容器。
 - 每个生产行为执行 RED → GREEN → REFACTOR；每个里程碑结束运行对应集成与架构测试。
@@ -94,15 +98,13 @@ alembic upgrade head
 
 ```bash
 git fetch origin main
-test "$(git rev-parse origin/main)" = \
-  "72ab06c619678b35c31cf7edef7547849e803d16"
-
-git reset --soft 72ab06c619678b35c31cf7edef7547849e803d16
+DELIVERY_PARENT_SHA="$(git rev-parse origin/main)"
+git reset --soft "$DELIVERY_PARENT_SHA"
 git commit -m \
   "release: architecture convergence and professional research foundation v1.6.0"
 
 test "$(git rev-list --count \
-  72ab06c619678b35c31cf7edef7547849e803d16..HEAD)" = "1"
+  "$DELIVERY_PARENT_SHA..HEAD")" = "1"
 ```
 
 ## Definition of Done

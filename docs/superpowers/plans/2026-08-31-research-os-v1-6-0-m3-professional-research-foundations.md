@@ -17,13 +17,14 @@
 - 所有结论阈值来自版本化 Policy。
 - 不将启发式 Rule Score 伪装为概率。
 - 不因报告完整性需要而构造历史、同行、Benchmark 或 Realized Outcome。
+- M1 已冻结 `ReportingPeriod`、`AccountingScope`、`MetricResult`、`PolicySnapshot`、`MetricDefinitionRegistry` Port 和正式 KPI Provider 签名；本里程碑实现值、公式和策略，不改变公共形状或 M2 Schema。
 
 ---
 
-### Task 1：财务值对象与 Accounting Scope
+### Task 1：财务值对象与 Accounting Scope 实现
 
 **Files:**
-- Create: `src/research_os/contracts/values.py`
+- Modify: `src/research_os/contracts/values.py`
 - Modify: `src/research_os/domain/evidence.py`
 - Modify: `src/research_os/domain/lineage.py`
 - Create: `tests/unit/contracts/test_financial_values.py`
@@ -47,7 +48,7 @@
 - Create: `tests/unit/metrics/test_registry.py`
 - Create: `tests/integration/metrics/test_existing_kpi_migration.py`
 
-- [ ] 为现有制造/分销 KPI 输出建立 1.5.12 golden characterization。
+- [ ] 复用 M1 Task 0 已冻结的制造/分销 KPI characterization，不重新生成不同基线。
 - [ ] 写 RED：同 ID 不同公式/单位/Kind/Scope 定义冲突。
 - [ ] 写 RED：期间敏感 Metric 缺 ReportingPeriod 时返回 reason code。
 - [ ] 注册 safe ratio、average、turnover、ROE/ROIC、working-capital 等通用定义。
@@ -128,7 +129,7 @@
 - Create: `tests/integration/runtime/test_valuation_pipeline_v2.py`
 
 - [ ] 为 1.5.12 reconciliation 建立不可回归测试。
-- [ ] 写 RED：SUPPORTED/CONDITIONAL/SANITY_CHECK/CONTRAINDICATED/INSUFFICIENT 状态。
+- [ ] 写 RED：`SUPPORTED`/`CONDITIONALLY_SUPPORTED`/`SANITY_CHECK_ONLY`/`CONTRAINDICATED`/`INSUFFICIENT_EVIDENCE` 状态。
 - [ ] 写 RED：每个状态必须有经济 reason codes；版本号不得进入 analytical rationale。
 - [ ] 写 RED：不同 basis/role 继续由 Reconciler 返回 disagreement/not comparable。
 - [ ] 首批方法仅实现输入合同充分的 PE/PB/DCF/SOTP Adapter；缺输入时不生成数值。
@@ -144,12 +145,13 @@
 - Create: `tests/unit/forecasting/test_benchmarks.py`
 - Create: `tests/integration/forecasting/test_time_series_backtest.py`
 
-- [ ] 写 RED：post-cutoff observation 失败。
+- [ ] 写 RED：记录 `train_cutoff`、每个 fold 的 feature availability、label maturity 和 `evaluation_ts`；post-cutoff observation 进入训练失败。
+- [ ] 写 RED：realized outcome 仅在 label maturity 后进入历史 evaluation，不能成为当时 feature。
 - [ ] 写 RED：没有登记 Benchmark 或样本外结果不能晋级。
 - [ ] 写 RED：time-series split 保持时间顺序，禁止随机 shuffle。
 - [ ] 写 RED：MAE/RMSE/方向准确率、interval coverage 和稳定性窗口有 evidence lineage。
 - [ ] 复用 sklearn split/metrics 与 statsmodels，不自行实现统计模型。
-- [ ] Model Card 保存 features、target、cutoff、environment、limitations。
+- [ ] Model Card 保存 features、target、train cutoff、fold availability、label maturity、evaluation timestamp、environment、limitations。
 
 ### Task 9：Peer Comparability
 

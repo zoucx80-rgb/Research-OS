@@ -12,13 +12,70 @@
 
 ## Global Constraints
 
-- 基线：`72ab06c619678b35c31cf7edef7547849e803d16`。
+- 行为基线：`72ab06c619678b35c31cf7edef7547849e803d16`；交付父提交在 M1 启动时冻结为包含本次设计修订的最新 `main` HEAD，两者用途不得混淆（评审时 main 为 `812b6212410723bc80ed6222b5c78bbc74917390`）。
 - 本阶段不修改报告正文语义和数据库 Schema。
-- 当前 v1.5.12 语义结果先通过 characterization tests 固定。
+- 当前 v1.5.12 输入、语义和报告 characterization 必须在任何公共契约改造前完成并冻结，M4 复用其结果。
+- Phase A 必须创建绑定 `company_id + decision_ts` 的不可变 `FactView`；事实引用包含 `EvidenceRef(evidence_id, revision, content_fingerprint)`。移除运行边界内的 ID-only legacy get。
+- M1 前置冻结 `ReportingPeriod`、`AccountingScope`、`MetricResult`、`PolicySnapshot` 和只读 `MetricDefinitionRegistry` 最小形状，M3 不得改变这些签名。
 - 活跃实现不新增 `*_v2.py` 或 `*_v1_6_0.py`；Core API 版本由合同字段表达。
 - Engine 返回后不允许语义后处理。
 
 ---
+
+### Task 0：冻结 1.5.12 输入、语义与报告行为
+
+**Files:**
+- Create: `tests/fixtures/compat/v1_5_12/runtime_contract/*.json`
+- Create: `tests/fixtures/compat/v1_5_12/report_contract/*.json`
+- Create: `tests/regression/runtime/test_v1_5_12_characterization.py`
+- Create: `tests/regression/reporting/test_v1_5_12_characterization.py`
+
+- [ ] 从 `behavior_baseline_sha` 生成匿名输入、Artifact、Completion、报告字段和语义指纹 characterization；记录生成 SHA，不读取其他项目数据。
+- [ ] 加入未来 revision 混入历史事实和 ID-only get 的失败复现，确认旧行为测试能暴露问题而不是把错误值固化为预期。
+- [ ] 固定现有制造/分销 KPI 数值、missingness、lineage、Sensitivity、Monitoring 和 Valuation Reconciliation。
+- [ ] M1-M4 只复用本任务的 characterization，不在 M3/M4 临时重建不同基线。
+
+### Task 0A：Revision-bound PIT FactView
+
+**Files:**
+- Create: `src/research_os/contracts/evidence.py`
+- Modify: `src/research_os/runtime/context.py`
+- Modify: `src/research_os/runtime/financial_snapshot.py`
+- Modify: `src/research_os/runtime/builtin_modules.py`
+- Create: `tests/unit/contracts/test_evidence_ref.py`
+- Create: `tests/integration/runtime/test_revision_bound_fact_view.py`
+
+**Interfaces:**
+
+```python
+class EvidenceRef(BaseModel):
+    evidence_id: str
+    revision: int
+    content_fingerprint: str
+
+class FactView(Protocol):
+    company_id: str
+    decision_ts: datetime
+    def get(self, ref: EvidenceRef) -> RawEvidence: ...
+    def refs(self) -> tuple[EvidenceRef, ...]: ...
+```
+
+- [ ] 写 RED：revision 1 在 cutoff 前、revision 2 在 cutoff 后时，只能读取 revision 1；lineage 引用相同 revision/fingerprint。
+- [ ] 写 RED：调换输入 revision 顺序结果不变；跨公司 ref、cutoff 边界错误和 content fingerprint 不匹配失败。
+- [ ] 写 RED：FactView 构造后 Repository 新增 revision 不改变同一 run；旧输入迁移也必须经 FactView 验证。
+- [ ] 移除 v2 运行边界内 `LegacyEvidenceView.get(evidence_id)` 的使用，Financial Snapshot 和内置模块只接收 `EvidenceRef`。
+
+### Task 0B：冻结 Plugin API 最小领域类型
+
+**Files:**
+- Create: `src/research_os/contracts/values.py`
+- Create: `src/research_os/contracts/metrics.py`
+- Create: `src/research_os/contracts/policies.py`
+- Create: `tests/contract/plugins/test_kpi_provider_contract.py`
+
+- [ ] 冻结最小 `ReportingPeriod`、`AccountingScope`、`MetricResult`、`PolicySnapshot` 和只读 `MetricDefinitionRegistry` Protocol。
+- [ ] 类型包含期间、范围、单位、missingness 和 EvidenceRef，不在 M3 更名或换返回形状。
+- [ ] 同一 contract suite 可运行内置与 synthetic external Provider。
 
 ### Task 1：版本身份和 Release Manifest 契约
 
@@ -43,6 +100,7 @@ HTTP_API_VERSION = "v1"
 - [ ] 写 RED 测试：调用方提供的 `versions` 不得覆盖 Research OS 自有组件版本。
 - [ ] 运行：`python -m pytest -q tests/unit/release/test_v1_6_version_contract.py tests/regression/architecture/test_version_authority_v1_6.py`，确认因 1.5.12/1.0 失败。
 - [ ] 扩展 `ReleaseManifest`：增加 `plugin_api_version`、`snapshot_schema_version`、`http_api_version`。
+- [ ] 修改版本常量时同步 `research_os_version.json` 等生成元数据，使既有 release governance tests 在 M1 内保持一致；M5 只做最终核对。
 - [ ] 保持 `research_os.version` 为 build-safe import-free leaf。
 - [ ] GREEN 后运行现有 release governance tests。
 
@@ -170,15 +228,22 @@ class IndustryPlugin(Protocol):
 @runtime_checkable
 class KpiProvider(Protocol):
     provider_id: str
-    def calculate(self, facts: FactView, period: ReportingPeriod) -> MetricSet: ...
+    provider_version: str
+    def metric_ids(self) -> frozenset[str]: ...
+    def calculate(
+        self,
+        facts: FactView,
+        definitions: MetricDefinitionRegistry,
+        policy: PolicySnapshot,
+    ) -> tuple[MetricResult, ...]: ...
 ```
 
-- [ ] 写 RED 测试：Plugin API 1.0 Manifest 被明确拒绝并包含迁移错误代码。
+- [ ] 写 RED 测试：同一 contract test 同时约束内置和外部 Provider；Plugin API 1.0 Manifest 被明确拒绝并返回稳定 `PLUGIN_API_V1_REMOVED` 迁移错误代码。
 - [ ] 写 RED 测试：版本范围由 `SpecifierSet` 判断，pre-release 行为明确。
 - [ ] 写 RED 测试：内置 Manufacturing/Distributor 不公开 `_pack`，也不返回嵌套 Module。
 - [ ] 写 RED 测试：Entry Point 加载按插件 ID 排序并拒绝重复。
 - [ ] 迁移 Registry/Resolver；使用 `packaging.version.Version`。
-- [ ] 为现有 KPI Pack 建立 Provider Adapter，保持公式与 v1.5.12 结果不变。
+- [ ] 为现有 KPI Pack 建立正式签名的 Provider Adapter，委托现有计算实现并保持公式与 v1.5.12 结果不变；不得公开临时 `calculate(facts, period)`。
 - [ ] 旧 Plugin API 1.0 仅保留迁移解析，不进入当前运行路径。
 
 ### Task 6：分领域 ResearchRunCommand
@@ -225,9 +290,10 @@ class KpiProvider(Protocol):
 - Create: `tests/unit/readiness/test_readiness.py`
 - Create: `tests/integration/runtime/test_completion_readiness_separation.py`
 
-- [ ] 写 RED 测试：Execution COMPLETE 与 Readiness NOT_READY 可以同时存在。
+- [ ] 写 RED 测试：Engine 末端先评估 Completion，再由 Readiness 消费 Completion 和内容 Artifact；Execution COMPLETE 与 Readiness NOT_READY 可以同时存在。
 - [ ] 写 RED 测试：Readiness 不改变 Decision 或 Completion。
 - [ ] 写 RED 测试：显式 NOT_APPLICABLE 不阻塞，隐式缺失仍阻塞。
+- [ ] 写 RED 测试：无插件/缺证据返回 `INCOMPLETE + NOT_READY`；未登记 Provider 或依赖循环在编译期失败；异常终止不生成有效 Result。
 - [ ] 将现有 completeness 九维逻辑迁入 `ResearchReadinessEvaluator`，保留同等结果。
 - [ ] Result 同时公开两个独立字段。
 
@@ -237,4 +303,6 @@ class KpiProvider(Protocol):
 - [ ] 运行 v1.5.12 Semantic Preservation、Valuation Reconciliation 回归。
 - [ ] 运行 mypy 严格检查 Core 边界。
 - [ ] 扫描 `src/research_os`，确认只有 Engine 调用 Module。
+- [ ] 验证未来 revision 不影响历史结果、revision 顺序不改变结果、跨公司 Evidence 被拒绝、同一 run 数据变化被冻结。
+- [ ] M2 的 Snapshot codec/schema 只能消费本阶段已冻结的公共形状。
 - [ ] 生成 M1 变更说明，但不创建 release commit。

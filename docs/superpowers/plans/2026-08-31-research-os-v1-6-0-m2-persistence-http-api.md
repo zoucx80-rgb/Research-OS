@@ -13,6 +13,7 @@
 ## Global Constraints
 
 - M1 的 `ArtifactSnapshot`、`ResearchRunResult` 和 `RunVersionSet` 已冻结。
+- M1 冻结的 revision-bound `FactView`/`EvidenceRef` 是唯一事实输入边界；SQL 查询不得把 ID 存在误当作具体 revision 有效。
 - 正式存储不得使用全局内存字典；内存 Repository 仅为测试适配器。
 - 旧 Snapshot 只读，不改 hash、不补字段、不重新研究。
 - API 首期只读，不增加交易、研究结论修改或任意 SQL 查询能力。
@@ -42,13 +43,16 @@
 ```python
 class SnapshotCodecV2:
     codec_version = "jcs-1"
-    def encode(self, payload: ResearchSnapshotPayloadV2) -> bytes: ...
-    def digest(self, payload: ResearchSnapshotPayloadV2) -> str: ...
+    def encode_research_projection(self, payload: ResearchSnapshotPayloadV2) -> bytes: ...
+    def research_digest(self, payload: ResearchSnapshotPayloadV2) -> str: ...
+    def encode_envelope(self, snapshot: ResearchSnapshotV2) -> bytes: ...
+    def integrity_digest(self, snapshot: ResearchSnapshotV2) -> str: ...
 ```
 
-- [ ] 写 RED 测试：对象 key 顺序不影响 bytes/hash。
+- [ ] 写 RED 测试：对象 key 顺序不影响 bytes/hash；相同研究输入不同 run ID 的 research digest 相同，完整性 digest 可不同。
 - [ ] 写 RED 测试：Datetime、Decimal、Enum、Pydantic Model 有唯一规范形式。
 - [ ] 写 RED 测试：未知对象类型、非字符串 key、NaN/Infinity 失败关闭。
+- [ ] 写 RED 测试：未知 Artifact Schema/type 不解码，禁止从快照动态 import Python 路径。
 - [ ] 复用 RFC 8785/JCS 库，不用 `default=str` 或自行发明浮点规则。
 - [ ] 用 Hypothesis 验证确定性与 round-trip normalization。
 
@@ -93,9 +97,9 @@ class SnapshotCodecV2:
 
 - [ ] 写 RED：进程重启后 Snapshot 可读取并验证。
 - [ ] 写 RED：Run/Snapshot 同事务提交，任一失败时整体 rollback。
-- [ ] 写 RED：latest-as-of 在数据库侧选择 publish_ts/revision 最新记录。
+- [ ] 写 RED：latest-as-of 在数据库侧按 `company_id + decision_ts` 选择具体 publish_ts/revision，返回不可变 `EvidenceRef`；未来 revision 不得进入历史 FactView。
 - [ ] 使用窗口函数或相关子查询，不在 Python 中读取全部 revision 后归并。
-- [ ] Mapper 保留 comparison_basis、metric_kind 和 v1.5.12 新语义字段。
+- [ ] Mapper 保留 `company_id`、period、scope、unit、revision、UTC 时间、raw/normalized value、`comparison_basis`、`metric_kind`、source locator、lineage 和 content hash；旧行缺失值保持 NULL/UNKNOWN，不推断或重写。
 
 ### Task 6：SnapshotService 与 Run 持久化
 
@@ -105,7 +109,7 @@ class SnapshotCodecV2:
 - Create: `tests/integration/runtime/test_run_snapshot_transaction.py`
 
 - [ ] 写 RED：Application 完成后写入 Run + Snapshot + Artifact Index。
-- [ ] 写 RED：hash 覆盖 payload、versions、component/artifact fingerprints。
+- [ ] 写 RED：research digest 覆盖研究语义投影；integrity digest 覆盖完整 envelope、versions、component/artifact fingerprints，且不递归包含自身或 SnapshotDescriptor。
 - [ ] 写 RED：篡改数据库 payload 或版本后 `verify()` 返回明确失败原因。
 - [ ] SnapshotWriter 不改变 Artifact 值，只序列化最终 Snapshot。
 

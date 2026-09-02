@@ -2,7 +2,9 @@
 
 - **状态：** Proposed，随 Research OS 1.6.0 实施并在发布前转为 Accepted
 - **日期：** 2026-08-31
-- **基线：** `zoucx80-rgb/Research-OS@72ab06c619678b35c31cf7edef7547849e803d16`
+- **行为基线：** `zoucx80-rgb/Research-OS@72ab06c619678b35c31cf7edef7547849e803d16`
+- **评审时 main：** `zoucx80-rgb/Research-OS@812b6212410723bc80ed6222b5c78bbc74917390`
+- **交付父提交：** M1 启动时冻结的、包含本次设计修订的最新 `main` HEAD（发布证据记录精确 SHA）
 - **目标产品版本：** `1.6.0`
 - **目标 Core API：** `2.0`
 - **目标 Plugin API：** `2.0`
@@ -20,6 +22,8 @@ Research OS 1.5.12 已建立 PIT、证据血缘、缺失值保护、比较口径
 这些问题无法通过普通 PATCH 的局部兼容修补彻底解决。用户已决定让现有调用方统一迁移，同时将产品版本保持在 `1.x` 演进，因此本次产品版本采用 `1.6.0`，但独立接口契约升级为 `2.0`。
 
 ## 决策
+
+本 ADR 仍为 `Proposed`，直到实现、验证和发布门禁完成后才转为 `Accepted`。该状态不是发布批准，也不改变 v1.6.0 当前未实施事实。
 
 ### 1. 产品版本与接口版本独立演进
 
@@ -68,6 +72,16 @@ Snapshot 使用规范化 JSON、显式 Schema/Codec/Hash 版本和 SHA-256。Sna
 - `ResearchReadinessAssessment`：专业研究内容是否达到发布准备度。
 
 Readiness 不能成为第二 Decision Engine 或第二 Completion Gate。
+
+唯一顺序为 `Engine modules -> CompletionEvaluator -> ReadinessEvaluator -> Finalizer`。Completion 排除 Readiness；缺证据/无覆盖/`NOT_APPLICABLE` 是可审计的类型化状态，未登记 Provider 或依赖循环才在编译期失败。异常终止不生成有效结论，Finalizer 不能补写语义。
+
+### 9. Revision-bound PIT 与 Snapshot 投影
+
+Phase A 创建绑定 `company_id + decision_ts` 的不可变 `FactView`。所有事实引用必须包含 evidence ID、具体 revision 和 content fingerprint；旧的 ID-only/无 cutoff 读取不属于 v2 边界。Snapshot 同时定义不含 run/snapshot 时间身份的研究语义指纹投影，以及包含完整 envelope 的完整性指纹投影；受控 codec 负责类型解码，未知 Schema/动态 import 一律失败。
+
+### 10. 历史 replay 隔离
+
+HistoricalReplayExecutor 显式绑定目标 worktree 的解释器、依赖和 `sys.path`，清理或绑定 `GITHUB_SHA`，并断言导入文件、产品/API 版本和 Git HEAD 匹配；无依赖锁时只声明记录环境复放。
 
 ## 影响
 

@@ -55,6 +55,23 @@ class ResearchRunCommand(BaseModel):
 - PIT Evidence/Fact/Knowledge Port；
 - 明确的运行选项。
 
+`ResearchContext` 必须在进入任何业务模块前构造不可变、公司绑定的 `FactView`：
+
+```python
+class EvidenceRef(BaseModel):
+    evidence_id: str
+    revision: int
+    content_fingerprint: str
+
+class FactView(Protocol):
+    company_id: str
+    decision_ts: datetime
+    def get(self, ref: EvidenceRef) -> RawEvidence: ...
+    def refs(self) -> tuple[EvidenceRef, ...]: ...
+```
+
+视图只包含 `publish_ts <= decision_ts` 的具体 revision，并冻结值、lineage 和 content fingerprint。v2 模块和插件不得接收裸 evidence ID 或调用无 cutoff 的 `get(evidence_id)`；未来 revision、跨公司引用、cutoff 边界和同一 run 内数据变化必须拒绝或不改变结果。
+
 ### 4.2 版本输入
 
 调用方只可提供外部数据集、解析器、外部模型和数据供应商版本。Research OS 自有组件版本由 Release Manifest 和实际选中组件决定。
@@ -112,6 +129,8 @@ INCOMPLETE + NOT_READY
 
 `INCOMPLETE + READY` 被合同拒绝。
 
+执行顺序固定为 `Module execution -> ExecutionCompletionEvaluator -> ResearchReadinessEvaluator -> Finalizer`。Completion 不依赖 Readiness，也不把 Readiness 计入自身完成集合；已登记能力的缺证据、无覆盖和 `NOT_APPLICABLE` 通过类型化状态返回，未登记 Provider/依赖循环才是编译错误。异常终止不产生可发布 Result，Finalizer 只投影既有语义。
+
 ## 8. 异常
 
 公共错误必须继承：
@@ -125,6 +144,7 @@ class ResearchOSError(Exception):
 主要错误：
 
 ```text
+CORE_API_V1_REMOVED
 CORE_API_VERSION_MISMATCH
 ARTIFACT_TYPE_MISMATCH
 ARTIFACT_PROVIDER_CONFLICT
@@ -132,6 +152,7 @@ PLAN_DEPENDENCY_MISSING
 PLAN_DEPENDENCY_CYCLE
 MODULE_EXECUTION_FAILED
 PLUGIN_COMPATIBILITY_ERROR
+PLUGIN_API_V1_REMOVED
 SNAPSHOT_SCHEMA_ERROR
 PERSISTENCE_ERROR
 ```
@@ -155,6 +176,8 @@ PERSISTENCE_ERROR
 - Snapshot canonical payload hash。
 
 `run_id`、`snapshot_id` 和 `created_at` 可不同，但不能进入研究语义指纹。
+
+研究语义指纹覆盖公司、decision_ts、行为基线、实际组件/Policy/Metric/外部数据版本、EvidenceRef（含 revision/fingerprint）、输入假设、类型化 Artifact、Completion 和 Readiness；完整性指纹覆盖完整持久化 envelope。`SnapshotDescriptor` 不进入自身哈希输入。Artifact codec 由 `(artifact_id, schema_version)` 受控查表，未知 Schema/类型拒绝解码，不动态 import Python 路径；Decimal、UTC 时间、枚举、有序序列、无序集合和 missingness 的编码规则固定。
 
 ## 11. Core API 1.0 迁移
 

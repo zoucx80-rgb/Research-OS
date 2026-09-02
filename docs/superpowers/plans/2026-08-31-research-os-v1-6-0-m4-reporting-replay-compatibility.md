@@ -16,16 +16,17 @@
 - v1.5.12 Semantic Fingerprint 扩展而非删除。
 - 历史 replay 不修改历史 fixtures，不读取 1.6 当前实现。
 - 当前源码不复制完整历史实现。
+- 历史 replay 必须隔离目标 worktree 的解释器、依赖和 `sys.path`，清理/绑定 `GITHUB_SHA`，并断言导入路径、产品/API 版本和 Git HEAD 与 Profile 一致；无依赖锁时不声称字节级重现。
 
 ---
 
-### Task 1：固定 1.5.12 报告行为
+### Task 1：复用 M1 冻结的 1.5.12 报告行为
 
 **Files:**
 - Create: `tests/fixtures/compat/v1_5_12/report_contract/*.json`
 - Create: `tests/regression/reporting/test_v1_5_12_characterization.py`
 
-- [ ] 从冻结基线生成匿名 synthetic characterization，不在生产源码写公司特例。
+- [ ] 读取 M1 Task 0 已生成的匿名 synthetic characterization 及其来源 SHA；不得在 M4 重新生成或改变基线。
 - [ ] 固定 Semantic Preservation、Claim、Threshold、Sensitivity、Valuation Reconciliation 的可见字段。
 - [ ] 固定 Audit Appendix 的版本、Evidence/Assumption IDs 和 Hash 关系。
 
@@ -38,6 +39,7 @@
 - Create: `tests/unit/reporting/test_research_view_v1_6.py`
 
 - [ ] 写 RED：Presenter 只接受 Core API 2.0 Result/ArtifactSnapshot。
+- [ ] 写 RED：Presenter 只能消费 revision-bound Artifact lineage，不得通过 evidence ID 重新查询未来 revision。
 - [ ] 写 RED：所有语义限定词、Schema、Provider、Evidence lineage 保留。
 - [ ] 写 RED：不导入 Thesis/Decision/Valuation Engine。
 - [ ] 将 1.5.12 当前行为组合进稳定 `research_view.py`，不通过历史类继承。
@@ -65,6 +67,7 @@
 
 - [ ] 指纹输入改为类型化 Artifact Envelope 的 ID/Schema/Provider/Evidence/Payload。
 - [ ] Result/View/Document 三层指纹必须一致；任一缺失失败关闭。
+- [ ] 写 RED：研究语义指纹排除 run_id/snapshot_id/created_at/展示格式；相同研究输入不同 run ID 指纹相同，完整性指纹覆盖完整 envelope。
 - [ ] Display-only 格式化字段不进入语义指纹，避免格式变更污染研究语义。
 - [ ] 保持 v1.5.12 sensitivity/monitoring qualifier 验证。
 
@@ -104,7 +107,9 @@ class ReplayProfile(BaseModel):
 - [ ] 为每个 1.5.08–1.5.12 Profile 登记 release commit SHA。
 - [ ] 写 RED：历史 Profile 不能指向当前 working tree 或 current module builder。
 - [ ] 写 RED：Executor 在 temp worktree 运行 runner、复制产物并清理。
+- [ ] 写 RED：父进程已 editable 安装当前包且设置当前 `GITHUB_SHA` 时，历史 replay 仍从目标 worktree 导入并报告历史产品/API/Git SHA；导入不符时失败，异常时清理 worktree。
 - [ ] CI checkout 改为 `fetch-depth: 0`，仅此架构升级允许调整 topology。
+- [ ] Executor 显式传入 Profile SHA、解释器和依赖约束，启动后断言 `research_os.__file__` 位于目标 worktree。
 - [ ] 删除当前运行对 `historical_professional_modules_v1_5_x.py` 的 import 依赖。
 - [ ] 历史源码指纹由历史提交自身保证，不再要求当前源码与历史源码相同。
 

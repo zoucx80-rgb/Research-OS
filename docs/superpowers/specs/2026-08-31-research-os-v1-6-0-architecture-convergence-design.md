@@ -5,15 +5,28 @@
 | 属性 | 内容 |
 |---|---|
 | 仓库 | `zoucx80-rgb/Research-OS` |
-| 冻结基线 | `72ab06c619678b35c31cf7edef7547849e803d16` |
+| 行为基线 | `72ab06c619678b35c31cf7edef7547849e803d16`（1.5.12 characterization） |
+| 评审时 main | `812b6212410723bc80ed6222b5c78bbc74917390` |
+| 交付父提交 | M1 启动时冻结的最新 `main` HEAD（应包含本次设计修订；在实施证据中记录精确 SHA） |
 | 基线版本 | Research OS `1.5.12` / Core API `1.0` |
 | 目标版本 | Research OS `1.6.0` |
 | 目标契约 | Core API `2.0` / Plugin API `2.0` / Snapshot Schema `2.0` / HTTP API `v1` |
 | 发布性质 | 受控破坏性 MINOR，所有当前调用方整体迁移 |
 | 架构风格 | 模块化单体、DDD 边界、Clean Architecture、Ports & Adapters |
-| 交付要求 | 基于基线仅形成一个 `main` release commit |
+| 交付要求 | 基于交付父提交仅形成一个 `main` release commit；行为基线仅用于 characterization |
 
 ## 2. 目标
+
+### 2.1 评审修订优先级
+
+本修订关闭 2026-09-01 评审的 R1-R7，并统一 R8-R11。以下条款优先于本文件早期示例、旧计划步骤和旧命令：
+
+- 所有事实读取必须经过绑定 `company_id + decision_ts` 的不可变 `FactView`；每个引用使用 `EvidenceRef(evidence_id, revision, content_fingerprint)`，旧的无 cutoff `get(evidence_id)` 不得进入 v2 运行边界。
+- `behavior_baseline_sha` 用于 1.5.12 行为刻画，`delivery_parent_sha` 用于开发和最终 fast-forward 发布；不得 reset 或改写已发布的设计提交。
+- KPI Provider 唯一签名为 `calculate(facts, definitions, policy) -> tuple[MetricResult, ...]`，其最小依赖类型在 M1 冻结，M3 只实现公式和策略。
+- Snapshot 明确冻结“研究语义指纹投影”和“快照完整性指纹投影”；`SnapshotDescriptor` 在持久化后组装，不进入自身哈希输入。
+- Completion 在唯一 Engine 末端、且排除 Readiness 后评估；Readiness 随后消费完成结果和内容 Artifact，Finalizer 只投影。
+- 历史 replay 隔离解释器、依赖、导入路径和 `GITHUB_SHA`，并启动后断言实际包路径、产品/API 版本及 Git HEAD。
 
 Research OS 1.6.0 将现有专业研究语义内核收敛为一个不可绕过、可持久化、可扩展、可审计的系统边界：
 
@@ -138,6 +151,25 @@ class ResearchRunCommand(BaseModel):
 ```
 
 每个子输入只被对应领域模块依赖。不得再让所有模块共同依赖一个无限膨胀的 DTO。
+
+### 6.3 Revision-bound PIT Context
+
+`ResearchContext` 在 Phase A 创建不可变 `FactView`，并拒绝任何不属于目标公司的记录：
+
+```python
+class EvidenceRef(BaseModel):
+    evidence_id: str
+    revision: int
+    content_fingerprint: str
+
+class FactView(Protocol):
+    company_id: str
+    decision_ts: datetime
+    def get(self, ref: EvidenceRef) -> RawEvidence: ...
+    def refs(self) -> tuple[EvidenceRef, ...]: ...
+```
+
+`FactView` 在构造时按 `publish_ts <= decision_ts` 选择每个证据 ID 的具体 revision，并冻结其值和 lineage。模块、Provider、旧输入迁移和 FinancialFactSnapshot 只能读取该视图；不得接受裸 `evidence_id` 或调用无 cutoff 的 legacy `get`。同一 run 内数据变化、未来 revision、revision 输入顺序变化和跨公司引用必须被测试为失败或结果不变。
 
 ### 6.3 ResearchRunResult
 
@@ -292,11 +324,12 @@ class PluginManifest(BaseModel):
 class PluginServices(BaseModel):
     kpi_provider: KpiProvider | None = None
     valuation_methods: tuple[ValuationMethod, ...] = ()
+    forecast_methods: tuple[ForecastMethod, ...] = ()
     policy_contributions: tuple[PolicyDefinition, ...] = ()
     report_contributions: tuple[ReportContribution, ...] = ()
 ```
 
-插件不得返回要自行执行的嵌套 `ResearchModule`；确需模块扩展时，由受控 `ModuleContribution` 交给 `ResearchPlanCompiler` 编译，仍由 Engine 唯一执行。
+插件不得返回要自行执行的嵌套 `ResearchModule`。Plugin API 2.0 首期不支持通用 `ModuleContribution`；未来若引入，必须先通过独立公共合同/ADR 定义依赖、Artifact 和安全边界，且仍由 Engine 唯一执行。
 
 ### 9.3 标准能力复用
 
@@ -352,6 +385,18 @@ class ResearchReadinessAssessment(BaseModel):
 
 标准维度继续覆盖时间序列、经营证据、现金流、一致预期、同行、敏感性、监控事件、上期验证和方法披露。Readiness 不改变 Decision State。
 
+### 11.3 唯一执行顺序
+
+Engine 的末端受控步骤为：
+
+```text
+module execution -> ExecutionCompletionEvaluator
+                   -> ResearchReadinessEvaluator
+                   -> RunFinalizer -> SnapshotWriter
+```
+
+Completion 不依赖 Readiness，也不把自身计入模块完成集合。已登记能力但缺证据、无覆盖或 `NOT_APPLICABLE` 产生类型化模块状态；结构性未登记 Provider/循环才在 Plan 编译期失败。可返回的研究不完整结果为 `INCOMPLETE + NOT_READY`，异常终止不生成有效结论；Finalizer 不得修改任何语义 Artifact。
+
 ## 12. Snapshot Schema 2.0
 
 ### 12.1 模型
@@ -384,6 +429,13 @@ class ResearchSnapshotV2(BaseModel):
 - Datetime 固定为 UTC RFC 3339；
 - NaN/Infinity 被拒绝；
 - 编码器、Schema 和 Hash Algorithm 独立版本化。
+
+哈希输入冻结为两种投影：
+
+1. **研究语义指纹**：`company`、`decision_ts`、`behavior_baseline_sha`、实际组件/Policy/Metric/外部数据版本、EvidenceRef（含 revision 和内容指纹）、输入假设、类型化 Artifact 内容、Completion/Readiness。排除 `run_id`、`snapshot_id`、`created_at`、展示格式和指纹自身。
+2. **快照完整性指纹**：完整持久化 envelope（ID、时间、Schema、Codec、研究语义投影及 Artifact fingerprints），排除完整性指纹自身。
+
+`ArtifactKey(artifact_id, schema_version)` 只允许查受控 codec/decoder；未知 Schema、未知类型或动态 import 路径一律拒绝。Decimal、UTC 时间、枚举、有序序列、无序集合和 missingness 的规范编码必须固定并保持精度。相同研究输入在不同 run ID 下语义指纹相同，完整性指纹可不同。`ResearchSnapshotDescriptor` 在持久化成功后组装，不进入自身哈希输入。
 
 ### 12.3 Repository 与事务
 
@@ -432,6 +484,8 @@ src/research_os/adapters/persistence/
 ```
 
 Snapshot 和 Run 元数据在同一 UnitOfWork 中原子提交。
+
+Evidence Mapper 必须无损保存领域字段：`company_id`、`evidence_id`、`revision`、`publish_ts`、`period`、`scope`、`unit`、`raw_value`、`normalized_value`、`comparison_basis`、`metric_kind`、`source_locator`、lineage 和内容 hash。迁移新增 SQL 列或版本化扩展表；旧行缺失字段保持 `NULL/UNKNOWN`，不得从数值或指标名推断，不得重写旧事实或历史 hash。真实 1.5.12 schema 往返和 downgrade 行为是出口证据。
 
 ## 14. HTTP API v1
 
@@ -623,6 +677,8 @@ INSUFFICIENT_EVIDENCE
 
 模型只有在样本外优于已登记简单 Benchmark 且通过稳定性门禁时晋级。
 
+每个 Forecast Profile 必须记录 `train_cutoff`、每个 fold 的 feature availability、label maturity 和 `evaluation_ts`。已知 realized outcome 只可用于 cutoff 之后的历史评估，禁止进入当时训练输入；任何 post-cutoff observation 进入训练均失败关闭。
+
 ### 20.2 Peer Normalization
 
 归一化维度包括业务模型、会计准则、币种/尺度、财年、报告期、合并范围、租赁、一次性项目、少数股东、股本口径、估值日期和分部结构。不可比较时返回类型化差异，不伪造排名。
@@ -693,6 +749,8 @@ class ReplayProfile(BaseModel):
 - 清理 worktree；
 - 当前源码不导入历史模块。
 
+`HistoricalReplayExecutor` 必须显式设置目标 worktree 的解释器、依赖锁和 `sys.path`，清理或绑定父进程的 `GITHUB_SHA`，并在启动后断言 `research_os.__file__` 位于目标 worktree、产品/API 版本与实际 Git HEAD 匹配。没有历史依赖锁时，结果只能声明“在记录环境中的历史源码复放”，不得声称原始环境字节级重现；异常也必须清理 worktree。
+
 历史 Profile 固定到 1.5.08–1.5.12 各自 release commit。1.6.0 当前 Profile 在当前 checkout 执行。
 
 ## 23. 错误处理
@@ -743,21 +801,23 @@ artifact_index
 
 ## 26. 单提交交付
 
-最终交付建立在基线 SHA 之上，仅有一个新 release commit：
+最终交付建立在交付父提交之上，仅有一个新 release commit。行为基线只用于 characterization：
 
 ```text
-72ab06c619678b35c31cf7edef7547849e803d16
-    -> release: architecture convergence and professional research foundation v1.6.0
+behavior_baseline_sha = 72ab06c619678b35c31cf7edef7547849e803d16
+reviewed_main_sha = 812b6212410723bc80ed6222b5c78bbc74917390
+delivery_parent_sha = M1 启动时包含本次设计修订的最新 main HEAD
+delivery_parent_sha -> 唯一 v1.6.0 release commit
 ```
 
 开发期间可以在隔离 worktree 中形成内部检查点，但交付前必须：
 
-1. 重新读取远端 `main`，确认仍指向冻结基线；
-2. 将所有变更 squash/reset 为单个 commit；
+1. 重新读取远端 `main`，核对其为当前交付父提交或其后经审查整合的提交；
+2. 保留已发布设计提交，将所有 v1.6.0 变更压缩为交付父提交之后的单个 commit；
 3. 运行完整验证；
 4. 生成源码包、binary patch、git bundle/format-patch、SHA256SUMS 和推送说明；
 5. 用户将该唯一 commit fast-forward 到 `main`；
-6. 禁止 force-push 和历史重写。
+6. 验证最终 commit 的父提交为核验后的交付父提交、远端 `main` 是最终 HEAD 的祖先；禁止 force-push 和历史重写。
 
 ## 27. 验收标准
 
