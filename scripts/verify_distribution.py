@@ -33,9 +33,7 @@ def wheel_inventory(wheel: Path) -> tuple[str, ...]:
     if not names:
         raise ValueError("wheel is empty")
     offenders = tuple(
-        name
-        for name in names
-        if any(part in f"/{name}" for part in FORBIDDEN_WHEEL_PARTS)
+        name for name in names if any(part in f"/{name}" for part in FORBIDDEN_WHEEL_PARTS)
     )
     if offenders:
         raise ValueError(f"wheel contains forbidden files: {offenders}")
