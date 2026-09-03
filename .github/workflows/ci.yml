@@ -18,17 +18,14 @@ jobs:
           python-version: '3.12'
           cache: pip
       - run: python -m pip install -e ".[test]"
-      - name: Diagnose M5 Ruff format drift
+      - name: Check Ruff format for M5 Python changes
         shell: bash
         run: |
           set -euo pipefail
           base="abd19bbc7e22d7958df853333e0ba8cedff39f6f"
           mapfile -t files < <(git diff --name-only --diff-filter=ACMR "$base"...HEAD -- '*.py')
-          printf '%s\n' "${files[@]}"
           if ((${#files[@]})); then
-            python -m ruff format "${files[@]}"
-            git diff -- "${files[@]}"
-            git diff --exit-code --quiet -- "${files[@]}"
+            python -m ruff format --check "${files[@]}"
           fi
       - run: python -m ruff check .
       - run: python -m mypy src
