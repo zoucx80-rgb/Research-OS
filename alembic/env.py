@@ -7,7 +7,7 @@ from alembic import context
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from research_os.adapters.persistence.schema import PersistenceBase
+from research_os.adapters.persistence.schema import PersistenceBase  # noqa: E402
 
 config = context.config
 if config.config_file_name is not None:

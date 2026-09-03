@@ -11,11 +11,11 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from research_os.release.gate import evaluate_release_gate
-from research_os.release.historical_executor import HistoricalReplayExecutor
-from research_os.release.manifest import CURRENT_RELEASE
-from research_os.release.replays import resolve_replay_profiles
-from research_os.release.verification import resolve_release_checks
+from research_os.release.gate import evaluate_release_gate  # noqa: E402
+from research_os.release.historical_executor import HistoricalReplayExecutor  # noqa: E402
+from research_os.release.manifest import CURRENT_RELEASE  # noqa: E402
+from research_os.release.replays import resolve_replay_profiles  # noqa: E402
+from research_os.release.verification import resolve_release_checks  # noqa: E402
 
 
 def _run(stage: str, command: list[str]) -> None:

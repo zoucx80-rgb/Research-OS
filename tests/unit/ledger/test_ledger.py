@@ -18,8 +18,8 @@ def test_material_claim_requires_evidence():
 
 
 def test_expired_claim_is_not_current():
-    l = EvidenceLedger()
-    l.add_claim(
+    ledger = EvidenceLedger()
+    ledger.add_claim(
         Claim(
             claim_id="c",
             company_id="X",
@@ -31,7 +31,7 @@ def test_expired_claim_is_not_current():
             next_verification_event="next quarterly report",
         )
     )
-    assert l.current_claims("X", datetime(2026, 9, 30, tzinfo=timezone.utc)) == []
+    assert ledger.current_claims("X", datetime(2026, 9, 30, tzinfo=timezone.utc)) == []
 
 
 def test_material_research_conclusion_requires_expiry_and_next_verification():

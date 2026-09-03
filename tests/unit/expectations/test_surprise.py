@@ -1,3 +1,5 @@
+import pytest
+
 from research_os.expectations.surprise import decompose_surprise
 
 
@@ -10,9 +12,6 @@ def test_profit_beat_with_cfo_miss_is_quality_miss():
     assert r.net_profit_surprise > 0
     assert r.cfo_surprise < 0
     assert r.label == "HEADLINE_BEAT_QUALITY_MISS"
-
-
-import pytest
 
 
 def test_surprise_rejects_mismatched_reporting_periods():
