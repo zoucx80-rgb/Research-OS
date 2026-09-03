@@ -41,7 +41,7 @@ from research_os.contracts.artifacts import (
     ArtifactMode,
 )
 from research_os.contracts.metrics import MetricSet
-from research_os.plugins.resolver import StrategyResolution
+from research_os.plugins.models import StrategyResolution
 from research_os.readiness.models import ResearchReadinessAssessment
 from research_os.router.models import BusinessModelProfile
 from research_os.runtime.context import BaselineFingerprint
