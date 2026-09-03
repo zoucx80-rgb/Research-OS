@@ -71,7 +71,7 @@ def verify_installed_wheel(wheel: Path) -> None:
 import json
 from importlib.metadata import version
 import research_os
-from research_os.api import create_http_app
+from research_os.api.app import create_app
 from research_os.version import (
     CORE_API_VERSION,
     HTTP_API_VERSION,
@@ -85,7 +85,7 @@ assert CORE_API_VERSION == '2.0'
 assert PLUGIN_API_VERSION == '2.0'
 assert SNAPSHOT_SCHEMA_VERSION == '2.0'
 assert HTTP_API_VERSION == 'v1'
-assert callable(create_http_app)
+assert callable(create_app)
 print(json.dumps({'distribution': 'PASS', 'version': RESEARCH_OS_VERSION}))
 """
         _run([str(python), "-c", metadata_probe], cwd=Path(temporary), env=environment)
