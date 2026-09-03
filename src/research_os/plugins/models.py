@@ -150,6 +150,21 @@ class CoverageGap(BaseModel):
     fallback_available: bool | None = None
 
 
+class StrategyResolution(BaseModel):
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    industry_plugins: tuple[ResolvedPlugin, ...] = Field(default_factory=tuple)
+    methodology_plugins: tuple[ResolvedPlugin, ...] = Field(default_factory=tuple)
+    coverage_gaps: tuple[CoverageGap, ...] = Field(default_factory=tuple)
+    rationale: tuple[str, ...] = Field(default_factory=tuple)
+    evidence_refs: tuple[EvidenceRef, ...] = Field(default_factory=tuple)
+
+    @field_validator("evidence_refs")
+    @classmethod
+    def _canonical_lineage(cls, references: tuple[EvidenceRef, ...]) -> tuple[EvidenceRef, ...]:
+        return _canonical_evidence_refs(references)
+
+
 class ExtensionRequest(BaseModel):
     model_config = ConfigDict(frozen=True)
 
