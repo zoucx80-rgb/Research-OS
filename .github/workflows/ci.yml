@@ -18,7 +18,13 @@ jobs:
           python-version: '3.12'
           cache: pip
       - run: python -m pip install -e ".[test]"
-      - run: python -m ruff format --check .
+      - name: Diagnose Ruff format drift
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m ruff format .
+          git diff --name-only
+          git diff --exit-code --quiet
       - run: python -m ruff check .
       - run: python -m mypy src
       - run: lint-imports
