@@ -39,9 +39,7 @@ def _command(run_id: str) -> ResearchRunCommand:
             company=CompanyRef(company_id="000001.SZ"),
             decision_ts=DECISION_TS,
             baseline=_baseline(),
-            evidence=EvidenceView(
-                (), company_id="000001.SZ", decision_ts=DECISION_TS
-            ),
+            evidence=EvidenceView((), company_id="000001.SZ", decision_ts=DECISION_TS),
             facts=FactView(
                 company_id="000001.SZ",
                 decision_ts=DECISION_TS,
@@ -55,9 +53,7 @@ def _command(run_id: str) -> ResearchRunCommand:
 
 
 def _result(run_id: str) -> ResearchRunResult:
-    completion = ExecutionCompletionResult(
-        final_status="COMPLETE", module_statuses={}
-    )
+    completion = ExecutionCompletionResult(final_status="COMPLETE", module_statuses={})
     readiness = ResearchReadinessAssessment(
         final_status="READY",
         dimensions=(),
@@ -109,13 +105,12 @@ def test_verify_reports_research_and_integrity_mismatches() -> None:
     snapshot = service.build(command=_command("run-a"), result=_result("run-a"))
     descriptor = service.describe(snapshot)
 
-    assert service.verify(
-        snapshot, integrity_digest=descriptor.integrity_digest
-    ).valid
-    assert service.verify(
-        snapshot.model_copy(update={"payload_hash": "0" * 64}),
-        integrity_digest=descriptor.integrity_digest,
-    ).reason == "research digest mismatch"
-    assert service.verify(
-        snapshot, integrity_digest="0" * 64
-    ).reason == "integrity digest mismatch"
+    assert service.verify(snapshot, integrity_digest=descriptor.integrity_digest).valid
+    assert (
+        service.verify(
+            snapshot.model_copy(update={"payload_hash": "0" * 64}),
+            integrity_digest=descriptor.integrity_digest,
+        ).reason
+        == "research digest mismatch"
+    )
+    assert service.verify(snapshot, integrity_digest="0" * 64).reason == "integrity digest mismatch"

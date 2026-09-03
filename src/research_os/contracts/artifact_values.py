@@ -198,9 +198,7 @@ class PeerComparableObservation(LineageValue):
 class NormalizedPeer(LineageValue):
     company_id: str
     metric_id: str
-    status: Literal[
-        "COMPARABLE", "ADJUSTMENT_REQUIRED", "NOT_COMPARABLE", "INSUFFICIENT_EVIDENCE"
-    ]
+    status: Literal["COMPARABLE", "ADJUSTMENT_REQUIRED", "NOT_COMPARABLE", "INSUFFICIENT_EVIDENCE"]
     value: Decimal | None = None
     unit: str | None = None
     period: str | None = None
@@ -264,9 +262,9 @@ class Thesis(LineageValue):
     falsifier_statements: tuple[str, ...] = Field(default_factory=tuple)
     next_check_date: date | None = None
     confidence: float | None = Field(default=None, ge=0, le=1)
-    claim_strength: Literal[
-        "OBSERVED", "SUGGESTIVE", "SUPPORTED", "STRONG", "CONFIRMED"
-    ] = "OBSERVED"
+    claim_strength: Literal["OBSERVED", "SUGGESTIVE", "SUPPORTED", "STRONG", "CONFIRMED"] = (
+        "OBSERVED"
+    )
 
 
 class ThesisPortfolio(DomainArtifact):
@@ -291,9 +289,7 @@ class SemanticSignalAssessment(DomainArtifact):
 
 class SemanticClaim(LineageValue):
     claim_key: str
-    claim_type: Literal[
-        "FACT", "CALCULATION", "STATISTICAL_EVIDENCE", "ASSUMPTION", "CONCLUSION"
-    ]
+    claim_type: Literal["FACT", "CALCULATION", "STATISTICAL_EVIDENCE", "ASSUMPTION", "CONCLUSION"]
     statement: str
     dependency_claim_keys: tuple[str, ...] = Field(default_factory=tuple)
 

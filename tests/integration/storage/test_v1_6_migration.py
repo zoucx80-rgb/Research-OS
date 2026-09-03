@@ -71,9 +71,7 @@ def test_v1_6_upgrade_preserves_legacy_evidence_and_upgrades_snapshot_contract(
         "lineage_json",
         "content_hash",
     } <= evidence_columns
-    snapshot_columns = {
-        column["name"] for column in inspector.get_columns("research_snapshot")
-    }
+    snapshot_columns = {column["name"] for column in inspector.get_columns("research_snapshot")}
     assert {
         "schema_version",
         "codec_version",
@@ -132,4 +130,6 @@ def test_v1_6_downgrade_only_removes_v1_6_additions(tmp_path) -> None:
     assert "research_snapshot" in tables
     assert not {"research_run", "artifact_index"} & tables
     evidence_columns = {column["name"] for column in inspector.get_columns("evidence")}
-    assert not {"comparison_basis", "metric_kind", "lineage_json", "content_hash"} & evidence_columns
+    assert (
+        not {"comparison_basis", "metric_kind", "lineage_json", "content_hash"} & evidence_columns
+    )

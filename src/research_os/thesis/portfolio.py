@@ -14,16 +14,12 @@ class ThesisPortfolioBuilder:
         if len({item.thesis_key for item in ordered}) != len(ordered):
             raise ValueError("thesis portfolio contains duplicate thesis keys")
         minimum_confidence = float(
-            self._policy.decimal_value(
-                "thesis_formation", "minimum_primary_confidence"
-            )
+            self._policy.decimal_value("thesis_formation", "minimum_primary_confidence")
         )
         minimum_evidence = self._policy.integer_value(
             "thesis_formation", "minimum_primary_evidence"
         )
-        positive = tuple(
-            item for item in ordered if item.status in {"active", "strengthening"}
-        )
+        positive = tuple(item for item in ordered if item.status in {"active", "strengthening"})
         eligible = tuple(
             item
             for item in positive

@@ -66,9 +66,7 @@ def test_latest_as_of_selects_database_revision_and_binds_evidence_refs() -> Non
     repository.append(future_revision)
     repository.append(another_fact)
 
-    result = repository.latest_as_of(
-        "000001.SZ", datetime(2026, 8, 15, tzinfo=timezone.utc)
-    )
+    result = repository.latest_as_of("000001.SZ", datetime(2026, 8, 15, tzinfo=timezone.utc))
 
     assert [(item.evidence_id, item.revision_no, item.value) for item in result.items] == [
         ("margin", 1, 3),
@@ -76,17 +74,12 @@ def test_latest_as_of_selects_database_revision_and_binds_evidence_refs() -> Non
     ]
     assert result.evidence_refs == tuple(
         sorted(
-            (
-                reference
-                for reference in result.evidence_refs
-            ),
+            (reference for reference in result.evidence_refs),
             key=lambda reference: reference.evidence_id,
         )
     )
     assert result.evidence_refs[1].revision == 1
-    assert result.evidence_refs[1].content_fingerprint == evidence_content_fingerprint(
-        revision_one
-    )
+    assert result.evidence_refs[1].content_fingerprint == evidence_content_fingerprint(revision_one)
 
 
 def test_evidence_mapper_round_trips_v1_6_semantic_and_lineage_columns() -> None:
@@ -146,16 +139,11 @@ def test_evidence_repository_rejects_content_tampering() -> None:
     session.commit()
     with engine.begin() as connection:
         connection.execute(
-            text(
-                "UPDATE evidence SET normalized_value_json = '999' "
-                "WHERE evidence_id = 'revenue'"
-            )
+            text("UPDATE evidence SET normalized_value_json = '999' WHERE evidence_id = 'revenue'")
         )
 
     with pytest.raises(ValueError, match="content hash"):
-        repository.latest_as_of(
-            "000001.SZ", datetime(2026, 8, 2, tzinfo=timezone.utc)
-        )
+        repository.latest_as_of("000001.SZ", datetime(2026, 8, 2, tzinfo=timezone.utc))
 
 
 def _snapshot() -> ResearchSnapshotV2:
@@ -208,9 +196,7 @@ def _snapshot() -> ResearchSnapshotV2:
                 artifact_id="decision.record",
                 schema_version="2.0",
                 type_id="decision-record-v2",
-                value_fingerprint=artifact_value_fingerprint(
-                    payload.artifacts[0].payload
-                ),
+                value_fingerprint=artifact_value_fingerprint(payload.artifacts[0].payload),
             ),
         ),
         payload=payload,
@@ -239,9 +225,7 @@ def test_snapshot_is_readable_after_session_restart(tmp_path) -> None:
     repository.session.commit()
     repository.session.close()
 
-    restored = SqlSnapshotRepository(sessions(), _decoder_registry()).get(
-        snapshot.snapshot_id
-    )
+    restored = SqlSnapshotRepository(sessions(), _decoder_registry()).get(snapshot.snapshot_id)
 
     assert restored == snapshot
 
@@ -270,9 +254,7 @@ def test_snapshot_restart_preserves_reserved_codec_keys_as_ordinary_data(
     repository.append(snapshot)
     repository.session.commit()
 
-    restored = SqlSnapshotRepository(sessions(), _decoder_registry()).get(
-        snapshot.snapshot_id
-    )
+    restored = SqlSnapshotRepository(sessions(), _decoder_registry()).get(snapshot.snapshot_id)
 
     assert restored.payload.artifacts[0].payload == reserved
     assert restored.payload_hash == snapshot.payload_hash

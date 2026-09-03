@@ -24,8 +24,7 @@ def _utc(value: datetime, *, field: str) -> datetime:
 def _unique_refs(references: Sequence[EvidenceRef]) -> tuple[EvidenceRef, ...]:
     return tuple(
         {
-            (item.evidence_id, item.revision, item.content_fingerprint): item
-            for item in references
+            (item.evidence_id, item.revision, item.content_fingerprint): item for item in references
         }.values()
     )
 
@@ -56,9 +55,7 @@ class ForecastObservation(BaseModel):
 
     @field_validator("feature_available_ts")
     @classmethod
-    def _feature_timestamps_are_utc(
-        cls, value: Mapping[str, datetime]
-    ) -> Mapping[str, datetime]:
+    def _feature_timestamps_are_utc(cls, value: Mapping[str, datetime]) -> Mapping[str, datetime]:
         return {
             name: _utc(timestamp, field=f"feature_available_ts.{name}")
             for name, timestamp in value.items()
@@ -99,9 +96,7 @@ class BacktestFold(BaseModel):
             for feature in item.features
         }:
             raise ValueError("realized outcome cannot be used as a feature")
-        if any(
-            item.observed_ts > self.train_cutoff for item in self.train_observations
-        ):
+        if any(item.observed_ts > self.train_cutoff for item in self.train_observations):
             raise ValueError("post-cutoff observation cannot enter training")
         if any(
             available_ts > self.train_cutoff
@@ -109,10 +104,7 @@ class BacktestFold(BaseModel):
             for available_ts in item.feature_available_ts.values()
         ):
             raise ValueError("training feature availability exceeds train cutoff")
-        if any(
-            item.label_mature_ts > self.train_cutoff
-            for item in self.train_observations
-        ):
+        if any(item.label_mature_ts > self.train_cutoff for item in self.train_observations):
             raise ValueError("training label maturity exceeds train cutoff")
         if any(
             available_ts > item.observed_ts
@@ -120,25 +112,18 @@ class BacktestFold(BaseModel):
             for available_ts in item.feature_available_ts.values()
         ):
             raise ValueError("test feature availability exceeds forecast origin")
-        if any(
-            item.label_mature_ts > self.evaluation_ts
-            for item in self.test_observations
-        ):
+        if any(item.label_mature_ts > self.evaluation_ts for item in self.test_observations):
             raise ValueError("test label maturity exceeds evaluation timestamp")
         train_times = tuple(item.observed_ts for item in self.train_observations)
         test_times = tuple(item.observed_ts for item in self.test_observations)
-        if train_times != tuple(sorted(train_times)) or test_times != tuple(
-            sorted(test_times)
-        ):
+        if train_times != tuple(sorted(train_times)) or test_times != tuple(sorted(test_times)):
             raise ValueError("time-series folds must preserve chronological order")
         if max(train_times) >= min(test_times):
             raise ValueError("time-series training must strictly precede test data")
         return self
 
 
-BacktestMetricName = Literal[
-    "MAE", "RMSE", "DIRECTION_ACCURACY", "INTERVAL_COVERAGE"
-]
+BacktestMetricName = Literal["MAE", "RMSE", "DIRECTION_ACCURACY", "INTERVAL_COVERAGE"]
 
 
 class BacktestMetric(BaseModel):
@@ -195,10 +180,7 @@ class BacktestResult(BaseModel):
 
     @property
     def stable(self) -> bool:
-        return all(
-            window.model_mae < window.benchmark_mae
-            for window in self.stability_windows
-        )
+        return all(window.model_mae < window.benchmark_mae for window in self.stability_windows)
 
 
 class TimeSeriesBacktester:
@@ -222,9 +204,7 @@ class TimeSeriesBacktester:
         if tuple(item.observed_ts for item in ordered) != tuple(
             sorted(item.observed_ts for item in ordered)
         ):
-            raise ValueError(
-                "observations must be chronologically ordered; shuffle is forbidden"
-            )
+            raise ValueError("observations must be chronologically ordered; shuffle is forbidden")
         selected_features = tuple(feature_names)
         if (
             not selected_features
@@ -232,11 +212,7 @@ class TimeSeriesBacktester:
             or "realized_outcome" in selected_features
         ):
             raise ValueError("target or realized outcome cannot be selected as a feature")
-        if any(
-            feature not in item.features
-            for item in ordered
-            for feature in selected_features
-        ):
+        if any(feature not in item.features for item in ordered for feature in selected_features):
             raise ValueError("selected feature is missing from an observation")
 
         evaluation_ts = _utc(evaluation_ts, field="evaluation_ts")
@@ -268,39 +244,26 @@ class TimeSeriesBacktester:
                 [[item.features[name] for name in selected_features] for item in train],
                 dtype=float,
             )
-            y_train = np.asarray(
-                [item.realized_outcome for item in train], dtype=float
-            )
+            y_train = np.asarray([item.realized_outcome for item in train], dtype=float)
             x_test = np.asarray(
                 [[item.features[name] for name in selected_features] for item in test],
                 dtype=float,
             )
-            fitted = sm.OLS(
-                y_train, sm.add_constant(x_train, has_constant="add")
-            ).fit()
+            fitted = sm.OLS(y_train, sm.add_constant(x_train, has_constant="add")).fit()
             prediction = fitted.get_prediction(
                 sm.add_constant(x_test, has_constant="add")
             ).summary_frame(alpha=0.05)
             fold_actuals = [item.realized_outcome for item in test]
             fold_predictions = [float(value) for value in prediction["mean"]]
-            fold_benchmarks = [
-                self._benchmarks.predict(benchmark_id, tuple(y_train))
-                for _ in test
-            ]
+            fold_benchmarks = [self._benchmarks.predict(benchmark_id, tuple(y_train)) for _ in test]
             fold_refs = _unique_refs(
-                [
-                    reference
-                    for item in (*train, *test)
-                    for reference in item.evidence_refs
-                ]
+                [reference for item in (*train, *test) for reference in item.evidence_refs]
             )
             windows.append(
                 StabilityWindow(
                     window_id=fold.fold_id,
                     model_mae=float(mean_absolute_error(fold_actuals, fold_predictions)),
-                    benchmark_mae=float(
-                        mean_absolute_error(fold_actuals, fold_benchmarks)
-                    ),
+                    benchmark_mae=float(mean_absolute_error(fold_actuals, fold_benchmarks)),
                     evidence_refs=fold_refs,
                 )
             )
@@ -325,9 +288,7 @@ class TimeSeriesBacktester:
         ]
         coverage_hits = [
             lower <= actual <= upper
-            for lower, actual, upper in zip(
-                lower_bounds, actuals, upper_bounds, strict=True
-            )
+            for lower, actual, upper in zip(lower_bounds, actuals, upper_bounds, strict=True)
         ]
         metrics = (
             BacktestMetric(
@@ -363,9 +324,7 @@ class TimeSeriesBacktester:
             pit_compliant=True,
             folds=tuple(folds),
             metrics=metrics,
-            benchmark_mae=float(
-                mean_absolute_error(actuals, benchmark_predictions)
-            ),
+            benchmark_mae=float(mean_absolute_error(actuals, benchmark_predictions)),
             stability_windows=tuple(windows),
         )
 

@@ -43,9 +43,7 @@ def canonical_document_hash(document: ResearchReportDocument) -> str:
             sort_keys=True,
         )
     except ValueError as exc:
-        raise ValueError(
-            "canonical document hashing rejects non-finite numeric values"
-        ) from exc
+        raise ValueError("canonical document hashing rejects non-finite numeric values") from exc
     return _text_hash(payload)
 
 
@@ -79,9 +77,7 @@ class _PresentationArtifact(BaseModel):
 
 class MarkdownPresentationArtifact(_PresentationArtifact):
     artifact_type: Literal["markdown"] = "markdown"
-    media_type: Literal["text/markdown; charset=utf-8"] = (
-        "text/markdown; charset=utf-8"
-    )
+    media_type: Literal["text/markdown; charset=utf-8"] = "text/markdown; charset=utf-8"
     content: str
 
     @model_validator(mode="after")

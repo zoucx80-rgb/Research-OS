@@ -40,9 +40,7 @@ def _canonical_json(value: object) -> str:
 def _canonical_decimal_text(value: Decimal) -> str:
     """Use the same scale-insensitive Decimal identity as Snapshot Codec V2."""
     if not value.is_finite():
-        raise ArtifactTypeMismatchError(
-            "canonical artifact value requires finite Decimal values"
-        )
+        raise ArtifactTypeMismatchError("canonical artifact value requires finite Decimal values")
     if value.is_zero():
         return "0"
     text = format(value.normalize(), "f")
@@ -79,18 +77,14 @@ def _canonical_artifact_value(value: object) -> object:
         utc_value = value.astimezone(timezone.utc)
         return {
             "type": "datetime",
-            "value": utc_value.isoformat(timespec="microseconds").replace(
-                "+00:00", "Z"
-            ),
+            "value": utc_value.isoformat(timespec="microseconds").replace("+00:00", "Z"),
         }
     if isinstance(value, date):
         return {"type": "date", "value": value.isoformat()}
     if isinstance(value, BaseModel):
         return {
             "type": "model",
-            "value": _canonical_artifact_value(
-                value.model_dump(mode="python", round_trip=True)
-            ),
+            "value": _canonical_artifact_value(value.model_dump(mode="python", round_trip=True)),
         }
     if is_dataclass(value) and not isinstance(value, type):
         return {
@@ -101,15 +95,10 @@ def _canonical_artifact_value(value: object) -> object:
         }
     if isinstance(value, Mapping):
         if any(not isinstance(key, str) for key in value):
-            raise ArtifactTypeMismatchError(
-                "canonical artifact value requires string mapping keys"
-            )
+            raise ArtifactTypeMismatchError("canonical artifact value requires string mapping keys")
         return {
             "type": "mapping",
-            "value": [
-                [key, _canonical_artifact_value(value[key])]
-                for key in sorted(value)
-            ],
+            "value": [[key, _canonical_artifact_value(value[key])] for key in sorted(value)],
         }
     if isinstance(value, tuple):
         return {
@@ -153,8 +142,7 @@ def _canonical_evidence_refs(
         current = by_id.get(reference.evidence_id)
         if current is not None and current != reference:
             raise ArtifactProviderConflictError(
-                "artifact lineage has conflicting revisions or content for "
-                f"{reference.evidence_id}"
+                f"artifact lineage has conflicting revisions or content for {reference.evidence_id}"
             )
         by_id[reference.evidence_id] = reference
     return tuple(
@@ -348,16 +336,14 @@ class ArtifactSnapshot:
 
     def envelopes(self) -> tuple[ArtifactEnvelope[object], ...]:
         return tuple(
-            copy.deepcopy(self._envelopes[identity])
-            for identity in sorted(self._envelopes)
+            copy.deepcopy(self._envelopes[identity]) for identity in sorted(self._envelopes)
         )
 
     def merged_with(self, other: ArtifactSnapshot) -> ArtifactSnapshot:
         overlap = set(self._envelopes) & set(other._envelopes)
         if overlap:
             artifact_ids = ", ".join(
-                f"{artifact_id}@{schema_version}"
-                for artifact_id, schema_version in sorted(overlap)
+                f"{artifact_id}@{schema_version}" for artifact_id, schema_version in sorted(overlap)
             )
             raise ArtifactProviderConflictError(
                 f"cannot merge snapshots with overlapping artifacts: {artifact_ids}"
@@ -404,11 +390,7 @@ class ArtifactStore:
                 value=copy.deepcopy(value),
                 producer_ids=tuple(item.producer_id for item in writes),
                 evidence_refs=_canonical_evidence_refs(
-                    tuple(
-                        reference
-                        for item in writes
-                        for reference in item.evidence_refs
-                    )
+                    tuple(reference for item in writes for reference in item.evidence_refs)
                 ),
                 value_fingerprint=artifact_value_fingerprint(value),
             )

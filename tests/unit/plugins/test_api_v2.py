@@ -127,7 +127,10 @@ def test_discovery_wraps_raw_register_failure_with_entry_point_context():
     )
 
     with pytest.raises(PluginDiscoveryError) as captured:
-        discover_plugins(BrokenRegistry(core_api_version="2.0", research_os_version="1.6.0"), entry_points=(entry_point,))
+        discover_plugins(
+            BrokenRegistry(core_api_version="2.0", research_os_version="1.6.0"),
+            entry_points=(entry_point,),
+        )
 
     assert isinstance(captured.value.__cause__, RuntimeError)
     assert captured.value.context == {

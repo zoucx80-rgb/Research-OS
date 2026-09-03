@@ -52,13 +52,9 @@ class ValuationRouter:
             )
             for model_name, inputs in sorted(context.models.items())
         }
-        primary = [
-            name for name, result in routed.items() if result.status == "SUPPORTED"
-        ]
+        primary = [name for name, result in routed.items() if result.status == "SUPPORTED"]
         secondary = [
-            name
-            for name, result in routed.items()
-            if result.status == "CONDITIONALLY_SUPPORTED"
+            name for name, result in routed.items() if result.status == "CONDITIONALLY_SUPPORTED"
         ]
         diagnosis = (
             "; ".join(

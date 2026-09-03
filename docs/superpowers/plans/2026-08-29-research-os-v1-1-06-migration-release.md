@@ -35,12 +35,14 @@
 
 ```python
 def test_legacy_snapshot_gets_explicit_v1_0_defaults():
-    migrated = migrate_snapshot_metadata({
-        "dataset_version": "2026-08-25.2",
-        "formula_version": "finance-core@1.8.0",
-        "valuation_version": "valuation@1.3.2",
-        "report_version": "gaona-template@2.1",
-    })
+    migrated = migrate_snapshot_metadata(
+        {
+            "dataset_version": "2026-08-25.2",
+            "formula_version": "finance-core@1.8.0",
+            "valuation_version": "valuation@1.3.2",
+            "report_version": "gaona-template@2.1",
+        }
+    )
     assert migrated["research_os_version"] == "1.0.0"
     assert migrated["router_version"] == "legacy-manufacturing-default"
 ```
@@ -158,18 +160,20 @@ git commit -m "test: prove distributor complete research run"
 
 ```python
 def test_release_gate_rejects_missing_distributor_run():
-    result = evaluate_release_gate({
-        "v1_golden": True,
-        "pit": True,
-        "manufacturing": True,
-        "distributor": False,
-        "router_explainable": True,
-        "thesis_falsifiers": True,
-        "ledger": True,
-        "valuation_fitness": True,
-        "decision_no_trade": True,
-        "snapshot_reproducible": True,
-    })
+    result = evaluate_release_gate(
+        {
+            "v1_golden": True,
+            "pit": True,
+            "manufacturing": True,
+            "distributor": False,
+            "router_explainable": True,
+            "thesis_falsifiers": True,
+            "ledger": True,
+            "valuation_fitness": True,
+            "decision_no_trade": True,
+            "snapshot_reproducible": True,
+        }
+    )
     assert result.ready is False
 ```
 

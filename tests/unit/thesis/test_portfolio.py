@@ -16,12 +16,16 @@ def _thesis(
     evidence: bool = True,
 ) -> Thesis:
     references = (
-        EvidenceRef(
-            evidence_id=f"ev:{thesis_key}",
-            revision=1,
-            content_fingerprint=hashlib.sha256(thesis_key.encode()).hexdigest(),
-        ),
-    ) if evidence else ()
+        (
+            EvidenceRef(
+                evidence_id=f"ev:{thesis_key}",
+                revision=1,
+                content_fingerprint=hashlib.sha256(thesis_key.encode()).hexdigest(),
+            ),
+        )
+        if evidence
+        else ()
+    )
     return Thesis(
         thesis_key=thesis_key,
         company_id="synthetic:portfolio",

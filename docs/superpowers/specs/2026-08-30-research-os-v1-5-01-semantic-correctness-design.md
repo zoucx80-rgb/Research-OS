@@ -160,13 +160,19 @@ class SemanticValue(BaseModel):
     explanation: str
     code: str
 
-class HumanReadableDecisionSummary(BaseModel):
-    ...
+
+class HumanReadableDecisionSummary(BaseModel): ...
+
 
 class DecisionSummaryPresenter:
     version = "semantic-report@1.0.0"
-    def present(self, summary: DecisionSummary, locale: str = "zh-CN") -> HumanReadableDecisionSummary: ...
-    def build(self, result: ResearchRunResult, locale: str = "zh-CN") -> HumanReadableDecisionSummary: ...
+
+    def present(
+        self, summary: DecisionSummary, locale: str = "zh-CN"
+    ) -> HumanReadableDecisionSummary: ...
+    def build(
+        self, result: ResearchRunResult, locale: str = "zh-CN"
+    ) -> HumanReadableDecisionSummary: ...
 ```
 
 `build()` must first call the canonical `DecisionSummaryBuilder`; this preserves the single result/completion source.

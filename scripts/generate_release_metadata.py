@@ -16,11 +16,14 @@ TARGET = ROOT / "research_os_version.json"
 
 
 def rendered_metadata() -> str:
-    return json.dumps(
-        CURRENT_RELEASE.to_public_metadata(),
-        ensure_ascii=False,
-        indent=2,
-    ) + "\n"
+    return (
+        json.dumps(
+            CURRENT_RELEASE.to_public_metadata(),
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n"
+    )
 
 
 def main() -> None:

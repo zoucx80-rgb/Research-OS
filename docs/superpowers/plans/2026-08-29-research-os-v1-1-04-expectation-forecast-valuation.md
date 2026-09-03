@@ -195,12 +195,14 @@ git commit -m "feat: attribute closed forecast errors"
 
 ```python
 def test_distributor_with_volatile_fcf_does_not_use_dcf_as_primary():
-    result = ValuationRouter().route(context(
-        business_model="distributor",
-        dcf=fitness(cash_flow_visibility=0.2),
-        pe=fitness(earnings_stability=0.8),
-        pb=fitness(capital_structure_fit=0.8),
-    ))
+    result = ValuationRouter().route(
+        context(
+            business_model="distributor",
+            dcf=fitness(cash_flow_visibility=0.2),
+            pe=fitness(earnings_stability=0.8),
+            pb=fitness(capital_structure_fit=0.8),
+        )
+    )
     assert result.models["dcf"].status != "PRIMARY"
 ```
 

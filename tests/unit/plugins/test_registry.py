@@ -79,9 +79,7 @@ def _registry(version="1.6.0"):
 
 def test_registry_uses_pep440_specifiers_for_core_and_product_compatibility():
     registry = _registry("1.10.0")
-    plugin = FakeIndustryPlugin(
-        _manifest(research_os_specifier=">=1.9,<1.11")
-    )
+    plugin = FakeIndustryPlugin(_manifest(research_os_specifier=">=1.9,<1.11"))
 
     registry.register(plugin)
 
@@ -103,9 +101,7 @@ def test_registry_rejects_version_outside_declared_specifier():
 
 def test_registry_applies_pep440_prerelease_rules():
     registry = _registry("1.6.0rc1")
-    plugin = FakeIndustryPlugin(
-        _manifest(research_os_specifier=">=1.6.0rc1,<2")
-    )
+    plugin = FakeIndustryPlugin(_manifest(research_os_specifier=">=1.6.0rc1,<2"))
 
     registry.register(plugin)
 
@@ -152,7 +148,9 @@ def test_registry_requires_exact_service_capability_declarations():
         services=PluginServices(kpi_provider=_KpiProvider()),
     )
 
-    with pytest.raises(PluginContractError, match="declared.*valuation.methods.*actual.*kpi.metrics"):
+    with pytest.raises(
+        PluginContractError, match="declared.*valuation.methods.*actual.*kpi.metrics"
+    ):
         _registry().register(plugin)
 
 
@@ -196,6 +194,4 @@ def test_registry_lists_manifests_deterministically_and_filters_type():
         "industry:zeta",
         "methodology:alpha",
     ]
-    assert [m.plugin_id for m in registry.manifests("methodology")] == [
-        "methodology:alpha"
-    ]
+    assert [m.plugin_id for m in registry.manifests("methodology")] == ["methodology:alpha"]

@@ -46,9 +46,7 @@ class Money(_DecimalValue):
         if not isinstance(other, Money):
             raise TypeError("money operations require another Money value")
         if self.currency != other.currency:
-            raise ValueError(
-                f"currency mismatch: {self.currency} != {other.currency}"
-            )
+            raise ValueError(f"currency mismatch: {self.currency} != {other.currency}")
         return other
 
     def __add__(self, other: object) -> Money:
@@ -131,11 +129,7 @@ class Quantity(_DecimalValue):
         return Quantity(value=self.value - resolved.value, unit=self.unit)
 
     def __eq__(self, other: object) -> bool:
-        return (
-            isinstance(other, Quantity)
-            and self.unit == other.unit
-            and self.value == other.value
-        )
+        return isinstance(other, Quantity) and self.unit == other.unit and self.value == other.value
 
     def __lt__(self, other: object) -> bool:
         resolved = self._require_same_unit(other)

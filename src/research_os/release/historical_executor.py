@@ -65,9 +65,7 @@ class HistoricalReplayExecutor:
                 profile.source_commit_sha,
             )
             try:
-                actual_sha = self._run_text(
-                    ["git", "rev-parse", "HEAD"], cwd=worktree
-                )
+                actual_sha = self._run_text(["git", "rev-parse", "HEAD"], cwd=worktree)
                 if actual_sha != profile.source_commit_sha:
                     raise HistoricalReplayError("historical worktree HEAD mismatch")
                 metadata = self._metadata(worktree)
@@ -172,9 +170,7 @@ class HistoricalReplayExecutor:
         )
         source = adapter_path.read_text(encoding="utf-8")
         if source.count(self._PLAYWRIGHT_REDUNDANT_CLEANUP) != 1:
-            raise HistoricalReplayError(
-                "historical compatibility cleanup shape mismatch"
-            )
+            raise HistoricalReplayError("historical compatibility cleanup shape mismatch")
         adapter_path.write_text(
             source.replace(self._PLAYWRIGHT_REDUNDANT_CLEANUP, "", 1),
             encoding="utf-8",
@@ -203,9 +199,7 @@ class HistoricalReplayExecutor:
         if profile.source_commit_sha != self._PLAYWRIGHT_CLEANUP_COMMIT:
             raise HistoricalReplayError("historical compatibility commit mismatch")
         if source_blob_sha != self._PLAYWRIGHT_CLEANUP_BLOB:
-            raise HistoricalReplayError(
-                "historical compatibility source fingerprint mismatch"
-            )
+            raise HistoricalReplayError("historical compatibility source fingerprint mismatch")
         return self._PLAYWRIGHT_CLEANUP_PROFILE
 
     @staticmethod
@@ -276,9 +270,7 @@ class HistoricalReplayExecutor:
             raise HistoricalReplayError("historical imported Core API version mismatch")
 
     @staticmethod
-    def _isolated_environment(
-        *, python: str, venv: Path, source_commit_sha: str
-    ) -> dict[str, str]:
+    def _isolated_environment(*, python: str, venv: Path, source_commit_sha: str) -> dict[str, str]:
         environment = dict(os.environ)
         environment.pop("PYTHONPATH", None)
         environment.update(
@@ -288,9 +280,7 @@ class HistoricalReplayExecutor:
                 "VIRTUAL_ENV": str(venv),
             }
         )
-        environment["PATH"] = (
-            str(Path(python).parent) + os.pathsep + environment.get("PATH", "")
-        )
+        environment["PATH"] = str(Path(python).parent) + os.pathsep + environment.get("PATH", "")
         return environment
 
     def _metadata(self, worktree: Path) -> dict[str, object]:

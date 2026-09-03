@@ -182,6 +182,7 @@ Add a defaulted field rather than a required migration:
 ```python
 from research_os.version import CORE_API_VERSION
 
+
 class VersionBundle(BaseModel):
     ...
     core_api_version: str = CORE_API_VERSION
@@ -670,24 +671,26 @@ git commit -m "refactor: expose research stages as runtime modules"
 
 ```python
 def test_in_memory_knowledge_provider_filters_future_items():
-    provider = InMemoryKnowledgeProvider([
-        KnowledgeItem(
-            knowledge_id="old",
-            content={"definition": "known"},
-            source_id="source:old",
-            publish_ts=datetime(2026, 1, 1, tzinfo=timezone.utc),
-            version="1",
-            evidence_ids=["ev:old"],
-        ),
-        KnowledgeItem(
-            knowledge_id="future",
-            content={"definition": "future"},
-            source_id="source:future",
-            publish_ts=datetime(2027, 1, 1, tzinfo=timezone.utc),
-            version="1",
-            evidence_ids=["ev:future"],
-        ),
-    ])
+    provider = InMemoryKnowledgeProvider(
+        [
+            KnowledgeItem(
+                knowledge_id="old",
+                content={"definition": "known"},
+                source_id="source:old",
+                publish_ts=datetime(2026, 1, 1, tzinfo=timezone.utc),
+                version="1",
+                evidence_ids=["ev:old"],
+            ),
+            KnowledgeItem(
+                knowledge_id="future",
+                content={"definition": "future"},
+                source_id="source:future",
+                publish_ts=datetime(2027, 1, 1, tzinfo=timezone.utc),
+                version="1",
+                evidence_ids=["ev:future"],
+            ),
+        ]
+    )
     result = provider.query(KnowledgeQuery(topic="definition", as_of=DECISION_TS))
     assert [item.knowledge_id for item in result] == ["old"]
 ```

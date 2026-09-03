@@ -66,17 +66,21 @@ class EvidenceRef(BaseModel):
     revision: int
     content_fingerprint: str
 
+
 class EvidenceView(Protocol):
     company_id: str
     decision_ts: datetime
+
     def get(self, ref: EvidenceRef) -> RawEvidence: ...
     def refs(self) -> tuple[EvidenceRef, ...]: ...
+
 
 class FactView(Protocol):
     company_id: str
     decision_ts: datetime
     reporting_period: ReportingPeriod
     accounting_scope: AccountingScope
+
     def get(self, fact_id: str, default: object | None = None) -> object | None: ...
     def evidence_refs(self, fact_id: str) -> tuple[EvidenceRef, ...]: ...
 ```

@@ -48,8 +48,7 @@ class DecisionEngine:
         reasons: tuple[str, ...]
         state: ResearchDecisionState
         if (
-            context.evidence_confidence
-            < self._aggregation.minimum_evidence_confidence
+            context.evidence_confidence < self._aggregation.minimum_evidence_confidence
             or not evidence_refs
         ):
             state = "INSUFFICIENT_EVIDENCE"
@@ -57,19 +56,16 @@ class DecisionEngine:
         elif self._aggregation.has_falsified_thesis(context.thesis_portfolio):
             state = "THESIS_BROKEN"
             reasons = ("THESIS_FALSIFIED",)
-        elif (
-            context.material_funding_risk
-            and self._aggregation.material_funding_risk_veto
-        ):
+        elif context.material_funding_risk and self._aggregation.material_funding_risk_veto:
             state = "RISK_REVIEW"
             reasons = ("MATERIAL_FUNDING_RISK",)
         elif self._aggregation.has_unresolved_conflict(context.thesis_portfolio):
             state = "WAIT_FOR_CONFIRMATION"
             reasons = ("PORTFOLIO_CONFLICT_UNRESOLVED",)
-        elif (
-            context.fundamental_state == "DETERIORATING"
-            and context.expectation_state in {"UNDER_EXPECTED", "MIXED"}
-        ):
+        elif context.fundamental_state == "DETERIORATING" and context.expectation_state in {
+            "UNDER_EXPECTED",
+            "MIXED",
+        }:
             state = "RISK_REVIEW"
             reasons = ("FUNDAMENTAL_RISK",)
         elif (
@@ -87,7 +83,9 @@ class DecisionEngine:
         ):
             state = "ACCUMULATION_CANDIDATE"
             reasons = ("CHEAP_AND_IMPROVING",)
-        elif thesis_state in {"WEAKENING", "UNRESOLVED"} or context.fundamental_state == "UNCERTAIN":
+        elif (
+            thesis_state in {"WEAKENING", "UNRESOLVED"} or context.fundamental_state == "UNCERTAIN"
+        ):
             state = "WAIT_FOR_CONFIRMATION"
             reasons = ("CONFIRMATION_REQUIRED",)
         else:

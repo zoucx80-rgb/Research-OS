@@ -84,9 +84,7 @@ def _copy_payload(value: object) -> object:
             }
         )
     if isinstance(value, MappingProxyType):
-        return MappingProxyType(
-            {key: _copy_payload(item) for key, item in value.items()}
-        )
+        return MappingProxyType({key: _copy_payload(item) for key, item in value.items()})
     if isinstance(value, dict):
         return {key: _copy_payload(item) for key, item in value.items()}
     if isinstance(value, tuple):
@@ -197,9 +195,7 @@ class ResearchSnapshotPayloadV2(_FrozenSnapshotModel):
     def _unique_artifacts(
         cls, value: tuple[SnapshotArtifactV2, ...]
     ) -> tuple[SnapshotArtifactV2, ...]:
-        identities = [
-            (item.artifact_id, item.schema_version, item.type_id) for item in value
-        ]
+        identities = [(item.artifact_id, item.schema_version, item.type_id) for item in value]
         if len(identities) != len(set(identities)):
             raise ValueError("snapshot artifacts must have unique schema identities")
         return value
@@ -219,8 +215,7 @@ class ResearchSnapshotPayloadV2(_FrozenSnapshotModel):
             self,
             "input_assumptions",
             tuple(
-                _copy_payload(item)
-                for item in object.__getattribute__(self, "input_assumptions")
+                _copy_payload(item) for item in object.__getattribute__(self, "input_assumptions")
             ),
         )
 
@@ -293,12 +288,9 @@ class ResearchSnapshotV2(_FrozenSnapshotModel):
             for item in self.payload.artifacts
         }
         if set(fingerprint_by_identity) != set(artifact_by_identity):
-            raise ValueError(
-                "snapshot artifacts and fingerprints must form a one-to-one set"
-            )
+            raise ValueError("snapshot artifacts and fingerprints must form a one-to-one set")
         for identity, artifact in artifact_by_identity.items():
-            if (
-                fingerprint_by_identity[identity].value_fingerprint
-                != artifact_value_fingerprint(artifact.payload)
+            if fingerprint_by_identity[identity].value_fingerprint != artifact_value_fingerprint(
+                artifact.payload
             ):
                 raise ValueError("snapshot artifact fingerprint does not match its value")

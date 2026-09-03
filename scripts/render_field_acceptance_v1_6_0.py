@@ -63,9 +63,7 @@ def _acceptance_statuses(case: dict[str, Any]) -> dict[str, str]:
 
 
 def _git(repository_root: Path, *args: str) -> str:
-    return subprocess.check_output(
-        ("git", "-C", str(repository_root), *args), text=True
-    ).strip()
+    return subprocess.check_output(("git", "-C", str(repository_root), *args), text=True).strip()
 
 
 class _Attestor:
@@ -129,9 +127,7 @@ def _command(case: dict[str, Any], *, commit_sha: str) -> ResearchRunCommand:
                 company_id=company_id,
                 decision_ts=decision_ts,
                 values=values,
-                evidence_refs_by_fact={
-                    fact_id: (refs[fact_id],) for fact_id in values
-                },
+                evidence_refs_by_fact={fact_id: (refs[fact_id],) for fact_id in values},
                 reporting_period=ReportingPeriod(period_type="FY"),
                 accounting_scope=AccountingScope(),
             ),
@@ -142,8 +138,7 @@ def _command(case: dict[str, Any], *, commit_sha: str) -> ResearchRunCommand:
 
 def _valuation_reconciliation(case: dict[str, Any]):
     ranges = tuple(
-        ReconciliationRange.model_validate(item)
-        for item in case.get("valuation_ranges", ())
+        ReconciliationRange.model_validate(item) for item in case.get("valuation_ranges", ())
     )
     return ValuationReconciler.reconcile(ranges)
 
@@ -164,8 +159,7 @@ def _machine_semantics_status(
         )
     )
     artifacts_are_v2 = all(
-        envelope.key.schema_version == "2.0"
-        for envelope in result.artifacts.envelopes()
+        envelope.key.schema_version == "2.0" for envelope in result.artifacts.envelopes()
     )
     readiness_artifact_matches = (
         result.artifacts.require(RESEARCH_READINESS) == result.research_readiness
@@ -237,9 +231,7 @@ def render_case(
         raise FieldAcceptanceError("field acceptance case must be an object")
     expected_statuses = _acceptance_statuses(case)
     command = _command(case, commit_sha=commit_sha)
-    result = ResearchApplication.build(
-        repository_attestor=_Attestor(commit_sha)
-    ).run(command)
+    result = ResearchApplication.build(repository_attestor=_Attestor(commit_sha)).run(command)
     profile = result.artifacts.require(BUSINESS_MODEL_PROFILE)
     if profile.primary_model != case["expected_primary_model"]:
         raise FieldAcceptanceError(

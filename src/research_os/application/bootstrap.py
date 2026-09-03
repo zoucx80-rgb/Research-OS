@@ -160,8 +160,7 @@ def validate_repository_attestation(
         ),
         (
             "repository branch",
-            baseline.branch == OFFICIAL_BRANCH
-            and attestation.branch in {"", OFFICIAL_BRANCH},
+            baseline.branch == OFFICIAL_BRANCH and attestation.branch in {"", OFFICIAL_BRANCH},
         ),
         (
             "repository HEAD",
@@ -261,9 +260,7 @@ class BootstrapBusinessModelModule:
             list(evidence.items),
         )
         status: ModuleStatus = (
-            "PASS"
-            if profile.classification_status == "CLASSIFIED"
-            else "INSUFFICIENT_EVIDENCE"
+            "PASS" if profile.classification_status == "CLASSIFIED" else "INSUFFICIENT_EVIDENCE"
         )
         return ModuleResult(
             module_id=self.spec.module_id,

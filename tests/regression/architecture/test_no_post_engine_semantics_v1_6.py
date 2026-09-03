@@ -17,19 +17,13 @@ def test_application_service_has_no_post_engine_domain_semantic_calls():
         "ResearchViewPresenter",
     }
 
-    imported_or_called = {
-        node.id
-        for node in ast.walk(tree)
-        if isinstance(node, ast.Name)
-    }
+    imported_or_called = {node.id for node in ast.walk(tree) if isinstance(node, ast.Name)}
 
     assert not forbidden & imported_or_called
 
 
 def test_completion_and_readiness_are_finalized_inside_the_engine_boundary():
-    source = (ROOT / "src/research_os/application/service.py").read_text(
-        encoding="utf-8"
-    )
+    source = (ROOT / "src/research_os/application/service.py").read_text(encoding="utf-8")
     tree = ast.parse(source)
     called_attributes = {
         node.func.attr
@@ -49,11 +43,7 @@ def test_finalizer_does_not_import_artifact_writers_or_domain_services():
         for node in ast.walk(tree)
         if isinstance(node, ast.Import)
         for alias in node.names
-    } | {
-        node.module or ""
-        for node in ast.walk(tree)
-        if isinstance(node, ast.ImportFrom)
-    }
+    } | {node.module or "" for node in ast.walk(tree) if isinstance(node, ast.ImportFrom)}
 
     assert not any(
         module.startswith(

@@ -41,9 +41,7 @@ def _freeze_assumption(value: object) -> object:
     if isinstance(value, Mapping):
         if any(not isinstance(key, str) for key in value):
             raise PersistenceError("research input mappings must use string keys")
-        return MappingProxyType(
-            {key: _freeze_assumption(item) for key, item in value.items()}
-        )
+        return MappingProxyType({key: _freeze_assumption(item) for key, item in value.items()})
     if isinstance(value, (tuple, list)):
         return tuple(_freeze_assumption(item) for item in value)
     if isinstance(value, (set, frozenset)):
@@ -75,9 +73,7 @@ def _semantic_inputs(command: ResearchRunCommand) -> tuple[object, ...]:
     options = command.options
     semantic_options = MappingProxyType(
         {
-            "industry_plugin_override": _freeze_assumption(
-                options.industry_plugin_override
-            ),
+            "industry_plugin_override": _freeze_assumption(options.industry_plugin_override),
             "methodology_plugin_overrides": _freeze_assumption(
                 options.methodology_plugin_overrides
             ),

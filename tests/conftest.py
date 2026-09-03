@@ -41,7 +41,7 @@ def canonical_report_result_factory():
         profile = BusinessModelProfile(
             company_id="synthetic:report",
             primary_model="distributor",
-            confidence=.9,
+            confidence=0.9,
             evidence_ids=["ev:1"],
             router_version="router@1.0.0",
         )
@@ -55,7 +55,7 @@ def canonical_report_result_factory():
             valuation_state="FAIR",
             expectation_state="UNDER_EXPECTED",
             thesis_state="ACTIVE",
-            evidence_confidence=.85,
+            evidence_confidence=0.85,
         )
         thesis = Thesis(
             thesis_id="synthetic:thesis",
@@ -67,7 +67,7 @@ def canonical_report_result_factory():
             status="active",
             falsifiers=[Falsifier(metric="cfo", operator="<", threshold=0)],
             next_check_date=date(2026, 11, 30),
-            confidence=.7,
+            confidence=0.7,
         )
         payload = {
             "decision.record": decision,

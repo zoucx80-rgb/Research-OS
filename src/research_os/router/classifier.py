@@ -43,8 +43,16 @@ class BusinessModelRouter:
         if any(
             token in period
             for token in (
-                "h1", "h2", "q1", "q2", "q3", "q4", "interim",
-                "半年度", "半年", "季度",
+                "h1",
+                "h2",
+                "q1",
+                "q2",
+                "q3",
+                "q4",
+                "interim",
+                "半年度",
+                "半年",
+                "季度",
             )
         ):
             return False
@@ -74,9 +82,7 @@ class BusinessModelRouter:
         support: defaultdict[str, dict[str, EvidenceRef]] = defaultdict(dict)
 
         def threshold(name: str) -> float:
-            return float(
-                self._policy.decimal_value("business_model_routing", name)
-            )
+            return float(self._policy.decimal_value("business_model_routing", name))
 
         def add(model_id: str, weight_name: str, evidence_key: str) -> None:
             item = records.get(evidence_key)
@@ -89,14 +95,67 @@ class BusinessModelRouter:
         raw_description = values.get("business_description")
         description = "" if raw_description is None else str(raw_description).strip().lower()
         description_rules = (
-            ("distributor", "description_general_weight", ("distribution", "distributor", "分销", "流通")),
-            ("manufacturing", "description_general_weight", ("manufacturing", "manufacturer", "制造", "生产")),
-            ("software", "description_specialized_weight", ("software", "saas", "subscription", "cloud", "软件", "订阅")),
-            ("consumer", "description_specialized_weight", ("consumer", "brand", "retail", "food", "beverage", "消费", "品牌", "零售")),
-            ("resource", "description_specialized_weight", ("mining", "resource", "commodity", "copper", "coal", "oil", "资源", "矿业", "煤炭", "油气")),
-            ("project", "description_specialized_weight", ("epc", "engineering project", "system integration", "工程", "项目制", "系统集成")),
-            ("financial", "description_specialized_weight", ("bank", "insurance", "brokerage", "financial services", "deposits", "loans", "银行", "保险", "券商")),
-            ("hospitality", "description_specialized_weight", ("hotel", "hospitality", "lodging", "accommodation", "酒店", "住宿")),
+            (
+                "distributor",
+                "description_general_weight",
+                ("distribution", "distributor", "分销", "流通"),
+            ),
+            (
+                "manufacturing",
+                "description_general_weight",
+                ("manufacturing", "manufacturer", "制造", "生产"),
+            ),
+            (
+                "software",
+                "description_specialized_weight",
+                ("software", "saas", "subscription", "cloud", "软件", "订阅"),
+            ),
+            (
+                "consumer",
+                "description_specialized_weight",
+                ("consumer", "brand", "retail", "food", "beverage", "消费", "品牌", "零售"),
+            ),
+            (
+                "resource",
+                "description_specialized_weight",
+                (
+                    "mining",
+                    "resource",
+                    "commodity",
+                    "copper",
+                    "coal",
+                    "oil",
+                    "资源",
+                    "矿业",
+                    "煤炭",
+                    "油气",
+                ),
+            ),
+            (
+                "project",
+                "description_specialized_weight",
+                ("epc", "engineering project", "system integration", "工程", "项目制", "系统集成"),
+            ),
+            (
+                "financial",
+                "description_specialized_weight",
+                (
+                    "bank",
+                    "insurance",
+                    "brokerage",
+                    "financial services",
+                    "deposits",
+                    "loans",
+                    "银行",
+                    "保险",
+                    "券商",
+                ),
+            ),
+            (
+                "hospitality",
+                "description_specialized_weight",
+                ("hotel", "hospitality", "lodging", "accommodation", "酒店", "住宿"),
+            ),
         )
         for model_id, weight, terms in description_rules:
             if description and any(term in description for term in terms):
@@ -110,8 +169,7 @@ class BusinessModelRouter:
             _numeric(values.get("lease_liabilities_to_assets")),
         )
         lease_heavy = any(
-            value is not None and value >= threshold("lease_materiality")
-            for value in lease_values
+            value is not None and value >= threshold("lease_materiality") for value in lease_values
         )
         inventory_value = _numeric(inventory)
         fixed_assets_value = _numeric(fixed_assets)
@@ -128,19 +186,16 @@ class BusinessModelRouter:
             and not lease_heavy
         ):
             add("distributor", "asset_light_signal_weight", "fixed_asset_to_assets")
-        if (
-            gross_margin_value is not None
-            and gross_margin_value <= threshold("low_gross_margin_maximum")
+        if gross_margin_value is not None and gross_margin_value <= threshold(
+            "low_gross_margin_maximum"
         ):
             add("distributor", "low_margin_signal_weight", "gross_margin")
-        if (
-            fixed_assets_value is not None
-            and fixed_assets_value >= threshold("asset_heavy_minimum")
+        if fixed_assets_value is not None and fixed_assets_value >= threshold(
+            "asset_heavy_minimum"
         ):
             add("manufacturing", "asset_heavy_signal_weight", "fixed_asset_to_assets")
-        if (
-            gross_margin_value is not None
-            and gross_margin_value >= threshold("manufacturing_margin_minimum")
+        if gross_margin_value is not None and gross_margin_value >= threshold(
+            "manufacturing_margin_minimum"
         ):
             add("manufacturing", "manufacturing_margin_weight", "gross_margin")
 
@@ -166,16 +221,10 @@ class BusinessModelRouter:
         top_model, top_score = ranked[0]
         runner_up_score = ranked[1][1] if len(ranked) > 1 else 0.0
         gap = max(0.0, top_score - runner_up_score)
-        unresolved = (
-            len(ranked) > 1 and gap < threshold("minimum_candidate_gap")
-        )
+        unresolved = len(ranked) > 1 and gap < threshold("minimum_candidate_gap")
         primary_model = "unknown" if unresolved else top_model
         status = "UNRESOLVED" if unresolved else "CLASSIFIED"
-        reason = (
-            "CANDIDATE_GAP_BELOW_POLICY"
-            if unresolved
-            else "SUPPORTED_BUSINESS_MODEL_SIGNAL"
-        )
+        reason = "CANDIDATE_GAP_BELOW_POLICY" if unresolved else "SUPPORTED_BUSINESS_MODEL_SIGNAL"
         used = {
             reference.evidence_id: reference
             for candidate_support in support.values()
@@ -188,9 +237,7 @@ class BusinessModelRouter:
             confidence_band = "MEDIUM"
         else:
             confidence_band = "LOW"
-        top_positive = tuple(
-            support[top_model][key] for key in sorted(support[top_model])
-        )
+        top_positive = tuple(support[top_model][key] for key in sorted(support[top_model]))
         top_counter = tuple(
             reference
             for model_id, candidate_support in sorted(support.items())

@@ -126,11 +126,7 @@ class ResearchEngine:
             raise PipelineDefinitionError(
                 "initial snapshot differs from the snapshot validated by the plan"
             )
-        base_snapshot = (
-            initial_snapshot
-            or plan.initial_snapshot
-            or ArtifactStore(catalog).freeze()
-        )
+        base_snapshot = initial_snapshot or plan.initial_snapshot or ArtifactStore(catalog).freeze()
         writes = ArtifactStore(catalog)
         module_results: list[ModuleResult] = []
 
@@ -207,8 +203,7 @@ class ResearchEngine:
                     writes.write(write)
             except ArtifactContractError as exc:
                 raise PipelineDefinitionError(
-                    f"module {module.spec.module_id} returned invalid artifact "
-                    f"writes: {exc}",
+                    f"module {module.spec.module_id} returned invalid artifact writes: {exc}",
                     context={"module_id": module.spec.module_id},
                 ) from exc
             module_results.append(result)
@@ -238,8 +233,7 @@ class ResearchEngine:
             ) from exc
         if not isinstance(result, ModuleResult):
             raise PipelineDefinitionError(
-                f"module {module_id} returned invalid result type "
-                f"{type(result).__name__}",
+                f"module {module_id} returned invalid result type {type(result).__name__}",
                 context={"module_id": module_id},
             )
         return result

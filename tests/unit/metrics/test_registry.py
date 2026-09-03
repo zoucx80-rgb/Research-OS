@@ -62,9 +62,7 @@ def test_registry_is_order_independent_and_read_only() -> None:
         economic_meaning="Return on invested capital",
         required_inputs=(
             MetricInputDefinition(fact_id="nopat", role="numerator"),
-            MetricInputDefinition(
-                fact_id="avg_invested_capital", role="denominator"
-            ),
+            MetricInputDefinition(fact_id="avg_invested_capital", role="denominator"),
         ),
     )
 
@@ -77,9 +75,7 @@ def test_registry_is_order_independent_and_read_only() -> None:
 
 
 def test_period_sensitive_metric_fails_closed_without_period_length() -> None:
-    definition = next(
-        item for item in builtin_metric_definitions() if item.metric_id == "dso_days"
-    )
+    definition = next(item for item in builtin_metric_definitions() if item.metric_id == "dso_days")
     reference = EvidenceRef(
         evidence_id="ev:inputs",
         revision=1,
@@ -94,9 +90,7 @@ def test_period_sensitive_metric_fails_closed_without_period_length() -> None:
         accounting_scope=AccountingScope(consolidation="consolidated"),
     )
 
-    result = MetricCalculationEngine().calculate(
-        facts, definition, PolicySnapshot()
-    )
+    result = MetricCalculationEngine().calculate(facts, definition, PolicySnapshot())
 
     assert result.status == "missing"
     assert result.value is None
@@ -112,6 +106,4 @@ def test_builtin_registry_owns_common_financial_formulas() -> None:
     assert definitions["roic"].formula_id == "safe_ratio"
     assert definitions["asset_turnover"].formula_id == "average_ratio"
     assert definitions["dso_days"].formula_id == "turnover_days"
-    assert definitions["gross_profit_to_working_capital"].formula_id == (
-        "ratio_to_working_capital"
-    )
+    assert definitions["gross_profit_to_working_capital"].formula_id == ("ratio_to_working_capital")

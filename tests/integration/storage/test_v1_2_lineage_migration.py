@@ -7,7 +7,9 @@ from sqlalchemy import create_engine, inspect
 def _run_alembic(db, *args):
     env = os.environ.copy()
     env["DATABASE_URL"] = f"sqlite:///{db}"
-    return subprocess.run(["alembic", "-c", "alembic.ini", *args], capture_output=True, text=True, env=env)
+    return subprocess.run(
+        ["alembic", "-c", "alembic.ini", *args], capture_output=True, text=True, env=env
+    )
 
 
 def test_v1_2_migration_adds_evidence_lineage_columns_and_is_reversible(tmp_path):

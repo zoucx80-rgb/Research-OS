@@ -38,9 +38,7 @@ class ForecastModelCard(BaseModel):
     @field_validator("environment")
     @classmethod
     def _freeze_environment(cls, value: Mapping[str, str]) -> Mapping[str, str]:
-        if not value or any(
-            not key.strip() or not item.strip() for key, item in value.items()
-        ):
+        if not value or any(not key.strip() or not item.strip() for key, item in value.items()):
             raise ValueError("model-card environment entries must be non-empty")
         return MappingProxyType(dict(sorted(value.items())))
 
@@ -67,16 +65,12 @@ class ForecastModelCard(BaseModel):
                     for item in fold.train_observations
                     for timestamp in item.feature_available_ts.values()
                 ),
-                label_maturity=tuple(
-                    item.label_mature_ts for item in fold.train_observations
-                ),
+                label_maturity=tuple(item.label_mature_ts for item in fold.train_observations),
             )
             for fold in result.folds
         )
         label_maturity = tuple(
-            item.label_mature_ts
-            for fold in result.folds
-            for item in fold.test_observations
+            item.label_mature_ts for fold in result.folds for item in fold.test_observations
         )
         return cls(
             model_id=model_id,

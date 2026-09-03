@@ -67,8 +67,7 @@ def _command(
         decision_ts=DECISION_TS,
     )
     refs = {
-        reference.evidence_id.removeprefix("ev:"): reference
-        for reference in evidence_view.refs()
+        reference.evidence_id.removeprefix("ev:"): reference for reference in evidence_view.refs()
     }
     return ResearchRunCommand(
         context=ResearchContext(
@@ -79,9 +78,7 @@ def _command(
                 repository_full_name="zoucx80-rgb/Research-OS",
                 repository_id=1350382205,
                 branch="main",
-                commit_sha=subprocess.check_output(
-                    ("git", "rev-parse", "HEAD"), text=True
-                ).strip(),
+                commit_sha=subprocess.check_output(("git", "rev-parse", "HEAD"), text=True).strip(),
                 research_os_version="1.6.0",
                 core_api_version="2.0",
             ),
@@ -105,9 +102,7 @@ class _RepositoryAttestor:
             repository_full_name="zoucx80-rgb/Research-OS",
             repository_id=1350382205,
             branch="main",
-            head_sha=subprocess.check_output(
-                ("git", "rev-parse", "HEAD"), text=True
-            ).strip(),
+            head_sha=subprocess.check_output(("git", "rev-parse", "HEAD"), text=True).strip(),
         )
 
 
@@ -183,9 +178,7 @@ def test_repository_preflight_failure_aborts_without_a_research_result():
         update={
             "context": _command().context.model_copy(
                 update={
-                    "baseline": _command().context.baseline.model_copy(
-                        update={"repository_id": 1}
-                    )
+                    "baseline": _command().context.baseline.model_copy(update={"repository_id": 1})
                 }
             )
         }
@@ -244,9 +237,9 @@ def test_application_executes_selected_builtin_kpi_provider_through_engine():
         item.component_id for item in result.component_fingerprints
     )
     business_model = result.artifacts.require(BUSINESS_MODEL_PROFILE)
-    assert tuple(
-        reference.evidence_id for reference in business_model.evidence_refs
-    ) == ("ev:business_description",)
+    assert tuple(reference.evidence_id for reference in business_model.evidence_refs) == (
+        "ev:business_description",
+    )
     business_model_envelope = result.artifacts.envelope(BUSINESS_MODEL_PROFILE)
     strategy_envelope = result.artifacts.envelope(STRATEGY_RESOLUTION)
     assert business_model_envelope is not None
@@ -288,17 +281,11 @@ def test_application_result_and_artifact_snapshot_are_immutable():
 def test_application_result_does_not_expose_mutable_module_write_values():
     result = _application().run(_command({"unmodeled_payload": {"nested": [1]}}))
     pit_result = next(
-        item
-        for item in result.module_results
-        if item.module_id == "core:pit-lineage"
+        item for item in result.module_results if item.module_id == "core:pit-lineage"
     )
     payload = pit_result.writes[0].value.items[0].value
 
     payload["nested"].append(2)
 
-    unchanged = next(
-        item
-        for item in result.module_results
-        if item.module_id == "core:pit-lineage"
-    )
+    unchanged = next(item for item in result.module_results if item.module_id == "core:pit-lineage")
     assert unchanged.writes[0].value.items[0].value == {"nested": [1]}

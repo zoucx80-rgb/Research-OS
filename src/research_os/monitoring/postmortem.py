@@ -46,29 +46,19 @@ class PostMortemService:
     ) -> ResearchPostMortem:
         if not prior_run_id.strip() or not current_run_id.strip():
             raise ValueError("postmortem run identities must be non-empty")
-        if any(
-            request.prior_statement.run_id != prior_run_id for request in requests
-        ):
+        if any(request.prior_statement.run_id != prior_run_id for request in requests):
             raise ValueError("prior statement must reference the reviewed prior run")
         attributions = tuple(attribute_error(request) for request in requests)
         attribution_ids = {item.attribution_id for item in attributions}
         if len(attribution_ids) != len(attributions):
             raise ValueError("postmortem attribution IDs must be unique")
-        unknown_ids = {
-            item.attribution_id
-            for item in attributions
-            if item.category == "UNKNOWN"
-        }
+        unknown_ids = {item.attribution_id for item in attributions if item.category == "UNKNOWN"}
         for candidate in process_change_candidates:
             unknown = set(candidate.attribution_ids) - attribution_ids
             if unknown:
-                raise ValueError(
-                    "process-change candidate references unknown attribution IDs"
-                )
+                raise ValueError("process-change candidate references unknown attribution IDs")
             if set(candidate.attribution_ids) & unknown_ids:
-                raise ValueError(
-                    "process-change candidate cannot rely on UNKNOWN attribution"
-                )
+                raise ValueError("process-change candidate cannot rely on UNKNOWN attribution")
         counts = Counter(item.category for item in attributions)
         unknown_count = counts.get("UNKNOWN", 0)
         return ResearchPostMortem(

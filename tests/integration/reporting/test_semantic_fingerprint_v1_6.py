@@ -63,9 +63,7 @@ def _run(run_id: str):
         confidence_grade="A",
         verification_status="PRIMARY_VERIFIED",
     )
-    evidence = EvidenceView(
-        (evidence_item,), company_id=COMPANY_ID, decision_ts=DECISION_TS
-    )
+    evidence = EvidenceView((evidence_item,), company_id=COMPANY_ID, decision_ts=DECISION_TS)
     ref = evidence.refs()[0]
     command = ResearchRunCommand(
         context=ResearchContext(
@@ -137,14 +135,15 @@ def test_semantic_fingerprint_excludes_run_snapshot_and_display_identity() -> No
 
     view = ResearchViewPresenter().present(result)
     document = ResearchReportComposer().compose(view)
-    altered_document = document.model_copy(
-        update={"semantic_fingerprint": "0" * 64}
+    altered_document = document.model_copy(update={"semantic_fingerprint": "0" * 64})
+    assert (
+        SemanticPreservationValidator.validate_reporting_chain(
+            result=result,
+            view=view,
+            document=altered_document,
+        ).status
+        == "FAIL"
     )
-    assert SemanticPreservationValidator.validate_reporting_chain(
-        result=result,
-        view=view,
-        document=altered_document,
-    ).status == "FAIL"
 
 
 def test_v2_sensitivity_and_monitoring_keep_typed_qualifiers_and_lineage() -> None:

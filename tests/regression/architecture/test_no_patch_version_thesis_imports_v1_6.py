@@ -17,10 +17,7 @@ def test_current_tests_do_not_import_patch_version_thesis_runtime() -> None:
                 module = node.module
             elif isinstance(node, ast.Import):
                 for alias in node.names:
-                    if (
-                        alias.name.startswith("research_os.thesis.")
-                        and "_v1_5_" in alias.name
-                    ):
+                    if alias.name.startswith("research_os.thesis.") and "_v1_5_" in alias.name:
                         offenders.append((str(path.relative_to(_ROOT)), alias.name))
             if (
                 module is not None

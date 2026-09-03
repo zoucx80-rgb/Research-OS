@@ -102,9 +102,7 @@ class ModulePlanCompiler:
                         },
                     ) from exc
 
-        dependencies: dict[str, set[str]] = {
-            module_id: set() for module_id in modules_by_id
-        }
+        dependencies: dict[str, set[str]] = {module_id: set() for module_id in modules_by_id}
         dependents: dict[str, set[str]] = defaultdict(set)
         for module_id, module in modules_by_id.items():
             for key in module.spec.requires:
@@ -165,9 +163,7 @@ class ModulePlanCompiler:
     def _topological_order(
         dependencies: dict[str, set[str]], dependents: dict[str, set[str]]
     ) -> list[str]:
-        indegree = {
-            module_id: len(required) for module_id, required in dependencies.items()
-        }
+        indegree = {module_id: len(required) for module_id, required in dependencies.items()}
         ready = [module_id for module_id, degree in indegree.items() if degree == 0]
         heapq.heapify(ready)
         ordered_ids: list[str] = []
@@ -181,9 +177,7 @@ class ModulePlanCompiler:
                     heapq.heappush(ready, dependent)
 
         if len(ordered_ids) != len(dependencies):
-            unresolved = sorted(
-                module_id for module_id, degree in indegree.items() if degree > 0
-            )
+            unresolved = sorted(module_id for module_id, degree in indegree.items() if degree > 0)
             raise ModulePlanDependencyCycleError(
                 f"dependency cycle detected among modules: {', '.join(unresolved)}",
                 context={"module_ids": ",".join(unresolved)},

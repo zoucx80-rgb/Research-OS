@@ -91,9 +91,7 @@ def _snapshot(snapshot_id: str, run_id: str) -> ResearchSnapshotV2:
                 artifact_id="decision.record",
                 schema_version="2.0",
                 type_id="decision-record-v2",
-                value_fingerprint=artifact_value_fingerprint(
-                    payload.artifacts[0].payload
-                ),
+                value_fingerprint=artifact_value_fingerprint(payload.artifacts[0].payload),
             ),
         ),
         payload=payload,

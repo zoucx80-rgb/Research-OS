@@ -212,9 +212,7 @@ def test_snapshot_defensively_copies_nested_mutable_assumption_values() -> None:
     assert isinstance(exposed, FrozenAssumption)
     exposed.cases["base"].append(3)
 
-    assert payload.input_assumptions == (
-        FrozenAssumption(cases={"base": [1]}),
-    )
+    assert payload.input_assumptions == (FrozenAssumption(cases={"base": [1]}),)
 
 
 def test_artifact_fingerprint_binds_schema_and_value_hash() -> None:

@@ -254,7 +254,11 @@ class DistributorIndustryPlugin:
                         question_id="distributor.factoring_exposure",
                         text="How material are factoring or receivable-transfer exposures?",
                         required_capabilities=["kpi.metrics"],
-                        evidence_keys=["factoring_balance", "derecognized_receivables", "receivable_transfer_balance"],
+                        evidence_keys=[
+                            "factoring_balance",
+                            "derecognized_receivables",
+                            "receivable_transfer_balance",
+                        ],
                     ),
                     ResearchQuestionSpec(
                         question_id="distributor.impairment_sensitivity",

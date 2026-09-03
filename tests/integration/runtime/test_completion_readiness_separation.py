@@ -33,9 +33,7 @@ def _command() -> ResearchRunCommand:
                 repository_full_name="zoucx80-rgb/Research-OS",
                 repository_id=1350382205,
                 branch="main",
-                commit_sha=subprocess.check_output(
-                    ("git", "rev-parse", "HEAD"), text=True
-                ).strip(),
+                commit_sha=subprocess.check_output(("git", "rev-parse", "HEAD"), text=True).strip(),
                 research_os_version="1.6.0",
                 core_api_version="2.0",
             ),

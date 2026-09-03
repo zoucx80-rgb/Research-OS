@@ -47,9 +47,7 @@ class PlaywrightPdfAdapter:
             r"javascript\s*:",
         )
         if any(re.search(pattern, content, flags=re.IGNORECASE) for pattern in forbidden):
-            raise ValueError(
-                "PlaywrightPdfAdapter accepts only passive, self-contained HTML"
-            )
+            raise ValueError("PlaywrightPdfAdapter accepts only passive, self-contained HTML")
 
     def render(self, html: HtmlPresentationArtifact) -> PdfPresentationArtifact:
         if not isinstance(html, HtmlPresentationArtifact):
@@ -99,8 +97,7 @@ class PlaywrightPdfAdapter:
                         ),
                     )
                     backend_version = (
-                        f"playwright@{self._playwright_version()}/"
-                        f"chromium@{browser.version}"
+                        f"playwright@{self._playwright_version()}/chromium@{browser.version}"
                     )
                 finally:
                     if context is not None:

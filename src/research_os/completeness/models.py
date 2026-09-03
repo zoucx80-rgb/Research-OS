@@ -160,16 +160,21 @@ class MonitoringRule(BaseModel):
     threshold: float
     frequency: str
     rationale: str
-    source_type: Literal["analyst_assumption", "company_guidance", "contract", "industry_reference", "other"]
-    threshold_type: Literal[
-        "company_guidance",
-        "accounting_or_regulatory",
-        "industry_benchmark",
-        "historical_company_benchmark",
-        "analyst_defined_monitoring",
-        "contractual",
-        "other",
-    ] | None = None
+    source_type: Literal[
+        "analyst_assumption", "company_guidance", "contract", "industry_reference", "other"
+    ]
+    threshold_type: (
+        Literal[
+            "company_guidance",
+            "accounting_or_regulatory",
+            "industry_benchmark",
+            "historical_company_benchmark",
+            "analyst_defined_monitoring",
+            "contractual",
+            "other",
+        ]
+        | None
+    ) = None
     threshold_source: str | None = None
     comparison_basis: str | None = None
     applicability: str | None = None

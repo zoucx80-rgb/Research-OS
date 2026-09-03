@@ -139,9 +139,7 @@ class SnapshotQuery(_ReadModel):
     @field_validator("cursor")
     @classmethod
     def _cursor(cls, value: str | None) -> str | None:
-        if value is not None and (
-            len(value) > 512 or not _OPAQUE_CURSOR.fullmatch(value)
-        ):
+        if value is not None and (len(value) > 512 or not _OPAQUE_CURSOR.fullmatch(value)):
             raise ValueError("cursor must be an opaque base64url token")
         return value
 
@@ -153,9 +151,7 @@ class SnapshotPage(_ReadModel):
     @field_validator("next_cursor")
     @classmethod
     def _cursor(cls, value: str | None) -> str | None:
-        if value is not None and (
-            len(value) > 512 or not _OPAQUE_CURSOR.fullmatch(value)
-        ):
+        if value is not None and (len(value) > 512 or not _OPAQUE_CURSOR.fullmatch(value)):
             raise ValueError("next_cursor must be an opaque base64url token")
         return value
 

@@ -42,7 +42,10 @@ class PreflightValidator:
             if _is_placeholder_sha(sha):
                 raise ValueError(f"{label} SHA is invalid or placeholder")
 
-        if evidence.agents_ref != evidence.head_sha or evidence.research_prompt_ref != evidence.head_sha:
+        if (
+            evidence.agents_ref != evidence.head_sha
+            or evidence.research_prompt_ref != evidence.head_sha
+        ):
             raise ValueError("required files must be read from frozen HEAD")
         if not evidence.head_commit_message.strip():
             raise ValueError("head commit message is required")

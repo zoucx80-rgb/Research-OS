@@ -103,9 +103,7 @@ class PolicyRegistry:
                 base_definition is None
                 or base_definition.policy_version != override.base_policy_version
             ):
-                raise ValueError(
-                    f"override base policy does not match: {override.policy_id}"
-                )
+                raise ValueError(f"override base policy does not match: {override.policy_id}")
             if override.policy_id in overrides_by_id:
                 raise PolicyRegistryConflictError(
                     f"duplicate policy override: {override.policy_id}"

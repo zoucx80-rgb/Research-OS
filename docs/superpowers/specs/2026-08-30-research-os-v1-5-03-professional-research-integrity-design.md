@@ -60,6 +60,7 @@ Add a frozen `StateInput` value object:
 ```python
 StateSource = Literal["derived", "analyst_assumption", "external_model", "manual_override"]
 
+
 class StateInput(BaseModel):
     value: str
     source: StateSource
@@ -148,11 +149,13 @@ Replace bare `research_questions: list[str]` as the only semantic surface with a
 ```python
 QuestionStatus = Literal["ANSWERED", "EVIDENCE_MISSING", "CAPABILITY_MISSING", "NOT_APPLICABLE"]
 
+
 class ResearchQuestionSpec(BaseModel):
     question_id: str
     text: str
     required_capabilities: list[str]
     evidence_keys: list[str]
+
 
 class ResearchQuestionAssessment(BaseModel):
     question_id: str

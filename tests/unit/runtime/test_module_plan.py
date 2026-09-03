@@ -104,9 +104,7 @@ def test_compiler_wraps_initial_snapshot_type_mismatch():
     registered = ArtifactKey("example.bootstrap", "1.0", str)
     incompatible = ArtifactKey("example.bootstrap", "1.0", int)
     catalog = _catalog(ArtifactDefinition(key=registered, mode=ArtifactMode.EXCLUSIVE))
-    other_catalog = _catalog(
-        ArtifactDefinition(key=incompatible, mode=ArtifactMode.EXCLUSIVE)
-    )
+    other_catalog = _catalog(ArtifactDefinition(key=incompatible, mode=ArtifactMode.EXCLUSIVE))
     store = ArtifactStore(other_catalog)
     store.write(ArtifactWrite(key=incompatible, value=1, producer_id="bootstrap"))
 
@@ -152,9 +150,7 @@ def test_compiler_rejects_missing_typed_dependency():
     missing = ArtifactKey("example.missing", "1.0", str)
     catalog = _catalog(ArtifactDefinition(key=missing, mode=ArtifactMode.EXCLUSIVE))
 
-    with pytest.raises(
-        ModulePlanCompilationError, match="consumer.*example.missing"
-    ) as captured:
+    with pytest.raises(ModulePlanCompilationError, match="consumer.*example.missing") as captured:
         ModulePlanCompiler(catalog).compile((_module("consumer", requires=(missing,)),))
 
     assert captured.value.context == {

@@ -28,7 +28,11 @@ def _unique_refs(
             for item in (
                 *left.evidence_refs,
                 *right.evidence_refs,
-                *(reference for adjustment in adjustments for reference in adjustment.evidence_refs),
+                *(
+                    reference
+                    for adjustment in adjustments
+                    for reference in adjustment.evidence_refs
+                ),
             )
         }.values()
     )
@@ -47,9 +51,7 @@ def _validate_normalized_values(
             or left.currency != target_basis.currency
             or right.currency != target_basis.currency
         ):
-            raise PeerNormalizationError(
-                "normalized money values must match target-basis currency"
-            )
+            raise PeerNormalizationError("normalized money values must match target-basis currency")
     if isinstance(left, Quantity) and isinstance(right, Quantity):
         if left.unit != right.unit:
             raise PeerNormalizationError("normalized quantities must use the same unit")

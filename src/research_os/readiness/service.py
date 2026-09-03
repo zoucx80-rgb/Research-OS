@@ -100,8 +100,7 @@ def _artifact_is_substantive(key: ArtifactKey[Any], value: Any) -> bool:
 
     if key.artifact_id == "methodology.disclosure":
         return any(
-            getattr(value, field, ())
-            for field in ("policy_keys", "plugin_keys", "limitations")
+            getattr(value, field, ()) for field in ("policy_keys", "plugin_keys", "limitations")
         )
 
     return _present(value)
@@ -144,11 +143,7 @@ class ResearchReadinessEvaluator:
         self,
         requirements: Iterable[ReadinessRequirement] | None = None,
     ) -> None:
-        configured = (
-            tuple(requirements)
-            if requirements is not None
-            else _standard_requirements()
-        )
+        configured = tuple(requirements) if requirements is not None else _standard_requirements()
         if len({item.dimension_id for item in configured}) != len(configured):
             raise ValueError("readiness requirements must have unique dimensions")
         self._requirements = tuple(sorted(configured, key=lambda item: item.dimension_id))
@@ -162,33 +157,23 @@ class ResearchReadinessEvaluator:
         for requirement in self._requirements:
             status: DimensionStatus
             artifact_statuses = tuple(
-                _artifact_readiness_status(key, artifacts)
-                for key in requirement.artifact_keys
+                _artifact_readiness_status(key, artifacts) for key in requirement.artifact_keys
             )
             if artifact_statuses and all(
-                item in {"PASS", "NOT_APPLICABLE"}
-                for item in artifact_statuses
+                item in {"PASS", "NOT_APPLICABLE"} for item in artifact_statuses
             ):
-                status = (
-                    "PASS"
-                    if "PASS" in artifact_statuses
-                    else "NOT_APPLICABLE"
-                )
+                status = "PASS" if "PASS" in artifact_statuses else "NOT_APPLICABLE"
             else:
                 status = "INCOMPLETE"
             dimensions.append(
                 ReadinessDimension(
                     dimension_id=requirement.dimension_id,
                     status=status,
-                    required_artifacts=tuple(
-                        key.artifact_id for key in requirement.artifact_keys
-                    ),
+                    required_artifacts=tuple(key.artifact_id for key in requirement.artifact_keys),
                 )
             )
 
-        blocking = [
-            item.dimension_id for item in dimensions if item.status == "INCOMPLETE"
-        ]
+        blocking = [item.dimension_id for item in dimensions if item.status == "INCOMPLETE"]
         if completion.final_status == "INCOMPLETE":
             blocking.append("execution_completion")
         blocking_tuple = tuple(sorted(set(blocking)))

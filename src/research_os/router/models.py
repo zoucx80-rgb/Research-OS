@@ -55,9 +55,7 @@ class BusinessModelProfile(BaseModel):
         for reference in references:
             existing = by_id.get(reference.evidence_id)
             if existing is not None and existing != reference:
-                raise ValueError(
-                    "business model lineage has conflicting evidence revisions"
-                )
+                raise ValueError("business model lineage has conflicting evidence revisions")
             by_id[reference.evidence_id] = reference
         return tuple(
             sorted(

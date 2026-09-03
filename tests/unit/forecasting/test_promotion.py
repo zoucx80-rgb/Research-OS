@@ -29,12 +29,8 @@ def _evaluation(*, model_mae: float, benchmark_mae: float) -> BacktestResult:
     metrics = (
         BacktestMetric(name="MAE", value=model_mae, evidence_refs=(reference,)),
         BacktestMetric(name="RMSE", value=model_mae, evidence_refs=(reference,)),
-        BacktestMetric(
-            name="DIRECTION_ACCURACY", value=1.0, evidence_refs=(reference,)
-        ),
-        BacktestMetric(
-            name="INTERVAL_COVERAGE", value=0.9, evidence_refs=(reference,)
-        ),
+        BacktestMetric(name="DIRECTION_ACCURACY", value=1.0, evidence_refs=(reference,)),
+        BacktestMetric(name="INTERVAL_COVERAGE", value=0.9, evidence_refs=(reference,)),
     )
     return BacktestResult(
         model_kind="STATSMODELS_OLS",

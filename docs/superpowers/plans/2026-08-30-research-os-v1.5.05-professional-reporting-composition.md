@@ -49,9 +49,14 @@ def test_missing_consensus_does_not_fabricate_gap():
 def test_numeric_gap_preserves_lineage_and_quality():
     result = build_expectation_gap(
         metric="revenue",
-        market={"value": 100.0, "source_count": 3, "source_quality": 0.8,
-                "age_days": 12, "post_event_consensus": True,
-                "evidence_ids": ["consensus-1"]},
+        market={
+            "value": 100.0,
+            "source_count": 3,
+            "source_quality": 0.8,
+            "age_days": 12,
+            "post_event_consensus": True,
+            "evidence_ids": ["consensus-1"],
+        },
         os_view=120.0,
         os_evidence_ids=["forecast-1"],
     )
@@ -64,9 +69,14 @@ def test_numeric_gap_preserves_lineage_and_quality():
 def test_thin_or_pre_event_consensus_is_qualified():
     result = build_expectation_gap(
         metric="net_profit",
-        market={"value": 10.0, "source_count": 1, "source_quality": 0.6,
-                "age_days": 30, "post_event_consensus": False,
-                "evidence_ids": ["thin-1"]},
+        market={
+            "value": 10.0,
+            "source_count": 1,
+            "source_quality": 0.6,
+            "age_days": 30,
+            "post_event_consensus": False,
+            "evidence_ids": ["thin-1"],
+        },
         os_view=11.0,
     )
     assert result is not None
@@ -109,21 +119,33 @@ from research_os.valuation.execution import ValuationExecution, ValuationResult
 
 def test_valuation_result_defaults_to_missing_without_supported_output():
     execution = ValuationExecution(
-        selected_model="dcf", model_fitness_score=0.8, selection_reason="cash economics",
-        executed_model="dcf", business_model="manufacturing",
-        inputs={"fcf": 1.0}, assumptions=[], scenario_logic="three cases",
-        lineage={"fcf": ["e1"]}, driver_bridge=["FCF", "Valuation"],
+        selected_model="dcf",
+        model_fitness_score=0.8,
+        selection_reason="cash economics",
+        executed_model="dcf",
+        business_model="manufacturing",
+        inputs={"fcf": 1.0},
+        assumptions=[],
+        scenario_logic="three cases",
+        lineage={"fcf": ["e1"]},
+        driver_bridge=["FCF", "Valuation"],
     )
     assert execution.result is None
 
 
 def test_valuation_result_carries_scenarios_ranges_and_lineage():
     result = ValuationResult(
-        currency="CNY", per_share_value=18.0,
-        bear_case=14.0, base_case=18.0, bull_case=22.0,
-        primary_range_low=16.0, primary_range_high=20.0,
-        current_price=15.0, implied_upside_downside=0.20,
-        evidence_ids=["v1"], assumption_ids=["a1"],
+        currency="CNY",
+        per_share_value=18.0,
+        bear_case=14.0,
+        base_case=18.0,
+        bull_case=22.0,
+        primary_range_low=16.0,
+        primary_range_high=20.0,
+        current_price=15.0,
+        implied_upside_downside=0.20,
+        evidence_ids=["v1"],
+        assumption_ids=["a1"],
     )
     assert result.primary_range_low == 16.0
     assert result.evidence_ids == ["v1"]
@@ -195,7 +217,6 @@ Commit message: `feat: project v1.5.05 research outputs`.
 - [ ] **Step 1: Write failing composer tests**
 
 ```python
-
 def test_composer_copies_canonical_decision_state(view_factory):
     view = view_factory(decision_state="WAIT_FOR_CONFIRMATION")
     before = view.model_dump(mode="json")

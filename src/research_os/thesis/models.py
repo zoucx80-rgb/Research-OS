@@ -3,10 +3,6 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
 
-from research_os.contracts.artifact_values import (
-    Thesis as CoreThesis,
-    ThesisPortfolio,
-)
 
 
 class Falsifier(BaseModel):

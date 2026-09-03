@@ -21,9 +21,7 @@ class PluginManifest(BaseModel):
     supported_business_models: frozenset[str]
     service_capabilities: frozenset[str]
     priority: int = 100
-    maturity: Literal[
-        "experimental", "candidate", "stable", "deprecated"
-    ]
+    maturity: Literal["experimental", "candidate", "stable", "deprecated"]
 ```
 
 版本和范围分别使用 `packaging.version.Version` 与 `SpecifierSet`。重复 ID、无效版本、范围不兼容、声明与对象形状不一致均失败关闭。
@@ -60,6 +58,7 @@ class MethodologyPlugin(Protocol):
     ) -> SupportAssessment: ...
 
     def services(self) -> PluginServices: ...
+
 
 class SupportAssessment(BaseModel):
     supported: bool

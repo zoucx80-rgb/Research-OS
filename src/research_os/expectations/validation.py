@@ -72,22 +72,14 @@ class ExpectationEvidenceValidator:
             "expectation_quality", "minimum_source_count"
         )
         minimum_source_quality = float(
-            self._policy.decimal_value(
-                "expectation_quality", "minimum_source_quality"
-            )
+            self._policy.decimal_value("expectation_quality", "minimum_source_quality")
         )
         maximum_age_days = self._policy.integer_value(
             "expectation_quality", "maximum_consensus_age_days"
         )
-        if (
-            vintage.source_count is not None
-            and vintage.source_count < minimum_source_count
-        ):
+        if vintage.source_count is not None and vintage.source_count < minimum_source_count:
             reasons.append("THIN_CONSENSUS")
-        if (
-            vintage.source_quality is not None
-            and vintage.source_quality < minimum_source_quality
-        ):
+        if vintage.source_quality is not None and vintage.source_quality < minimum_source_quality:
             reasons.append("LOW_SOURCE_QUALITY")
         if age_days > maximum_age_days:
             reasons.append("STALE_CONSENSUS")

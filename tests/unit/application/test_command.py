@@ -206,8 +206,7 @@ def _model_field_paths(
                     if nested in {EvidenceRef, AssumptionRef}:
                         continue
                     paths.update(
-                        f"{field_name}.{path}"
-                        for path in _model_field_paths(nested, seen.copy())
+                        f"{field_name}.{path}" for path in _model_field_paths(nested, seen.copy())
                     )
     return paths
 

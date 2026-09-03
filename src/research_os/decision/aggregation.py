@@ -12,16 +12,12 @@ class DecisionAggregationPolicy:
     @property
     def minimum_evidence_confidence(self) -> float:
         return float(
-            self._policy.decimal_value(
-                "decision_aggregation", "minimum_evidence_confidence"
-            )
+            self._policy.decimal_value("decision_aggregation", "minimum_evidence_confidence")
         )
 
     @property
     def material_funding_risk_veto(self) -> bool:
-        return self._policy.boolean_value(
-            "decision_aggregation", "material_funding_risk_veto"
-        )
+        return self._policy.boolean_value("decision_aggregation", "material_funding_risk_veto")
 
     @staticmethod
     def has_falsified_thesis(portfolio: ThesisPortfolio) -> bool:

@@ -238,14 +238,10 @@ def test_resolver_passes_service_capabilities_to_methodology_plugin():
     industry = IndustryPlugin("industry:manufacturing", models={"manufacturing"})
     methodology = MethodologyPlugin("methodology:uses-kpi")
 
-    result = _resolve(
-        _profile(), _context(), _registry(industry, methodology)
-    )
+    result = _resolve(_profile(), _context(), _registry(industry, methodology))
 
     assert [p.plugin_id for p in result.methodology_plugins] == ["methodology:uses-kpi"]
-    assert methodology.seen_capabilities == frozenset(
-        {"business_model.profile", "kpi.metrics"}
-    )
+    assert methodology.seen_capabilities == frozenset({"business_model.profile", "kpi.metrics"})
 
 
 def test_resolver_retains_selected_methodology_support_lineage():
@@ -275,9 +271,7 @@ def test_explicit_industry_override_records_rationale():
         override_rationale="analyst selected alternate strategy",
     )
 
-    result = _resolve(
-        _profile(), context, _registry(automatic, override), options
-    )
+    result = _resolve(_profile(), context, _registry(automatic, override), options)
 
     assert [p.plugin_id for p in result.industry_plugins] == ["industry:override"]
     assert any("analyst selected alternate strategy" in item for item in result.rationale)

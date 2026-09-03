@@ -71,8 +71,10 @@ class ProfessionalHtmlRenderer:
             return False
         separators = cls._split_table_row(lines[index + 1])
         headers = cls._split_table_row(lines[index])
-        return bool(headers) and len(headers) == len(separators) and all(
-            _TABLE_SEPARATOR.fullmatch(item.replace(" ", "")) for item in separators
+        return (
+            bool(headers)
+            and len(headers) == len(separators)
+            and all(_TABLE_SEPARATOR.fullmatch(item.replace(" ", "")) for item in separators)
         )
 
     @classmethod
@@ -91,7 +93,7 @@ class ProfessionalHtmlRenderer:
             rows.append(cells)
             index += 1
 
-        output = ["<div class=\"table-wrap\">", "<table>", "<thead>", "<tr>"]
+        output = ['<div class="table-wrap">', "<table>", "<thead>", "<tr>"]
         output.extend(f"<th>{cls._inline(item)}</th>" for item in headers)
         output.extend(["</tr>", "</thead>", "<tbody>"])
         for row in rows:
@@ -141,12 +143,8 @@ class ProfessionalHtmlRenderer:
                     if section_open:
                         output.append("</section>")
                     section_sequence += 1
-                    section_id, section_class = cls._section_attributes(
-                        title, section_sequence
-                    )
-                    output.append(
-                        f'<section id="{section_id}" class="{section_class}">'
-                    )
+                    section_id, section_class = cls._section_attributes(title, section_sequence)
+                    output.append(f'<section id="{section_id}" class="{section_class}">')
                     section_open = True
                 output.append(f"<h{level}>{cls._inline(title)}</h{level}>")
                 index += 1
@@ -178,13 +176,9 @@ class ProfessionalHtmlRenderer:
             output.append("</section>")
         return "\n".join(output)
 
-    def render(
-        self, markdown: MarkdownPresentationArtifact
-    ) -> HtmlPresentationArtifact:
+    def render(self, markdown: MarkdownPresentationArtifact) -> HtmlPresentationArtifact:
         if not isinstance(markdown, MarkdownPresentationArtifact):
-            raise TypeError(
-                "ProfessionalHtmlRenderer.render requires MarkdownPresentationArtifact"
-            )
+            raise TypeError("ProfessionalHtmlRenderer.render requires MarkdownPresentationArtifact")
         body = self._markdown_body(markdown.content)
         style = A4_PRINT_CSS
         style_hash = sha256(style.encode("utf-8")).hexdigest()

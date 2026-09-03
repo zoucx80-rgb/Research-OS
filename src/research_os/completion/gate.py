@@ -16,11 +16,7 @@ class ExecutionCompletionEvaluator:
         plans: Iterable[ModulePlan],
         module_results: Iterable[ModuleResult],
     ) -> ExecutionCompletionResult:
-        modules = {
-            module.spec.module_id: module.spec
-            for plan in plans
-            for module in plan.modules
-        }
+        modules = {module.spec.module_id: module.spec for plan in plans for module in plan.modules}
         statuses = {}
         for result in module_results:
             if result.module_id not in modules:
@@ -28,9 +24,7 @@ class ExecutionCompletionEvaluator:
                     f"module result is not part of the compiled plans: {result.module_id}"
                 )
             if result.module_id in statuses:
-                raise CompletionEvaluationError(
-                    f"duplicate module result: {result.module_id}"
-                )
+                raise CompletionEvaluationError(f"duplicate module result: {result.module_id}")
             statuses[result.module_id] = result.status
 
         blocking = tuple(

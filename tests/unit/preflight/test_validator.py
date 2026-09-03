@@ -37,7 +37,9 @@ def test_preflight_accepts_exact_frozen_repository_identity():
 
 def test_placeholder_sha_is_rejected():
     validator = _load("research_os.preflight.validator").PreflightValidator()
-    item = _valid_preflight().model_copy(update={"head_sha": "abcdefabcdefabcdefabcdefabcdefabcdef1234"})
+    item = _valid_preflight().model_copy(
+        update={"head_sha": "abcdefabcdefabcdefabcdefabcdefabcdef1234"}
+    )
     with pytest.raises(ValueError, match="placeholder"):
         validator.validate(item)
 

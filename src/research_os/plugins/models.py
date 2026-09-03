@@ -20,9 +20,7 @@ def _canonical_evidence_refs(
     for reference in references:
         existing = by_id.get(reference.evidence_id)
         if existing is not None and existing != reference:
-            raise ValueError(
-                "plugin assessment lineage has conflicting evidence revisions"
-            )
+            raise ValueError("plugin assessment lineage has conflicting evidence revisions")
         by_id[reference.evidence_id] = reference
     return tuple(
         sorted(
@@ -96,9 +94,7 @@ class ApplicabilityResult(BaseModel):
 
     @field_validator("evidence_refs")
     @classmethod
-    def _canonical_lineage(
-        cls, references: tuple[EvidenceRef, ...]
-    ) -> tuple[EvidenceRef, ...]:
+    def _canonical_lineage(cls, references: tuple[EvidenceRef, ...]) -> tuple[EvidenceRef, ...]:
         return _canonical_evidence_refs(references)
 
 
@@ -112,9 +108,7 @@ class SupportAssessment(BaseModel):
 
     @field_validator("evidence_refs")
     @classmethod
-    def _canonical_lineage(
-        cls, references: tuple[EvidenceRef, ...]
-    ) -> tuple[EvidenceRef, ...]:
+    def _canonical_lineage(cls, references: tuple[EvidenceRef, ...]) -> tuple[EvidenceRef, ...]:
         return _canonical_evidence_refs(references)
 
 
@@ -133,9 +127,7 @@ class ResolvedPlugin(BaseModel):
 
     @field_validator("evidence_refs")
     @classmethod
-    def _canonical_lineage(
-        cls, references: tuple[EvidenceRef, ...]
-    ) -> tuple[EvidenceRef, ...]:
+    def _canonical_lineage(cls, references: tuple[EvidenceRef, ...]) -> tuple[EvidenceRef, ...]:
         return _canonical_evidence_refs(references)
 
 

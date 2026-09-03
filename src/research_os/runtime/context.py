@@ -175,8 +175,7 @@ class FactView:
         )
         if missing_lineage:
             raise ValueError(
-                "fact values are missing evidence references: "
-                + ", ".join(missing_lineage)
+                "fact values are missing evidence references: " + ", ".join(missing_lineage)
             )
         if not isinstance(reporting_period, ReportingPeriod):
             raise TypeError("reporting_period must be an explicit ReportingPeriod")
@@ -270,10 +269,7 @@ class ResearchContext(BaseModel):
                     )
                 resolved.append(evidence)
             if resolved and not any(
-                item.value == fact_value or item.normalized_value == fact_value
-                for item in resolved
+                item.value == fact_value or item.normalized_value == fact_value for item in resolved
             ):
-                raise ValueError(
-                    f"evidence does not support fact value: {fact_id}"
-                )
+                raise ValueError(f"evidence does not support fact value: {fact_id}")
         return self
