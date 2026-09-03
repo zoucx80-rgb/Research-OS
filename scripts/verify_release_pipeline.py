@@ -44,9 +44,10 @@ def _run_release_checks() -> dict[str, bool]:
 
 
 def _run_current_field_acceptance() -> None:
-    commit_sha = os.environ.get("GITHUB_SHA") or subprocess.check_output(
-        ("git", "-C", str(ROOT), "rev-parse", "HEAD"), text=True
-    ).strip()
+    commit_sha = (
+        os.environ.get("GITHUB_SHA")
+        or subprocess.check_output(("git", "-C", str(ROOT), "rev-parse", "HEAD"), text=True).strip()
+    )
     _run(
         "current v1.6.0 field acceptance",
         [
@@ -97,8 +98,7 @@ def _parse_args() -> argparse.Namespace:
 def main() -> None:
     args = _parse_args()
     print(
-        f"Research OS v{CURRENT_RELEASE.version} release verification pipeline "
-        f"[{args.stage}]",
+        f"Research OS v{CURRENT_RELEASE.version} release verification pipeline [{args.stage}]",
         flush=True,
     )
     _verify_metadata()
