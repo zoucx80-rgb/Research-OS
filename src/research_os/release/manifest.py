@@ -68,7 +68,7 @@ CURRENT_RELEASE = ReleaseManifest(
     plugin_api_version=PLUGIN_API_VERSION,
     snapshot_schema_version=SNAPSHOT_SCHEMA_VERSION,
     http_api_version=HTTP_API_VERSION,
-    status="development",
+    status="stable",
     module_versions={
         "repository_preflight": "2.0.0",
         "pit_lineage": "2.0.0",
@@ -92,7 +92,9 @@ CURRENT_RELEASE = ReleaseManifest(
     verification_packs=(
         "m1-core-runtime",
         "m2-persistence-http",
+        "m3-professional-foundations",
         "m4-reporting-replay",
+        "m5-quality-release",
         "release-governance",
     ),
     field_replay_profiles=(
