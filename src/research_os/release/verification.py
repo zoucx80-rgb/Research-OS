@@ -52,6 +52,7 @@ _M4_REPORTING_REPLAY_CHECKS: dict[str, str] = {
 }
 _M5_QUALITY_RELEASE_CHECKS: dict[str, str] = {
     "m5_dependency_rules": "tests/regression/architecture/test_dependency_rules_v1_6.py",
+    "m5_repository_hygiene": "tests/regression/architecture/test_repository_hygiene_v1_6.py",
     "m5_release_contract": "tests/regression/architecture/test_release_contract_v1_6_0.py",
     "m5_installed_distribution": "tests/integration/package/test_installed_distribution.py",
 }
