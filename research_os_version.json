@@ -4,7 +4,7 @@
   "plugin_api_version": "2.0",
   "snapshot_schema_version": "2.0",
   "http_api_version": "v1",
-  "status": "development",
+  "status": "stable",
   "module_versions": {
     "repository_preflight": "2.0.0",
     "pit_lineage": "2.0.0",
