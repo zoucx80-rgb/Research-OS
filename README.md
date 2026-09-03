@@ -56,7 +56,7 @@ See:
 - `docs/architecture/core-api-v2.md`
 - `docs/architecture/plugin-authoring-v2.md`
 - `docs/migrations/v1.6.0.md`
-- `docs/adr/adr-0002-v1-6-0-controlled-breaking-contract-upgrade.md`
+- `docs/architecture/adr-0002-v1-6-0-controlled-breaking-contract-upgrade.md`
 
 ## Plugin model
 
@@ -116,7 +116,7 @@ PDF acceptance uses a real Playwright Chromium render, not a serialization subst
 
 Historical releases are immutable execution targets, not compatibility code inside v1.6.
 
-The M4 replay registry pins the supported field releases to exact commits:
+The replay registry pins the supported field releases to exact commits:
 
 - v1.5.08 — `f7863e0b0aeb657ac19b0a63761788d40118e6bf`
 - v1.5.09 — `a3e82b3cc80b871b559ac9f5cd29e18e97b8e98d`
@@ -168,32 +168,33 @@ Production code should normally use the default `GitRepositoryAttestor` and a ve
 - `src/research_os/semantics/` — semantic fingerprint and preservation validation.
 - `src/research_os/release/` — release manifest, verification packs and historical replay isolation.
 
-## Verification
+## Quality and release verification
 
-Install development and PDF dependencies, then install Chromium:
+Install development/PDF dependencies and Chromium:
 
 ```bash
 python -m pip install -e ".[test,pdf]"
 python -m playwright install chromium
 ```
 
-Run the release gate:
+The stable v1.6.0 Release Manifest selects M1, M2, M3, M4, M5 and release-governance verification packs. A full local release verification is:
 
 ```bash
-python scripts/verify_release_pipeline.py
+python -m ruff format --check .
+python -m ruff check .
+python -m mypy src
+lint-imports
+python -m pytest -q
+RESEARCH_OS_RUN_PDF_INTEGRATION=1 python scripts/verify_release_pipeline.py
+python -m pip_audit
+python -m build
+python -m twine check dist/*
+python scripts/verify_distribution.py dist/*.whl
 ```
 
-Before a v1.6 release is merged, also run the full gates explicitly:
+CI splits these responsibilities into `quality`, `unit`, `integration`, `acceptance`, `security-package`, and `release-gate` jobs. The acceptance job checks current v1.6.0 synthetic field output plus commit-addressed v1.5.08–v1.5.12 replay with real Playwright PDF rendering. The package job audits dependencies, builds wheel/sdist, checks metadata and installs the wheel into a clean virtualenv before running Core API and HTTP API smoke examples.
 
-```bash
-pytest -q
-mypy src tests
-python scripts/render_field_acceptance_v1_6_0.py \
-  --input-dir tests/fixtures/field_acceptance/v1_6_0 \
-  --output-dir build/field-acceptance/v1.6.0
-```
-
-CI additionally runs the commit-addressed v1.5.08–v1.5.12 historical replay and uploads current/historical presentation artifacts.
+M5 is delivered as exactly one commit on top of M4 main baseline `abd19bbc7e22d7958df853333e0ba8cedff39f6f`; M1–M4 squash commits are not rewritten. The final main release-gate generates the source ZIP, binary patch, Git bundle, hashes, baseline metadata, verification note and fast-forward-only push instructions only after all prerequisite CI jobs pass.
 
 ## Research invocation protocol
 
