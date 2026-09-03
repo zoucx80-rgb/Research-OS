@@ -19,11 +19,7 @@ def test_build_safe_version_leaf_is_the_single_product_identity_source():
 
     version_source = Path("src/research_os/version.py").read_text(encoding="utf-8")
     tree = ast.parse(version_source)
-    imports = [
-        node
-        for node in ast.walk(tree)
-        if isinstance(node, (ast.Import, ast.ImportFrom))
-    ]
+    imports = [node for node in ast.walk(tree) if isinstance(node, (ast.Import, ast.ImportFrom))]
     assert imports == []
 
     metadata = json.loads(Path("research_os_version.json").read_text(encoding="utf-8"))
@@ -62,15 +58,11 @@ def test_release_gate_derives_required_checks_from_manifest_packs():
     assert resolved["current_reporting_v2"] == (
         "tests/unit/reporting/test_v1_6_current_reporting.py"
     )
-    assert resolved["historical_replay_v2"] == (
-        "tests/unit/release/test_historical_replay_v1_6.py"
-    )
+    assert resolved["historical_replay_v2"] == ("tests/unit/release/test_historical_replay_v1_6.py")
     assert resolved["presentation_pipeline_v2"] == (
         "tests/integration/presentation/test_v1_6_pipeline.py"
     )
-    assert resolved["clean_break_v2"] == (
-        "tests/regression/architecture/test_clean_break_v1_6.py"
-    )
+    assert resolved["clean_break_v2"] == ("tests/regression/architecture/test_clean_break_v1_6.py")
     assert resolved["m5_dependency_rules"] == (
         "tests/regression/architecture/test_dependency_rules_v1_6.py"
     )
