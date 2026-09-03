@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from __future__ import annotations
 
+import argparse
 import json
 import os
 from pathlib import Path
@@ -75,23 +76,49 @@ def _run_field_replays() -> None:
         )
 
 
-def main() -> None:
-    print(
-        f"Research OS v{CURRENT_RELEASE.version} release verification pipeline",
-        flush=True,
-    )
-    _verify_metadata()
-    status = _run_release_checks()
-    _run_current_field_acceptance()
-    _run_field_replays()
-    _run("full pytest suite", [sys.executable, "-m", "pytest", "-q"])
-    _run("mypy", [sys.executable, "-m", "mypy", "src"])
-
+def _evaluate_release_gate(status: dict[str, bool]) -> None:
     gate = evaluate_release_gate(status)
     if not gate.ready:
         print("release gate failed:", ", ".join(gate.failed), file=sys.stderr)
         raise SystemExit(1)
-    if CURRENT_RELEASE.status == "stable":
+
+
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Research OS release verification pipeline")
+    parser.add_argument(
+        "--stage",
+        choices=("full", "acceptance", "release-gate"),
+        default="full",
+        help="Run the complete pipeline or one CI-isolated release stage",
+    )
+    return parser.parse_args()
+
+
+def main() -> None:
+    args = _parse_args()
+    print(
+        f"Research OS v{CURRENT_RELEASE.version} release verification pipeline "
+        f"[{args.stage}]",
+        flush=True,
+    )
+    _verify_metadata()
+
+    status: dict[str, bool] = {}
+    if args.stage in {"full", "release-gate"}:
+        status = _run_release_checks()
+        _evaluate_release_gate(status)
+
+    if args.stage in {"full", "acceptance"}:
+        _run_current_field_acceptance()
+        _run_field_replays()
+
+    if args.stage == "full":
+        _run("full pytest suite", [sys.executable, "-m", "pytest", "-q"])
+        _run("mypy", [sys.executable, "-m", "mypy", "src"])
+
+    if args.stage == "acceptance":
+        print(f"ACCEPTANCE VERIFIED: v{CURRENT_RELEASE.version}")
+    elif CURRENT_RELEASE.status == "stable":
         print(f"READY: v{CURRENT_RELEASE.version} stable")
     else:
         print(f"VERIFIED: v{CURRENT_RELEASE.version} development milestone")
