@@ -77,9 +77,7 @@ class ValuationExecutionValidator:
             if positions and positions != sorted(positions):
                 errors.append("distributor driver bridge is out of causal order")
         if errors:
-            return ValuationExecutionResult(
-                status="VALUATION_GATE_FAIL", errors=tuple(errors)
-            )
+            return ValuationExecutionResult(status="VALUATION_GATE_FAIL", errors=tuple(errors))
         if execution.support_assessment.status in {
             "CONTRAINDICATED",
             "INSUFFICIENT_EVIDENCE",

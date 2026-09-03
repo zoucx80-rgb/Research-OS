@@ -29,5 +29,7 @@ class NextVerificationEventValidator:
             errors.append("next verification event must occur after the research reference time")
         overlap = sorted(set(event.evidence_ids) & set(used_evidence_ids))
         if overlap:
-            errors.append(f"next verification event reuses evidence already consumed by the run: {', '.join(overlap)}")
+            errors.append(
+                f"next verification event reuses evidence already consumed by the run: {', '.join(overlap)}"
+            )
         return TemporalValidationResult(status="FAIL" if errors else "PASS", errors=errors)

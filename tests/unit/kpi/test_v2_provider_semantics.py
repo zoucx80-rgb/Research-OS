@@ -100,9 +100,7 @@ def test_manufacturing_provider_preserves_core_formula_semantics() -> None:
     assert result["roe"].value == Decimal("0.2")
     assert result["cash_conversion_parent"].value == Decimal("0.9")
     assert result["ar_days"].value == Decimal("73")
-    assert result["inventory_days"].value == (
-        Decimal("25") / Decimal("75") * Decimal("365")
-    )
+    assert result["inventory_days"].value == (Decimal("25") / Decimal("75") * Decimal("365"))
     assert result["simple_fcf"].value == Decimal("4")
     assert result["fixed_asset_turnover"].value == Decimal("4")
 

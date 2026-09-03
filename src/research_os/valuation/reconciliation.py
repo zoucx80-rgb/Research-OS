@@ -170,15 +170,17 @@ class ValuationReconciliation(BaseModel):
             raise ValueError("reconciliation bounds must be finite and ordered")
         if set(self.included_range_ids) & set(self.excluded_range_ids):
             raise ValueError("a valuation range cannot be both included and excluded")
-        if self.status in {
-            "INTERSECTION",
-            "CROSS_CHECK_BAND",
-            "MODEL_DISAGREEMENT",
-        } and len(self.included_range_ids) < 2:
-            raise ValueError("reconciliation comparison requires at least two ranges")
-        if self.status == "MODEL_DISAGREEMENT" and (
-            self.basis is None or self.currency is None
+        if (
+            self.status
+            in {
+                "INTERSECTION",
+                "CROSS_CHECK_BAND",
+                "MODEL_DISAGREEMENT",
+            }
+            and len(self.included_range_ids) < 2
         ):
+            raise ValueError("reconciliation comparison requires at least two ranges")
+        if self.status == "MODEL_DISAGREEMENT" and (self.basis is None or self.currency is None):
             raise ValueError("model disagreement requires basis and currency")
         return self
 
@@ -186,24 +188,22 @@ class ValuationReconciliation(BaseModel):
 class ValuationReconciler:
     @staticmethod
     def _compatible(ranges: tuple[ValuationRange, ...]) -> bool:
-        return len({item.basis for item in ranges}) == 1 and len(
-            {item.currency for item in ranges}
-        ) == 1
+        return (
+            len({item.basis for item in ranges}) == 1
+            and len({item.currency for item in ranges}) == 1
+        )
 
     @staticmethod
-    def _not_comparable(
-        ranges: tuple[ValuationRange, ...], reason: str
-    ) -> ValuationReconciliation:
+    def _not_comparable(ranges: tuple[ValuationRange, ...], reason: str) -> ValuationReconciliation:
         return ValuationReconciliation(
             status="NOT_COMPARABLE",
             method="none",
             excluded_range_ids=tuple(item.range_id for item in ranges),
             reason=reason,
         )
+
     @classmethod
-    def reconcile(
-        cls, ranges: tuple[ValuationRange, ...]
-    ) -> ValuationReconciliation:
+    def reconcile(cls, ranges: tuple[ValuationRange, ...]) -> ValuationReconciliation:
         range_ids = tuple(item.range_id for item in ranges)
         if len(set(range_ids)) != len(range_ids):
             raise ValueError("valuation range_id values must be unique")

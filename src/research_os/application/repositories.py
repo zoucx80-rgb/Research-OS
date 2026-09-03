@@ -43,9 +43,9 @@ def encode_snapshot_cursor(decision_ts: datetime, snapshot_id: str) -> str:
 
 def decode_snapshot_cursor(cursor: str) -> tuple[datetime, str]:
     try:
-        value = base64.b64decode(
-            cursor.encode("ascii"), altchars=b"-_", validate=True
-        ).decode("utf-8")
+        value = base64.b64decode(cursor.encode("ascii"), altchars=b"-_", validate=True).decode(
+            "utf-8"
+        )
         timestamp, snapshot_id = value.rsplit("|", 1)
         decision_ts = datetime.fromisoformat(timestamp)
         if (

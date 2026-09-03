@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.6.0 — 2026-09-03
+
+### Added
+Core API 2.0 typed `ResearchRunCommand`/`ResearchRunResult`, `ArtifactKey`/`ArtifactSnapshot`, Plugin API 2.0 typed domain services, Snapshot Schema 2.0 canonical/integrity fingerprints, SQL persistence and read-only HTTP API v1; revision-bound PIT `EvidenceView`/`FactView`; professional financial value objects, Metric/Policy registries, Business Model Router 2.0, Thesis Portfolio, decision aggregation, valuation fitness/execution/reconciliation, forecast benchmark discipline, peer comparability and postmortem attribution; current v1.6 Reporting/Presentation contracts; exact-commit isolated v1.5.08–v1.5.12 historical replay; and M5 quality/release verification including Ruff, mypy, import boundaries, package-level coverage, dependency audit, wheel/sdist build, clean-venv installed-wheel smoke and one-commit delivery artifacts.
+
+### Changed
+Research OS `1.6.0` is a deliberate clean-break release: Core API `1.0 → 2.0`, Plugin API `1.0 → 2.0`, Snapshot Schema `implicit/v1 → 2.0`, HTTP API `prototype → v1`. `ResearchEngine` is the sole module execution authority; Engine-returned canonical semantics are immutable downstream. Completion and Readiness are distinct typed results. Reporting remains strictly one-way: `ResearchRunResult → HumanReadableResearchView → ResearchReportDocument → Markdown → HTML → PDF`, with no renderer-side research calculation. The stable Release Manifest explicitly selects M1, M2, M3, M4, M5 and release-governance verification packs. CI is split into `quality`, `unit`, `integration`, `acceptance`, `security-package`, and `release-gate` jobs.
+
+### Removed
+Current-process v1 Runtime, Plugin, Snapshot reader/converter, Reporting, Thesis and Presentation compatibility surfaces are not part of v1.6.0. Historical behavior is reproduced only from immutable historical commits in detached worktrees with isolated interpreters/environments; no `*_v1_5_*` active implementation is restored to make current tests pass.
+
+### Validation
+M1–M4 remain their previously accepted squash commits. M5 is delivered as exactly one additional squash commit on top of M4 `abd19bbc7e22d7958df853333e0ba8cedff39f6f`. Stable validation requires Ruff format/lint, `mypy src`, import-linter, full pytest, Manifest-selected release packs, three current v1.6 field-acceptance fixtures with real Playwright Chromium PDF, v1.5.08–v1.5.12 historical replay, `pip-audit`, wheel/sdist build, `twine check`, clean-venv installed-wheel Core/HTTP smoke, repository/package hygiene, and an independent all-green CI run on the final `main` SHA.
+
+### Migration
+Existing Python callers and plugins must rebuild against the v2 contracts; old Snapshot rows remain historical data and are not read as Schema 2.0. Database upgrade adds the v1.6 run/artifact/snapshot envelope and PIT query structures while preserving old Evidence values/hashes. See `docs/migrations/v1.6.0.md` and `docs/architecture/adr-0002-v1-6-0-controlled-breaking-contract-upgrade.md`.
+
+### Compatibility
+Product version is `1.6.0`; Core API `2.0`; Plugin API `2.0`; Snapshot Schema `2.0`; HTTP API `v1`. Research Signal remains research output only and never becomes automatic trading. Missing, unsupported, non-comparable or insufficiently evidenced research remains explicit and fail-closed rather than being fabricated for report completeness.
+
 ## 1.5.12 — 2026-08-31
 
 ### Added

@@ -101,9 +101,7 @@ def test_execute_exposes_initial_snapshot_through_typed_state_and_uses_only_writ
         required_key=source,
         output_key=output,
     )
-    plan = ModulePlanCompiler(catalog).compile(
-        (module,), initial_snapshot=initial_store.freeze()
-    )
+    plan = ModulePlanCompiler(catalog).compile((module,), initial_snapshot=initial_store.freeze())
 
     execution = ResearchEngine().execute(plan, object(), catalog)
 
@@ -120,16 +118,10 @@ def test_execute_rejects_an_initial_snapshot_that_differs_from_the_compiled_plan
     source = ArtifactKey("example.bootstrap", "1.0", str)
     catalog = _catalog(source)
     compiled_store = ArtifactStore(catalog)
-    compiled_store.write(
-        ArtifactWrite(key=source, value="compiled", producer_id="bootstrap")
-    )
+    compiled_store.write(ArtifactWrite(key=source, value="compiled", producer_id="bootstrap"))
     replacement_store = ArtifactStore(catalog)
-    replacement_store.write(
-        ArtifactWrite(key=source, value="replacement", producer_id="bootstrap")
-    )
-    plan = ModulePlanCompiler(catalog).compile(
-        (), initial_snapshot=compiled_store.freeze()
-    )
+    replacement_store.write(ArtifactWrite(key=source, value="replacement", producer_id="bootstrap"))
+    plan = ModulePlanCompiler(catalog).compile((), initial_snapshot=compiled_store.freeze())
 
     with pytest.raises(PipelineDefinitionError, match="initial snapshot"):
         ResearchEngine().execute(

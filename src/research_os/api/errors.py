@@ -28,9 +28,7 @@ class ArtifactNotFoundError(ResearchQueryError):
     status = 404
 
     def __init__(self, run_id: str, artifact_id: str) -> None:
-        super().__init__(
-            f"No artifact '{artifact_id}' exists for research run '{run_id}'."
-        )
+        super().__init__(f"No artifact '{artifact_id}' exists for research run '{run_id}'.")
 
 
 class SnapshotNotFoundError(ResearchQueryError):

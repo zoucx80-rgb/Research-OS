@@ -1,0 +1,46 @@
+[importlinter]
+root_package = research_os
+include_external_packages = True
+
+[importlinter:contract:domain-does-not-depend-on-outer-adapters]
+name = Domain and runtime semantics do not depend on outer adapters
+type = forbidden
+source_modules =
+    research_os.contracts
+    research_os.domain
+    research_os.runtime
+    research_os.metrics
+    research_os.policies
+    research_os.router
+    research_os.thesis
+    research_os.decision
+    research_os.valuation
+    research_os.forecasting
+    research_os.peers
+    research_os.monitoring
+forbidden_modules =
+    research_os.api
+    research_os.adapters.persistence
+    research_os.reporting
+    research_os.presentation
+    research_os.release
+
+[importlinter:contract:plugins-do-not-depend-on-outer-adapters]
+name = Plugins use typed contributions without depending on outer adapters
+type = forbidden
+source_modules =
+    research_os.plugins
+forbidden_modules =
+    research_os.api
+    research_os.adapters.persistence
+    research_os.presentation
+    research_os.release
+
+[importlinter:contract:reporting-does-not-depend-on-engine]
+name = Reporting does not depend on the runtime execution engine
+type = forbidden
+source_modules =
+    research_os.reporting
+forbidden_modules =
+    research_os.runtime.engine
+    research_os.runtime.professional_modules

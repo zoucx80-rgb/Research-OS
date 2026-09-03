@@ -10,9 +10,7 @@ from research_os.policies.builtins import builtin_policy_registry
 from research_os.policies.registry import PolicyRegistry
 
 
-ModelStage = Literal[
-    "experimental", "candidate", "validated", "production", "degraded", "retired"
-]
+ModelStage = Literal["experimental", "candidate", "validated", "production", "degraded", "retired"]
 
 
 class PromotionDecision(BaseModel):
@@ -32,20 +30,12 @@ def decide_promotion(
     policy_registry: PolicyRegistry | None = None,
 ) -> PromotionDecision:
     policies = policy_registry or builtin_policy_registry()
-    minimum_folds = policies.integer_value(
-        "forecast_promotion", "minimum_out_of_sample_folds"
-    )
+    minimum_folds = policies.integer_value("forecast_promotion", "minimum_out_of_sample_folds")
     minimum_improvement = float(
-        policies.decimal_value(
-            "forecast_promotion", "minimum_benchmark_improvement"
-        )
+        policies.decimal_value("forecast_promotion", "minimum_benchmark_improvement")
     )
-    require_pit = policies.boolean_value(
-        "forecast_promotion", "require_pit_compliance"
-    )
-    require_stability = policies.boolean_value(
-        "forecast_promotion", "require_stability"
-    )
+    require_pit = policies.boolean_value("forecast_promotion", "require_pit_compliance")
+    require_stability = policies.boolean_value("forecast_promotion", "require_stability")
 
     if evaluation is None or not evaluation.out_of_sample:
         return _hold(current_stage, "out-of-sample evaluation is required")

@@ -52,9 +52,7 @@ class ResearchReportComposer:
 
     def compose(self, view: HumanReadableResearchView) -> ResearchReportDocument:
         if not isinstance(view, HumanReadableResearchView):
-            raise TypeError(
-                "ResearchReportComposer.compose requires HumanReadableResearchView"
-            )
+            raise TypeError("ResearchReportComposer.compose requires HumanReadableResearchView")
         grouped: dict[str, list[ReportArtifactBlock]] = defaultdict(list)
         for artifact in view.artifacts:
             grouped[_section_id(artifact.artifact_id)].append(

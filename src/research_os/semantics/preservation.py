@@ -120,8 +120,7 @@ class SemanticPreservationValidator:
     @staticmethod
     def _sensitivity_violations(case: SensitivityCase) -> list[SemanticViolation]:
         has_result = any(
-            value is not None
-            for value in (case.result, case.result_low, case.result_high)
+            value is not None for value in (case.result, case.result_low, case.result_high)
         )
         if not has_result:
             return []
@@ -162,11 +161,7 @@ class SemanticPreservationValidator:
     ) -> SemanticPreservationValidation:
         """Retain the pre-2.0 qualifier validator for frozen characterization tests."""
         violations = tuple(
-            [
-                violation
-                for case in sensitivities
-                for violation in cls._sensitivity_violations(case)
-            ]
+            [violation for case in sensitivities for violation in cls._sensitivity_violations(case)]
             + [
                 violation
                 for rule in monitoring_rules
@@ -212,11 +207,7 @@ class SemanticPreservationValidator:
                             field="model_boundary",
                         )
                     )
-                if not (
-                    case.evidence_refs
-                    or case.assumption_refs
-                    or case.material_assumptions
-                ):
+                if not (case.evidence_refs or case.assumption_refs or case.material_assumptions):
                     violations.append(
                         SemanticViolation(
                             code="SENSITIVITY_LINEAGE_MISSING",
@@ -246,14 +237,10 @@ class SemanticPreservationValidator:
             status="FAIL" if violations else "PASS",
             violations=tuple(violations),
             sensitivity_fingerprint=(
-                cls.sensitivity_fingerprint(sensitivities)
-                if sensitivities is not None
-                else None
+                cls.sensitivity_fingerprint(sensitivities) if sensitivities is not None else None
             ),
             monitoring_fingerprint=(
-                cls.monitoring_fingerprint(monitoring_plan)
-                if monitoring_plan is not None
-                else None
+                cls.monitoring_fingerprint(monitoring_plan) if monitoring_plan is not None else None
             ),
         )
 
@@ -295,8 +282,7 @@ class SemanticPreservationValidator:
             (item.artifact_id, item.schema_version): item for item in view.artifacts
         }
         audit_by_identity = {
-            (item.artifact_id, item.schema_version): item
-            for item in document.audit_appendix
+            (item.artifact_id, item.schema_version): item for item in document.audit_appendix
         }
         document_payloads = {
             (item.artifact_id, item.schema_version): item.payload

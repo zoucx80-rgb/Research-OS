@@ -1,4 +1,5 @@
 """persist Evidence raw/normalized lineage fields for Research OS v1.2"""
+
 from alembic import op
 import sqlalchemy as sa
 

@@ -97,20 +97,12 @@ def build_expectation_gap(
         if market_value is not None and os_view is not None
         else _direction_from_signals(market_direction, os_view_direction)
     )
-    magnitude = (
-        os_view - market_value
-        if market_value is not None and os_view is not None
-        else None
-    )
+    magnitude = os_view - market_value if market_value is not None and os_view is not None else None
 
     limitations: list[str] = []
     policy = policy_registry or builtin_policy_registry()
-    minimum_source_count = policy.integer_value(
-        "expectation_quality", "minimum_gap_source_count"
-    )
-    high_quality_source = float(
-        policy.decimal_value("expectation_quality", "high_quality_source")
-    )
+    minimum_source_count = policy.integer_value("expectation_quality", "minimum_gap_source_count")
+    high_quality_source = float(policy.decimal_value("expectation_quality", "high_quality_source"))
     source_count = market.get("source_count")
     source_quality = market.get("source_quality")
     post_event_consensus = market.get("post_event_consensus")
@@ -122,9 +114,7 @@ def build_expectation_gap(
         limitations.append("市场预期尚未吸收最近重大事件。")
 
     evidence_ids = list(
-        dict.fromkeys(
-            list(market.get("evidence_ids") or []) + list(os_evidence_ids or [])
-        )
+        dict.fromkeys(list(market.get("evidence_ids") or []) + list(os_evidence_ids or []))
     )
     return ExpectationGapResult(
         metric=metric,

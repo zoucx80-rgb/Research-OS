@@ -57,10 +57,7 @@ class SqlSnapshotRepository:
         snapshot = snapshot_from_record(record, self._decoder_registry)
         codec = SnapshotCodecV2()
         research_digest = codec.research_digest(snapshot.payload)
-        if (
-            record.research_digest != research_digest
-            or snapshot.payload_hash != research_digest
-        ):
+        if record.research_digest != research_digest or snapshot.payload_hash != research_digest:
             raise ValueError("snapshot research payload digest mismatch")
         if record.integrity_digest != codec.integrity_digest(snapshot):
             raise ValueError("snapshot integrity digest mismatch")
@@ -72,9 +69,7 @@ class SqlSnapshotRepository:
             ResearchSnapshotRecord.schema_version == "2.0",
         )
         if query.decision_ts_lte is not None:
-            statement = statement.where(
-                ResearchSnapshotRecord.decision_ts <= query.decision_ts_lte
-            )
+            statement = statement.where(ResearchSnapshotRecord.decision_ts <= query.decision_ts_lte)
         cursor = decode_snapshot_cursor(query.cursor) if query.cursor else None
         if cursor is not None:
             cursor_ts, cursor_id = cursor
@@ -105,9 +100,6 @@ class SqlSnapshotRepository:
                 decision_ts = decision_ts.astimezone(timezone.utc)
             next_cursor = encode_snapshot_cursor(decision_ts, last.snapshot_id)
         return SnapshotPage(
-            items=tuple(
-                snapshot_from_record(record, self._decoder_registry)
-                for record in records
-            ),
+            items=tuple(snapshot_from_record(record, self._decoder_registry) for record in records),
             next_cursor=next_cursor,
         )

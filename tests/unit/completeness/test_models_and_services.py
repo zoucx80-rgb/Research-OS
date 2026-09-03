@@ -104,9 +104,27 @@ def test_consensus_distribution_is_pit_safe_and_single_source_is_not_broad_conse
 
     broad = build_consensus_distribution(
         observations=(
-            ConsensusObservation(source_id="a", publish_ts=ts(10), forecast_period="2027", metric="net_profit", value=3.0),
-            ConsensusObservation(source_id="b", publish_ts=ts(11), forecast_period="2027", metric="net_profit", value=5.0),
-            ConsensusObservation(source_id="c", publish_ts=ts(12), forecast_period="2027", metric="net_profit", value=4.0),
+            ConsensusObservation(
+                source_id="a",
+                publish_ts=ts(10),
+                forecast_period="2027",
+                metric="net_profit",
+                value=3.0,
+            ),
+            ConsensusObservation(
+                source_id="b",
+                publish_ts=ts(11),
+                forecast_period="2027",
+                metric="net_profit",
+                value=5.0,
+            ),
+            ConsensusObservation(
+                source_id="c",
+                publish_ts=ts(12),
+                forecast_period="2027",
+                metric="net_profit",
+                value=4.0,
+            ),
         ),
         decision_ts=decision_ts,
         metric="net_profit",

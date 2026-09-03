@@ -78,13 +78,15 @@ git commit -m "feat: define research decision states"
 
 ```python
 def test_falsified_thesis_forces_thesis_broken(engine):
-    result = engine.evaluate(ctx(
-        thesis_state="FALSIFIED",
-        fundamental_state="DETERIORATING",
-        valuation_state="CHEAP",
-        expectation_state="MIXED",
-        evidence_confidence=0.9,
-    ))
+    result = engine.evaluate(
+        ctx(
+            thesis_state="FALSIFIED",
+            fundamental_state="DETERIORATING",
+            valuation_state="CHEAP",
+            expectation_state="MIXED",
+            evidence_confidence=0.9,
+        )
+    )
     assert result.state == "THESIS_BROKEN"
 ```
 
@@ -256,11 +258,13 @@ git commit -m "feat: expose research os v1.1 read APIs"
 
 ```python
 def test_financing_event_maps_to_funding_and_dilution_drivers(engine):
-    impact = engine.map_impact(event(
-        event_type="share_issue",
-        company_id="X",
-        amount=3.0,
-    ))
+    impact = engine.map_impact(
+        event(
+            event_type="share_issue",
+            company_id="X",
+            amount=3.0,
+        )
+    )
     assert "financing" in impact.affected_driver_types
     assert impact.materiality in {"medium", "high"}
 ```

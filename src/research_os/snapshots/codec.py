@@ -17,7 +17,9 @@ from pydantic import BaseModel
 from research_os.snapshots.models import ResearchSnapshotPayloadV2, ResearchSnapshotV2
 
 
-CanonicalValue: TypeAlias = None | bool | int | float | str | list["CanonicalValue"] | dict[str, "CanonicalValue"]
+CanonicalValue: TypeAlias = (
+    None | bool | int | float | str | list["CanonicalValue"] | dict[str, "CanonicalValue"]
+)
 ArtifactDecoder: TypeAlias = Callable[[object], object]
 
 
@@ -75,10 +77,7 @@ def _canonicalize(value: object) -> CanonicalValue:
         return {
             "$ros_type": "pydantic",
             "value": _canonicalize(
-                {
-                    field_name: getattr(value, field_name)
-                    for field_name in type(value).model_fields
-                }
+                {field_name: getattr(value, field_name) for field_name in type(value).model_fields}
             ),
         }
     if isinstance(value, Mapping):
@@ -86,10 +85,7 @@ def _canonicalize(value: object) -> CanonicalValue:
             raise SnapshotCodecError("mappings must use string keys")
         return {
             "$ros_type": "mapping",
-            "items": [
-                [key, _canonicalize(value[key])]
-                for key in sorted(value)
-            ],
+            "items": [[key, _canonicalize(value[key])] for key in sorted(value)],
         }
     if isinstance(value, tuple):
         return {"$ros_type": "tuple", "items": [_canonicalize(item) for item in value]}

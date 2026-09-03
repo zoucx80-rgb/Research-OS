@@ -43,9 +43,7 @@ def _metrics(plugin: object, facts: FactView):
     assert provider is not None
     return {
         item.metric_id: item
-        for item in provider.calculate(
-            facts, builtin_metric_registry(), PolicySnapshot()
-        )
+        for item in provider.calculate(facts, builtin_metric_registry(), PolicySnapshot())
     }
 
 

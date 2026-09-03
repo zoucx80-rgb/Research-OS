@@ -121,9 +121,7 @@ class KpiProviderModule:
             if services.kpi_provider is not None:
                 providers.append(services.kpi_provider)
         if len(providers) > 1:
-            raise ModulePlanCompilationError(
-                "professional plan supports one primary KPI provider"
-            )
+            raise ModulePlanCompilationError("professional plan supports one primary KPI provider")
         self._provider = providers[0] if providers else None
 
     def run(self, context: ResearchContext, state: ResearchStateView) -> ModuleResult:
@@ -131,9 +129,7 @@ class KpiProviderModule:
         if self._provider is None:
             metrics = MetricSet()
             status: ModuleStatus = "INSUFFICIENT_EVIDENCE"
-            diagnostics: tuple[str, ...] = (
-                "no registered KPI provider for resolved strategy",
-            )
+            diagnostics: tuple[str, ...] = ("no registered KPI provider for resolved strategy",)
         else:
             metrics = MetricSet(
                 metrics=self._provider.calculate(
@@ -149,9 +145,7 @@ class KpiProviderModule:
             )
             diagnostics = () if status == "PASS" else ("KPI provider produced no valid metrics",)
         evidence_refs = tuple(
-            reference
-            for metric in metrics.metrics
-            for reference in metric.evidence_refs
+            reference for metric in metrics.metrics for reference in metric.evidence_refs
         )
         return ModuleResult(
             module_id=self.spec.module_id,
@@ -186,9 +180,7 @@ class ThesisPortfolioModule:
         portfolio: ThesisPortfolio = self._builder.build(self._theses)
         return ModuleResult(
             module_id=self.spec.module_id,
-            status=(
-                "PASS" if portfolio.primary is not None else "INSUFFICIENT_EVIDENCE"
-            ),
+            status=("PASS" if portfolio.primary is not None else "INSUFFICIENT_EVIDENCE"),
             writes=(
                 ArtifactWrite(
                     key=THESIS_PORTFOLIO,
@@ -278,9 +270,7 @@ class PortfolioDecisionModule:
         return ModuleResult(
             module_id=self.spec.module_id,
             status=(
-                "INSUFFICIENT_EVIDENCE"
-                if decision.state == "INSUFFICIENT_EVIDENCE"
-                else "PASS"
+                "INSUFFICIENT_EVIDENCE" if decision.state == "INSUFFICIENT_EVIDENCE" else "PASS"
             ),
             writes=(
                 ArtifactWrite(

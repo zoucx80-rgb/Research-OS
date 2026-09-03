@@ -36,10 +36,7 @@ def test_historical_replay_profiles_are_frozen_and_commit_addressed() -> None:
 
 
 def test_v1_5_08_declares_only_the_bounded_cleanup_compatibility() -> None:
-    assert (
-        REPLAY_REGISTRY["field-v1.5.08"].compatibility_profile
-        == "playwright-cleanup-v1.5.08"
-    )
+    assert REPLAY_REGISTRY["field-v1.5.08"].compatibility_profile == "playwright-cleanup-v1.5.08"
     assert all(
         profile.compatibility_profile is None
         for profile_id, profile in REPLAY_REGISTRY.items()
@@ -51,10 +48,13 @@ def test_v1_5_08_cleanup_compatibility_requires_exact_historical_blob() -> None:
     profile = REPLAY_REGISTRY["field-v1.5.08"]
     executor = HistoricalReplayExecutor(Path.cwd())
 
-    assert executor._resolve_compatibility_action(
-        profile,
-        source_blob_sha="4ba9ba1fefacb9776f46ad6d442480e6221594bd",
-    ) == "playwright-cleanup-v1.5.08"
+    assert (
+        executor._resolve_compatibility_action(
+            profile,
+            source_blob_sha="4ba9ba1fefacb9776f46ad6d442480e6221594bd",
+        )
+        == "playwright-cleanup-v1.5.08"
+    )
 
     with pytest.raises(HistoricalReplayError, match="source fingerprint mismatch"):
         executor._resolve_compatibility_action(profile, source_blob_sha="0" * 40)

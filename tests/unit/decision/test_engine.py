@@ -38,7 +38,7 @@ def ctx(**kw):
         valuation_state="CHEAP",
         expectation_state="MIXED",
         thesis_portfolio=portfolio,
-        evidence_confidence=.9,
+        evidence_confidence=0.9,
         claim_ids=("c1",),
         decision_ts=datetime.now(timezone.utc),
     )
@@ -51,7 +51,7 @@ def test_falsified_thesis_forces_thesis_broken():
 
 
 def test_insufficient_evidence_has_highest_precedence():
-    assert DecisionEngine().evaluate(ctx(evidence_confidence=.1)).state == "INSUFFICIENT_EVIDENCE"
+    assert DecisionEngine().evaluate(ctx(evidence_confidence=0.1)).state == "INSUFFICIENT_EVIDENCE"
 
 
 def test_decision_record_preserves_context_needed_by_canonical_reporting():
@@ -61,11 +61,11 @@ def test_decision_record_preserves_context_needed_by_canonical_reporting():
             valuation_state="FAIR",
             expectation_state="UNDER_EXPECTED",
             thesis_state="ACTIVE",
-            evidence_confidence=.85,
+            evidence_confidence=0.85,
         )
     )
     assert record.fundamental_state == "IMPROVING"
     assert record.valuation_state == "FAIR"
     assert record.expectation_state == "UNDER_EXPECTED"
     assert record.thesis_state == "ACTIVE"
-    assert record.evidence_confidence == .85
+    assert record.evidence_confidence == 0.85

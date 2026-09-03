@@ -68,8 +68,7 @@ def test_builtin_provider_exposes_precise_v2_industry_plugins():
     assert all(p.manifest.core_api_specifier == "~=2.0" for p in plugins)
     assert all(p.manifest.research_os_specifier == ">=1.6,<2" for p in plugins)
     assert all(
-        p.manifest.service_capabilities
-        == frozenset({"kpi.metrics", "report.contributions"})
+        p.manifest.service_capabilities == frozenset({"kpi.metrics", "report.contributions"})
         for p in plugins
     )
 

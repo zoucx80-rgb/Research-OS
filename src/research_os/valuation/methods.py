@@ -36,7 +36,9 @@ class ValuationSupportAssessment(BaseModel):
         normalized = value.strip()
         if not normalized:
             raise ValueError("valuation rationale must be non-empty")
-        if re.search(r"research\s*os|software|release|renderer|v?\d+\.\d+\.\d+", normalized, re.IGNORECASE):
+        if re.search(
+            r"research\s*os|software|release|renderer|v?\d+\.\d+\.\d+", normalized, re.IGNORECASE
+        ):
             raise ValueError("software or version metadata is not an economic rationale")
         return normalized
 
@@ -152,9 +154,13 @@ class PEMethod(_BaseMethod):
             evidence_refs=inputs.evidence_refs,
             assumption_refs=inputs.assumption_refs,
             sensitivities=(
-                SensitivityPoint(parameter="multiple", input_value=bear_multiple, result=eps * bear_multiple),
+                SensitivityPoint(
+                    parameter="multiple", input_value=bear_multiple, result=eps * bear_multiple
+                ),
                 SensitivityPoint(parameter="multiple", input_value=multiple, result=base),
-                SensitivityPoint(parameter="multiple", input_value=bull_multiple, result=eps * bull_multiple),
+                SensitivityPoint(
+                    parameter="multiple", input_value=bull_multiple, result=eps * bull_multiple
+                ),
             ),
         )
 
@@ -169,7 +175,18 @@ class PBMethod(_BaseMethod):
         book = _decimal(inputs.values["book_value_per_share"])
         multiple = _decimal(inputs.values["multiple"])
         result = book * multiple
-        return ValuationMethodResult(method_id=self.method_id, status="SUPPORTED", currency=inputs.currency, basis=inputs.basis, valuation_date=inputs.valuation_date, bear_case=result, base_case=result, bull_case=result, evidence_refs=inputs.evidence_refs, assumption_refs=inputs.assumption_refs)
+        return ValuationMethodResult(
+            method_id=self.method_id,
+            status="SUPPORTED",
+            currency=inputs.currency,
+            basis=inputs.basis,
+            valuation_date=inputs.valuation_date,
+            bear_case=result,
+            base_case=result,
+            bull_case=result,
+            evidence_refs=inputs.evidence_refs,
+            assumption_refs=inputs.assumption_refs,
+        )
 
 
 class DCFMethod(_BaseMethod):
@@ -180,9 +197,7 @@ class DCFMethod(_BaseMethod):
         if missing := self._missing(inputs):
             return self._insufficient(inputs, missing)
         raw_cash_flows = inputs.values["cash_flows"]
-        if not isinstance(raw_cash_flows, Sequence) or isinstance(
-            raw_cash_flows, (str, bytes)
-        ):
+        if not isinstance(raw_cash_flows, Sequence) or isinstance(raw_cash_flows, (str, bytes)):
             return self._insufficient(inputs, ("cash_flows sequence",))
         cash_flows = tuple(_decimal(value) for value in raw_cash_flows)
         if not cash_flows:
@@ -192,11 +207,24 @@ class DCFMethod(_BaseMethod):
             return self._insufficient(inputs, ("valid discount_rate",))
         terminal = _decimal(inputs.values["terminal_value"])
         base = sum(
-            (cash_flow / ((Decimal(1) + rate) ** period) for period, cash_flow in enumerate(cash_flows, start=1)),
+            (
+                cash_flow / ((Decimal(1) + rate) ** period)
+                for period, cash_flow in enumerate(cash_flows, start=1)
+            ),
             Decimal(0),
         )
         base += terminal / ((Decimal(1) + rate) ** max(len(cash_flows), 1))
-        return ValuationMethodResult(method_id=self.method_id, status="SUPPORTED", currency=inputs.currency, basis=inputs.basis, valuation_date=inputs.valuation_date, base_case=base, evidence_refs=inputs.evidence_refs, assumption_refs=inputs.assumption_refs, limitations=("bear and bull cases require explicit scenario inputs",))
+        return ValuationMethodResult(
+            method_id=self.method_id,
+            status="SUPPORTED",
+            currency=inputs.currency,
+            basis=inputs.basis,
+            valuation_date=inputs.valuation_date,
+            base_case=base,
+            evidence_refs=inputs.evidence_refs,
+            assumption_refs=inputs.assumption_refs,
+            limitations=("bear and bull cases require explicit scenario inputs",),
+        )
 
 
 class SOTPMethod(_BaseMethod):
@@ -216,7 +244,27 @@ class SOTPMethod(_BaseMethod):
         if not values:
             return self._insufficient(inputs, ("non-empty parts",))
         base = sum((_decimal(value) for value in values), Decimal(0))
-        return ValuationMethodResult(method_id=self.method_id, status="SUPPORTED", currency=inputs.currency, basis=inputs.basis, valuation_date=inputs.valuation_date, base_case=base, evidence_refs=inputs.evidence_refs, assumption_refs=inputs.assumption_refs, limitations=("segment values require consistent basis and valuation date",))
+        return ValuationMethodResult(
+            method_id=self.method_id,
+            status="SUPPORTED",
+            currency=inputs.currency,
+            basis=inputs.basis,
+            valuation_date=inputs.valuation_date,
+            base_case=base,
+            evidence_refs=inputs.evidence_refs,
+            assumption_refs=inputs.assumption_refs,
+            limitations=("segment values require consistent basis and valuation date",),
+        )
 
 
-__all__ = ["DCFMethod", "PBMethod", "PEMethod", "SOTPMethod", "SensitivityPoint", "ValuationMethodInput", "ValuationMethodResult", "ValuationSupportAssessment", "ValuationSupportStatus"]
+__all__ = [
+    "DCFMethod",
+    "PBMethod",
+    "PEMethod",
+    "SOTPMethod",
+    "SensitivityPoint",
+    "ValuationMethodInput",
+    "ValuationMethodResult",
+    "ValuationSupportAssessment",
+    "ValuationSupportStatus",
+]

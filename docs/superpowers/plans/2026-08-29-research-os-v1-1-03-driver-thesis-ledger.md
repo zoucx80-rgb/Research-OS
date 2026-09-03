@@ -36,13 +36,15 @@
 ```python
 def test_critical_driver_without_evidence_is_invalid():
     graph = DriverGraph(
-        nodes=[DriverNode(
-            driver_id="demand",
-            name="AI demand",
-            driver_type="demand",
-            critical=True,
-            evidence_ids=[],
-        )],
+        nodes=[
+            DriverNode(
+                driver_id="demand",
+                name="AI demand",
+                driver_type="demand",
+                critical=True,
+                evidence_ids=[],
+            )
+        ],
         edges=[],
     )
     with pytest.raises(DriverValidationError):
@@ -90,10 +92,12 @@ git commit -m "feat: add evidence-linked driver graph"
 
 ```python
 def test_priority_is_product_of_four_components():
-    ranked = rank_drivers([
-        scored_driver("a", 0.9, 0.8, 0.7, 0.6),
-        scored_driver("b", 0.5, 0.5, 1.0, 1.0),
-    ])
+    ranked = rank_drivers(
+        [
+            scored_driver("a", 0.9, 0.8, 0.7, 0.6),
+            scored_driver("b", 0.5, 0.5, 1.0, 1.0),
+        ]
+    )
     assert ranked[0].driver_id == "a"
     assert ranked[0].score == pytest.approx(0.9 * 0.8 * 0.7 * 0.6)
 ```

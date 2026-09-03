@@ -132,12 +132,8 @@ def test_persistence_toggle_does_not_change_research_semantic_digest() -> None:
     no_persist = base_command.model_copy(
         update={"options": ResearchRunOptions(persist_snapshot=False)}
     )
-    persist = base_command.model_copy(
-        update={"options": ResearchRunOptions(persist_snapshot=True)}
-    )
-    result = ResearchApplication.build(
-        repository_attestor=_RepositoryAttestor()
-    ).run(no_persist)
+    persist = base_command.model_copy(update={"options": ResearchRunOptions(persist_snapshot=True)})
+    result = ResearchApplication.build(repository_attestor=_RepositoryAttestor()).run(no_persist)
     service = SnapshotService(
         snapshot_id_factory=lambda: "snapshot:semantic",
         clock=lambda: DECISION_TS,
@@ -167,8 +163,6 @@ def test_application_rolls_back_run_when_snapshot_append_fails(tmp_path) -> None
 
     with sessions() as session:
         run_count = session.scalar(select(func.count()).select_from(ResearchRunRecord))
-        snapshot_count = session.scalar(
-            select(func.count()).select_from(ResearchSnapshotRecord)
-        )
+        snapshot_count = session.scalar(select(func.count()).select_from(ResearchSnapshotRecord))
     assert run_count == 1
     assert snapshot_count == 1

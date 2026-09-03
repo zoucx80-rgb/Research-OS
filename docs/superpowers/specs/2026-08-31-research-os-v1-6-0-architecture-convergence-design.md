@@ -126,8 +126,7 @@ Research OS 1.6.0 将现有专业研究语义内核收敛为一个不可绕过�
 
 ```python
 class ResearchApplication:
-    def run(self, command: ResearchRunCommand) -> ResearchRunResult:
-        ...
+    def run(self, command: ResearchRunCommand) -> ResearchRunResult: ...
 ```
 
 `ResearchRuntimeFactory` 不再是当前公共入口。Core API 2.0 仅通过新的 application command/result 运行；调用方必须重建输入，包内不提供 `compat/v1` 转换函数、adapter 或第二套 Runtime。
@@ -164,17 +163,21 @@ class EvidenceRef(BaseModel):
     revision: int
     content_fingerprint: str
 
+
 class EvidenceView(Protocol):
     company_id: str
     decision_ts: datetime
+
     def get(self, ref: EvidenceRef) -> RawEvidence: ...
     def refs(self) -> tuple[EvidenceRef, ...]: ...
+
 
 class FactView(Protocol):
     company_id: str
     decision_ts: datetime
     reporting_period: ReportingPeriod
     accounting_scope: AccountingScope
+
     def get(self, fact_id: str, default: object | None = None) -> object | None: ...
     def evidence_refs(self, fact_id: str) -> tuple[EvidenceRef, ...]: ...
 ```
@@ -209,15 +212,18 @@ class ResearchRunResult(BaseModel):
 ```python
 T = TypeVar("T")
 
+
 @dataclass(frozen=True, slots=True)
 class ArtifactKey(Generic[T]):
     artifact_id: str
     schema_version: str
     value_type: type[T]
 
+
 class ArtifactMode(StrEnum):
     EXCLUSIVE = "exclusive"
     COLLECTION = "collection"
+
 
 @dataclass(frozen=True, slots=True)
 class ArtifactDefinition(Generic[T]):
@@ -234,6 +240,7 @@ class ArtifactWrite(BaseModel, Generic[T]):
     value: T
     producer_id: str
     evidence_refs: tuple[EvidenceRef, ...] = ()
+
 
 class ArtifactSnapshot:
     def require(self, key: ArtifactKey[T]) -> T: ...
@@ -460,10 +467,12 @@ class SnapshotRepository(Protocol):
     def get(self, snapshot_id: str) -> ResearchSnapshotV2: ...
     def list_for_company(self, query: SnapshotQuery) -> SnapshotPage: ...
 
+
 class UnitOfWork(Protocol):
     evidence: EvidenceRepository
     runs: ResearchRunRepository
     snapshots: SnapshotRepository
+
     def commit(self) -> None: ...
     def rollback(self) -> None: ...
 ```

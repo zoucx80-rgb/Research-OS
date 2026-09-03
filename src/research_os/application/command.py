@@ -97,9 +97,7 @@ class ValuationResearchInput(_FrozenInput):
 
 class MonitoringResearchInput(_FrozenInput):
     monitoring_rules: tuple[MonitoringRule, ...] = Field(default_factory=tuple)
-    verification_calendar: tuple[VerificationEvent, ...] = Field(
-        default_factory=tuple
-    )
+    verification_calendar: tuple[VerificationEvent, ...] = Field(default_factory=tuple)
     prior_run_reviews: tuple[PriorRunReviewInput, ...] = Field(default_factory=tuple)
     next_verification_event: VerificationEvent | None = None
 

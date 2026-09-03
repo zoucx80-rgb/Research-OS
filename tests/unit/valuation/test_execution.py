@@ -28,10 +28,18 @@ def _base_execution(**updates):
         business_model="distributor",
         inputs={"revenue": 100.0},
         scenario_logic="revenue times sales multiple",
-        evidence_refs=(EvidenceRef(evidence_id="ev:revenue", revision=1, content_fingerprint="a" * 64),),
+        evidence_refs=(
+            EvidenceRef(evidence_id="ev:revenue", revision=1, content_fingerprint="a" * 64),
+        ),
         driver_bridge=(
-            "Revenue", "Gross Profit", "Working Capital", "Financing Requirement",
-            "Financing Cost", "Credit / Inventory Loss", "Net Profit / Cash Economics", "Valuation",
+            "Revenue",
+            "Gross Profit",
+            "Working Capital",
+            "Financing Requirement",
+            "Financing Cost",
+            "Credit / Inventory Loss",
+            "Net Profit / Cash Economics",
+            "Valuation",
         ),
     )
     data.update(updates)
@@ -46,7 +54,9 @@ def test_selected_ps_executed_pe_fails():
 
 def test_distributor_execution_requires_driver_bridge():
     m = _load("research_os.valuation.execution")
-    result = m.ValuationExecutionValidator().validate(_base_execution(driver_bridge=["Revenue", "Valuation"]))
+    result = m.ValuationExecutionValidator().validate(
+        _base_execution(driver_bridge=["Revenue", "Valuation"])
+    )
     assert result.status == "VALUATION_GATE_FAIL"
 
 

@@ -65,6 +65,7 @@ class MarkdownPresentationArtifact(BaseModel):
     content_hash: str
     content: str
 
+
 class HtmlPresentationArtifact(BaseModel):
     artifact_type: Literal["html"]
     media_type: Literal["text/html; charset=utf-8"]
@@ -73,6 +74,7 @@ class HtmlPresentationArtifact(BaseModel):
     content_hash: str
     style_hash: str
     content: str
+
 
 class PdfPresentationArtifact(BaseModel):
     artifact_type: Literal["pdf"]

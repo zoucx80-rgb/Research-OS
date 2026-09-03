@@ -118,9 +118,7 @@ def test_core_catalog_keys_reject_a_value_outside_their_runtime_type() -> None:
 
     assert catalog.definition(FINANCIAL_FACT_SNAPSHOT).key.value_type is FinancialFactSnapshot
 
-    evidence_key = next(
-        key for key in CORE_ARTIFACT_KEYS if key.artifact_id == "evidence.pit"
-    )
+    evidence_key = next(key for key in CORE_ARTIFACT_KEYS if key.artifact_id == "evidence.pit")
     with pytest.raises(ArtifactTypeMismatchError):
         ArtifactWrite(
             key=evidence_key,

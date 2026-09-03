@@ -44,9 +44,7 @@ class ExampleRepositoryAttestor:
 
 
 def _head_sha() -> str:
-    return subprocess.check_output(
-        ("git", "rev-parse", "HEAD"), text=True
-    ).strip()
+    return subprocess.check_output(("git", "rev-parse", "HEAD"), text=True).strip()
 
 
 def build_command(head_sha: str) -> ResearchRunCommand:
@@ -117,9 +115,9 @@ def build_command(head_sha: str) -> ResearchRunCommand:
 
 def main() -> None:
     head_sha = _head_sha()
-    result = ResearchApplication.build(
-        repository_attestor=ExampleRepositoryAttestor(head_sha)
-    ).run(build_command(head_sha))
+    result = ResearchApplication.build(repository_attestor=ExampleRepositoryAttestor(head_sha)).run(
+        build_command(head_sha)
+    )
     print(
         json.dumps(
             {

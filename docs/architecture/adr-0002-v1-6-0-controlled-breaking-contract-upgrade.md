@@ -1,10 +1,10 @@
 # ADR-0002：Research OS 1.6.0 受控破坏性契约升级
 
-- **状态：** Proposed，随 Research OS 1.6.0 实施并在发布前转为 Accepted
+- **状态：** Accepted
 - **日期：** 2026-08-31
+- **接受日期：** 2026-09-03
 - **行为基线：** `zoucx80-rgb/Research-OS@72ab06c619678b35c31cf7edef7547849e803d16`
-- **评审时 main：** `zoucx80-rgb/Research-OS@812b6212410723bc80ed6222b5c78bbc74917390`
-- **交付父提交：** M1 启动时冻结的、包含本次设计修订的最新 `main` HEAD（发布证据记录精确 SHA）
+- **M4 稳定基线 / M5 delivery parent：** `zoucx80-rgb/Research-OS@abd19bbc7e22d7958df853333e0ba8cedff39f6f`
 - **目标产品版本：** `1.6.0`
 - **目标 Core API：** `2.0`
 - **目标 Plugin API：** `2.0`
@@ -13,21 +13,17 @@
 
 ## 背景
 
-Research OS 1.5.12 已建立 PIT、证据血缘、缺失值保护、比较口径安全、语义保持、Claim Strength、Cycle/Moat 状态、估值对账、单向报告链和历史重放机制。与此同时，当前运行时仍有三类结构性风险：
+Research OS 1.5.12 已建立 PIT、证据血缘、缺失值保护、比较口径安全、语义保持、Claim Strength、Cycle/Moat 状态、估值对账、单向报告链和历史重放机制。v1.6.0 解决了三类结构性风险：
 
 1. `ResearchEngine` 之外仍能直接执行插件模块或在执行结束后写入语义 Artifact；
-2. 运行边界仍大量使用字符串 Artifact ID 与 `dict[str, Any]`；
+2. 运行边界大量使用字符串 Artifact ID 与 `dict[str, Any]`；
 3. Snapshot、Storage、HTTP API 和插件发现仍处于原型或半类型化状态。
 
-这些问题无法通过普通 PATCH 的局部兼容修补彻底解决。用户已决定让现有调用方统一迁移，同时将产品版本保持在 `1.x` 演进，因此本次产品版本采用 `1.6.0`，但独立接口契约升级为 `2.0`。
+这些问题无法通过普通 PATCH 的局部兼容修补彻底解决，因此产品版本采用 `1.6.0`，独立接口契约升级为 `2.0`。
 
 ## 决策
 
-本 ADR 仍为 `Proposed`，直到实现、验证和发布门禁完成后才转为 `Accepted`。该状态不是发布批准，也不改变 v1.6.0 当前未实施事实。
-
 ### 1. 产品版本与接口版本独立演进
-
-Research OS 产品版本使用 `1.6.0`。以下接口单独表达兼容性：
 
 ```text
 Research OS Product  1.6.0
@@ -37,7 +33,7 @@ Snapshot Schema      2.0
 HTTP API             v1
 ```
 
-`1.6.0` 是一次明确记录的 **breaking migration release**。不得继续声称它与 1.5.x Runtime、Plugin 或 Snapshot 写入接口向后兼容。
+`1.6.0` 是明确记录的 **breaking migration release**。不得声称它与 1.5.x Runtime、Plugin 或 Snapshot 写入接口向后兼容。
 
 ### 2. 模块化单体保持不变
 
@@ -64,24 +60,32 @@ Snapshot 使用规范化 JSON、显式 Schema/Codec/Hash 版本和 SHA-256。Sna
 
 ### 7. 历史重放绑定历史提交
 
-历史 1.5.08–1.5.12 重放不再从当前源码继承或复制逻辑。Release Replay Profile 绑定历史 commit SHA，发布验证器在临时 Git worktree 中执行该提交的 runner。当前 CI 必须获取所需历史提交，但历史实现不进入 1.6.0 当前运行依赖。
+历史 1.5.08–1.5.12 重放不从当前源码继承或复制逻辑。Release Replay Profile 绑定历史 commit SHA，发布验证器在 detached worktree 和独立解释器/环境中执行历史提交自己的 runner。当前 CI 获取完整 Git history，但历史实现不进入 1.6.0 当前运行依赖。
 
 ### 8. Completion 与 Readiness 分开
 
 - `ExecutionCompletionResult`：机器研究执行是否完成；
 - `ResearchReadinessAssessment`：专业研究内容是否达到发布准备度。
 
-Readiness 不能成为第二 Decision Engine 或第二 Completion Gate。
-
-唯一顺序为 `Engine modules -> CompletionEvaluator -> ReadinessEvaluator -> Finalizer`。Completion 排除 Readiness；缺证据/无覆盖/`NOT_APPLICABLE` 是可审计的类型化状态，未登记 Provider 或依赖循环才在编译期失败。异常终止不生成有效结论，Finalizer 不能补写语义。
+Readiness 不能成为第二 Decision Engine 或第二 Completion Gate。唯一顺序为 `Engine modules -> CompletionEvaluator -> ReadinessEvaluator -> Finalizer`。Completion 排除 Readiness；缺证据、无覆盖、`NOT_APPLICABLE` 是可审计的类型化状态，未登记 Provider 或依赖循环才在编译期失败。Finalizer 不能补写语义。
 
 ### 9. Revision-bound PIT 与 Snapshot 投影
 
-Phase A 创建绑定 `company_id + decision_ts` 的不可变 `FactView`。所有事实引用必须包含 evidence ID、具体 revision 和 content fingerprint；旧的 ID-only/无 cutoff 读取不属于 v2 边界。Snapshot 同时定义不含 run/snapshot 时间身份的研究语义指纹投影，以及包含完整 envelope 的完整性指纹投影；受控 codec 负责类型解码，未知 Schema/动态 import 一律失败。
+Phase A 创建绑定 `company_id + decision_ts` 的不可变 `FactView`。所有事实引用包含 evidence ID、具体 revision 和 content fingerprint；ID-only/无 cutoff 读取不属于 v2 边界。Snapshot 分离研究语义指纹与完整性指纹；`SnapshotDescriptor` 不进入自身哈希输入，未知 Schema/动态 import 失败关闭。
 
-### 10. 历史 replay 隔离
+### 10. M5 发布历史规则
 
-HistoricalReplayExecutor 显式绑定目标 worktree 的解释器、依赖和 `sys.path`，清理或绑定 `GITHUB_SHA`，并断言导入文件、产品/API 版本和 Git HEAD 匹配；无依赖锁时只声明记录环境复放。
+M1–M4 已分别以 squash commit 进入 `main`，其中 M4 基线固定为 `abd19bbc7e22d7958df853333e0ba8cedff39f6f`。M5 不得重写、重放或重新合入这些过程历史。M5 feature branch 可保留 RED/GREEN/refactor 过程提交，但最终 `main` 必须满足：
+
+```text
+M4 main HEAD (abd19bbc...)
+    ↓
+exactly one M5 squash commit
+    ↓
+new main HEAD
+```
+
+发布前重新获取 `origin/main`；若它不再等于 M4 delivery parent，必须先审查并整合外部提交，禁止 force-push。最终交付包只能在新的 `main` 上、且 `abd19bbc..HEAD` 的 commit count 精确为 `1` 时生成。
 
 ## 影响
 
@@ -92,14 +96,15 @@ HistoricalReplayExecutor 显式绑定目标 worktree 的解释器、依赖和 `s
 - 插件可扩展但不污染核心编排；
 - Snapshot 可跨进程持久化、验证和审计；
 - 当前代码与历史重放物理隔离；
-- 研究专业能力可通过 Metric/Policy/Method Registry 稳定扩展。
+- 专业研究能力由版本化 Metric/Policy/Method Registry 支撑；
+- 发布质量由 Manifest-selected verification packs、分层 CI、真实 PDF、历史 replay、依赖审计和安装包 smoke test 共同约束。
 
 ### 成本
 
 - 所有现有 Core API 1.0 调用方和插件必须迁移；
-- 现有测试、脚本和 fixtures 的调用入口需要更新；
-- 需要新增数据库迁移；
-- 需要一次完整的历史重放、安装包、API 和真实 PDF 验证。
+- 调用入口、测试和 fixtures 需迁移；
+- 数据库需要 1.6.0 migration；
+- 发布需要完整历史 replay、安装包、API 和真实 PDF 验证。
 
 ## 被否决的方案
 
@@ -109,7 +114,7 @@ HistoricalReplayExecutor 显式绑定目标 worktree 的解释器、依赖和 `s
 
 ### 为 1.x 和 2.x 长期维护两套正式 Runtime
 
-否决。不提供一次性输入迁移工具、旧 Snapshot Reader 或第二套研究执行路径；集成方重建 v2 输入和插件，历史复现只在历史提交中执行。
+否决。不提供包内输入转换工具、旧 Snapshot Reader 或第二套研究执行路径；集成方重建 v2 输入和插件，历史复现只在历史提交中执行。
 
 ### 将系统拆成微服务
 
@@ -125,6 +130,9 @@ HistoricalReplayExecutor 显式绑定目标 worktree 的解释器、依赖和 `s
 2. Engine 返回后不得写入 canonical semantic Artifact；
 3. Manifest、实际组件指纹、Run Result、Snapshot 和 AuditAppendix 版本完全一致；
 4. 1.5.08–1.5.12 历史 replay 在对应历史提交中通过；
-5. 1.6.0 当前 acceptance 同时验证机器语义与 Markdown/HTML/PDF；
+5. 1.6.0 当前 acceptance 同时验证机器语义与 Markdown/HTML/真实 PDF；
 6. 生产源码不得包含验收公司身份特例；
-7. 当前包只暴露 Core API 2.0、Plugin API 2.0、Snapshot 2.0 和新的 application command/result，且不含 v1 compatibility surface。
+7. 当前包只暴露 Core API 2.0、Plugin API 2.0、Snapshot 2.0 和新的 application command/result，不含 v1 compatibility surface；
+8. M3 专业研究能力必须由 Manifest-selected verification pack 覆盖，不能只依赖 full pytest 的偶然包含；
+9. wheel/sdist、依赖审计、twine check 和 clean-venv wheel smoke test 必须通过；
+10. 最终 `main` 相对 `abd19bbc7e22d7958df853333e0ba8cedff39f6f` 只能 ahead 1，并在该最终 commit 上重新跑完整 CI。

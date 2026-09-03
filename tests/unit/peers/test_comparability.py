@@ -90,9 +90,7 @@ def test_missing_basis_is_insufficient_and_different_metric_is_not_comparable() 
     different_value_kind = _metric("right", _basis()).model_copy(
         update={"value": Ratio(value=Decimal("1"))}
     )
-    incompatible_kind = assess_comparability(
-        _metric("left", _basis()), different_value_kind
-    )
+    incompatible_kind = assess_comparability(_metric("left", _basis()), different_value_kind)
     assert incompatible_kind.status == "NOT_COMPARABLE"
     assert "VALUE_TYPE_MISMATCH" in incompatible_kind.reason_codes
 

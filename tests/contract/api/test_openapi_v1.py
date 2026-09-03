@@ -44,9 +44,7 @@ def test_openapi_documents_problem_details_for_not_found() -> None:
     schema = create_app(cast(ResearchQuery, _UnusedQueryService())).openapi()
     operation = schema["paths"]["/api/v1/snapshots/{snapshot_id}"]["get"]
 
-    problem_schema = operation["responses"]["404"]["content"][
-        "application/problem+json"
-    ]["schema"]
+    problem_schema = operation["responses"]["404"]["content"]["application/problem+json"]["schema"]
     assert problem_schema["title"] == "ProblemDetails"
     assert set(problem_schema["required"]) == {
         "type",

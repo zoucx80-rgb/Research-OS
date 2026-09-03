@@ -4,7 +4,6 @@ from datetime import datetime, timezone
 
 import pytest
 
-from research_os.contracts.evidence import EvidenceRef
 from research_os.contracts.metrics import MetricDefinition, MetricResult
 from research_os.contracts.policies import PolicySnapshot
 from research_os.contracts.values import AccountingScope
@@ -154,18 +153,16 @@ def test_external_provider_satisfies_the_public_kpi_contract():
 
 def test_builtin_provider_satisfies_the_same_public_kpi_contract():
     values = {
-            "revenue": 1_000.0,
-            "net_profit_parent": 50.0,
-            "assets_begin": 800.0,
-            "assets_end": 900.0,
-            "equity_begin": 400.0,
-            "equity_end": 450.0,
-            "period_type": "FY",
+        "revenue": 1_000.0,
+        "net_profit_parent": 50.0,
+        "assets_begin": 800.0,
+        "assets_end": 900.0,
+        "equity_begin": 400.0,
+        "equity_end": 450.0,
+        "period_type": "FY",
     }
     evidence_by_fact = {
-        key: [f"ev:{key}"]
-        for key in values
-        if key not in {"period_type", "period_days"}
+        key: [f"ev:{key}"] for key in values if key not in {"period_type", "period_days"}
     }
     facts = _bound_facts(
         values,
@@ -239,9 +236,7 @@ def test_provider_fact_view_rejects_partial_dependency_lineage():
         "period_type": "FY",
     }
     evidence_by_fact = {
-        key: [f"ev:{key}"]
-        for key in values
-        if key not in {"period_type", "assets_end"}
+        key: [f"ev:{key}"] for key in values if key not in {"period_type", "assets_end"}
     }
     with pytest.raises(ValueError, match="missing evidence references.*assets_end"):
         _bound_facts(values, evidence_by_fact)

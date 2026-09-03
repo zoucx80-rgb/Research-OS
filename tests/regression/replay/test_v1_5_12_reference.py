@@ -6,11 +6,7 @@ from pathlib import Path
 
 BEHAVIOR_BASELINE_SHA = "72ab06c619678b35c31cf7edef7547849e803d16"
 REFERENCE_ROOT = (
-    Path(__file__).parents[2]
-    / "fixtures"
-    / "historical_replay"
-    / "v1_5_12"
-    / "report_reference"
+    Path(__file__).parents[2] / "fixtures" / "historical_replay" / "v1_5_12" / "report_reference"
 )
 
 

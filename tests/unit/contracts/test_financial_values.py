@@ -113,12 +113,8 @@ def test_evidence_requires_timezone_aware_times_and_normalizes_them_to_utc() -> 
 
     value = Evidence(
         **common,
-        publish_ts=datetime(
-            2026, 8, 1, 9, tzinfo=timezone(timedelta(hours=8))
-        ),
-        ingested_at=datetime(
-            2026, 8, 1, 10, tzinfo=timezone(timedelta(hours=8))
-        ),
+        publish_ts=datetime(2026, 8, 1, 9, tzinfo=timezone(timedelta(hours=8))),
+        ingested_at=datetime(2026, 8, 1, 10, tzinfo=timezone(timedelta(hours=8))),
     )
 
     assert value.publish_ts == datetime(2026, 8, 1, 1, tzinfo=timezone.utc)

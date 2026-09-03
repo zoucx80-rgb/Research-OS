@@ -75,11 +75,7 @@ def _implementation_fingerprint(
     implementation_types = tuple(type(item) for item in components)
     source_files = dict(
         sorted(
-            (
-                source
-                for item in components
-                for source in _implementation_files(item)
-            ),
+            (source for item in components for source in _implementation_files(item)),
             key=lambda item: item[0],
         )
     )
@@ -99,8 +95,7 @@ def _implementation_fingerprint(
                 )
             except (OSError, TypeError) as exc:
                 raise RuntimeError(
-                    "cannot fingerprint implementation "
-                    f"{implementation_type.__qualname__}"
+                    f"cannot fingerprint implementation {implementation_type.__qualname__}"
                 ) from exc
     identity_bytes = json.dumps(
         (
@@ -110,9 +105,7 @@ def _implementation_fingerprint(
         ensure_ascii=True,
         separators=(",", ":"),
     ).encode("ascii")
-    return hashlib.sha256(
-        identity_bytes + b"\0" + b"".join(implementation_parts)
-    ).hexdigest()
+    return hashlib.sha256(identity_bytes + b"\0" + b"".join(implementation_parts)).hexdigest()
 
 
 def _plugin_implementation_components(
@@ -241,9 +234,7 @@ class ResearchApplication:
         )
         external = tuple(
             VersionIdentity(component_id=name, version=value)
-            for name, value in sorted(
-                command.options.external_versions.model_dump().items()
-            )
+            for name, value in sorted(command.options.external_versions.model_dump().items())
             if value is not None
         )
         metric_versions = tuple(
@@ -256,10 +247,7 @@ class ResearchApplication:
         policy_versions = tuple(
             VersionIdentity(
                 component_id=selection.policy_id,
-                version=(
-                    f"{selection.policy_version}@"
-                    f"{selection.parameters_fingerprint}"
-                ),
+                version=(f"{selection.policy_version}@{selection.parameters_fingerprint}"),
             )
             for selection in builtin_policy_registry().snapshot().policies
         )

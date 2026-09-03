@@ -167,9 +167,7 @@ def test_every_response_has_request_id_and_valid_upstream_id_is_preserved() -> N
     client, _ = _client()
 
     generated = client.get("/api/v1/health")
-    preserved = client.get(
-        "/api/v1/health", headers={"X-Request-ID": "edge:request/123"}
-    )
+    preserved = client.get("/api/v1/health", headers={"X-Request-ID": "edge:request/123"})
 
     assert generated.headers["X-Request-ID"]
     assert preserved.headers["X-Request-ID"] == "edge:request/123"
@@ -203,13 +201,8 @@ def test_invalid_cursor_and_naive_pit_timestamp_use_problem_json() -> None:
 
     for response in (invalid_cursor, naive_timestamp):
         assert response.status_code == 422
-        assert response.headers["content-type"].startswith(
-            "application/problem+json"
-        )
-        assert (
-            response.json()["type"]
-            == "urn:research-os:error:request-validation-failed"
-        )
+        assert response.headers["content-type"].startswith("application/problem+json")
+        assert response.json()["type"] == "urn:research-os:error:request-validation-failed"
 
 
 def test_framework_404_and_405_errors_use_problem_json() -> None:
@@ -222,9 +215,7 @@ def test_framework_404_and_405_errors_use_problem_json() -> None:
 
     assert [response.status_code for response in responses] == [404, 405]
     for response in responses:
-        assert response.headers["content-type"].startswith(
-            "application/problem+json"
-        )
+        assert response.headers["content-type"].startswith("application/problem+json")
         assert response.headers["X-Request-ID"] == response.json()["request_id"]
 
 

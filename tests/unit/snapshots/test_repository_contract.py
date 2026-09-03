@@ -11,7 +11,7 @@ from sqlalchemy.orm import sessionmaker
 from research_os.adapters.persistence.schema import PersistenceBase
 from research_os.adapters.persistence.snapshot_repository import SqlSnapshotRepository
 from research_os.application.repositories import SnapshotCursorError, SnapshotQuery
-from research_os.application.result import ComponentFingerprint, RunVersionSet
+from research_os.application.result import RunVersionSet
 from research_os.contracts.artifacts import artifact_value_fingerprint
 from research_os.runtime.context import BaselineFingerprint, CompanyRef
 from research_os.snapshots.codec import ArtifactDecoderRegistry, SnapshotCodecV2
@@ -96,9 +96,7 @@ def _snapshot(snapshot_id: str, decision_ts: datetime) -> ResearchSnapshotV2:
                 artifact_id="decision.record",
                 schema_version="2.0",
                 type_id="decision-record-v2",
-                value_fingerprint=artifact_value_fingerprint(
-                    payload.artifacts[0].payload
-                ),
+                value_fingerprint=artifact_value_fingerprint(payload.artifacts[0].payload),
             ),
         ),
         payload=payload,
@@ -121,9 +119,7 @@ def test_in_memory_snapshot_repository_is_append_only_and_returns_immutable_valu
 
 
 @pytest.mark.parametrize("backend", ("memory", "sql"))
-def test_snapshot_repository_lists_company_snapshots_as_of_cutoff(
-    backend: str, tmp_path
-) -> None:
+def test_snapshot_repository_lists_company_snapshots_as_of_cutoff(backend: str, tmp_path) -> None:
     repository = _repository(backend, tmp_path)
     early = _snapshot("snapshot-early", datetime(2026, 9, 1, tzinfo=timezone.utc))
     late = _snapshot("snapshot-late", datetime(2026, 9, 2, tzinfo=timezone.utc))
@@ -143,18 +139,14 @@ def test_snapshot_repository_lists_company_snapshots_as_of_cutoff(
 
 
 @pytest.mark.parametrize("backend", ("memory", "sql"))
-def test_snapshot_repository_paginates_with_stable_opaque_cursor(
-    backend: str, tmp_path
-) -> None:
+def test_snapshot_repository_paginates_with_stable_opaque_cursor(backend: str, tmp_path) -> None:
     repository = _repository(backend, tmp_path)
     timestamp = datetime(2026, 9, 1, tzinfo=timezone.utc)
     snapshots = tuple(_snapshot(f"snapshot-{index}", timestamp) for index in range(3))
     for snapshot in snapshots:
         repository.append(snapshot)
 
-    first = repository.list_for_company(
-        SnapshotQuery(company_id="000001.SZ", limit=2)
-    )
+    first = repository.list_for_company(SnapshotQuery(company_id="000001.SZ", limit=2))
     second = repository.list_for_company(
         SnapshotQuery(
             company_id="000001.SZ",
@@ -168,6 +160,4 @@ def test_snapshot_repository_paginates_with_stable_opaque_cursor(
     assert [item.snapshot_id for item in second.items] == ["snapshot-0"]
     assert second.next_cursor is None
     with pytest.raises(SnapshotCursorError):
-        repository.list_for_company(
-            SnapshotQuery(company_id="000001.SZ", cursor="eA==")
-        )
+        repository.list_for_company(SnapshotQuery(company_id="000001.SZ", cursor="eA=="))

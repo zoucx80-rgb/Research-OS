@@ -47,9 +47,7 @@ class PlaywrightPdfAdapter:
             r"javascript\s*:",
         )
         if any(re.search(pattern, content, flags=re.IGNORECASE) for pattern in forbidden):
-            raise ValueError(
-                "PlaywrightPdfAdapter accepts only passive, self-contained HTML"
-            )
+            raise ValueError("PlaywrightPdfAdapter accepts only passive, self-contained HTML")
 
     def render(self, html: HtmlPresentationArtifact) -> PdfPresentationArtifact:
         if not isinstance(html, HtmlPresentationArtifact):
@@ -57,7 +55,7 @@ class PlaywrightPdfAdapter:
         self._validate_passive_html(html.content)
 
         try:
-            from playwright.sync_api import sync_playwright
+            from playwright.sync_api import sync_playwright  # type: ignore[import-not-found]
         except ImportError as exc:
             raise RuntimeError(
                 "Playwright is optional; install research-os[pdf] and run "
@@ -99,8 +97,7 @@ class PlaywrightPdfAdapter:
                         ),
                     )
                     backend_version = (
-                        f"playwright@{self._playwright_version()}/"
-                        f"chromium@{browser.version}"
+                        f"playwright@{self._playwright_version()}/chromium@{browser.version}"
                     )
                 finally:
                     if context is not None:

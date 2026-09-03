@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from __future__ import annotations
 
+import argparse
 import json
 import os
 from pathlib import Path
@@ -10,11 +11,11 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from research_os.release.gate import evaluate_release_gate
-from research_os.release.historical_executor import HistoricalReplayExecutor
-from research_os.release.manifest import CURRENT_RELEASE
-from research_os.release.replays import resolve_replay_profiles
-from research_os.release.verification import resolve_release_checks
+from research_os.release.gate import evaluate_release_gate  # noqa: E402
+from research_os.release.historical_executor import HistoricalReplayExecutor  # noqa: E402
+from research_os.release.manifest import CURRENT_RELEASE  # noqa: E402
+from research_os.release.replays import resolve_replay_profiles  # noqa: E402
+from research_os.release.verification import resolve_release_checks  # noqa: E402
 
 
 def _run(stage: str, command: list[str]) -> None:
@@ -43,9 +44,10 @@ def _run_release_checks() -> dict[str, bool]:
 
 
 def _run_current_field_acceptance() -> None:
-    commit_sha = os.environ.get("GITHUB_SHA") or subprocess.check_output(
-        ("git", "-C", str(ROOT), "rev-parse", "HEAD"), text=True
-    ).strip()
+    commit_sha = (
+        os.environ.get("GITHUB_SHA")
+        or subprocess.check_output(("git", "-C", str(ROOT), "rev-parse", "HEAD"), text=True).strip()
+    )
     _run(
         "current v1.6.0 field acceptance",
         [
@@ -75,23 +77,48 @@ def _run_field_replays() -> None:
         )
 
 
-def main() -> None:
-    print(
-        f"Research OS v{CURRENT_RELEASE.version} release verification pipeline",
-        flush=True,
-    )
-    _verify_metadata()
-    status = _run_release_checks()
-    _run_current_field_acceptance()
-    _run_field_replays()
-    _run("full pytest suite", [sys.executable, "-m", "pytest", "-q"])
-    _run("mypy", [sys.executable, "-m", "mypy", "src"])
-
+def _evaluate_release_gate(status: dict[str, bool]) -> None:
     gate = evaluate_release_gate(status)
     if not gate.ready:
         print("release gate failed:", ", ".join(gate.failed), file=sys.stderr)
         raise SystemExit(1)
-    if CURRENT_RELEASE.status == "stable":
+
+
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Research OS release verification pipeline")
+    parser.add_argument(
+        "--stage",
+        choices=("full", "acceptance", "release-gate"),
+        default="full",
+        help="Run the complete pipeline or one CI-isolated release stage",
+    )
+    return parser.parse_args()
+
+
+def main() -> None:
+    args = _parse_args()
+    print(
+        f"Research OS v{CURRENT_RELEASE.version} release verification pipeline [{args.stage}]",
+        flush=True,
+    )
+    _verify_metadata()
+
+    status: dict[str, bool] = {}
+    if args.stage in {"full", "release-gate"}:
+        status = _run_release_checks()
+        _evaluate_release_gate(status)
+
+    if args.stage in {"full", "acceptance"}:
+        _run_current_field_acceptance()
+        _run_field_replays()
+
+    if args.stage == "full":
+        _run("full pytest suite", [sys.executable, "-m", "pytest", "-q"])
+        _run("mypy", [sys.executable, "-m", "mypy", "src"])
+
+    if args.stage == "acceptance":
+        print(f"ACCEPTANCE VERIFIED: v{CURRENT_RELEASE.version}")
+    elif CURRENT_RELEASE.status == "stable":
         print(f"READY: v{CURRENT_RELEASE.version} stable")
     else:
         print(f"VERIFIED: v{CURRENT_RELEASE.version} development milestone")

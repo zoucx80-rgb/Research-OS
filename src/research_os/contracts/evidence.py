@@ -58,8 +58,7 @@ class EvidenceSet(BaseModel):
             if (
                 reference is None
                 or reference.revision != item.revision_no
-                or reference.content_fingerprint
-                != evidence_content_fingerprint(item)
+                or reference.content_fingerprint != evidence_content_fingerprint(item)
             ):
                 raise ValueError(
                     f"PIT evidence item is not bound to its revision: {item.evidence_id}"
@@ -103,18 +102,13 @@ def evidence_content_fingerprint(evidence: Evidence) -> str:
         if isinstance(value, BaseModel):
             return {
                 "type": "model",
-                "value": canonicalize(
-                    value.model_dump(mode="python", round_trip=True)
-                ),
+                "value": canonicalize(value.model_dump(mode="python", round_trip=True)),
             }
         if is_dataclass(value) and not isinstance(value, type):
             return {
                 "type": "dataclass",
                 "value": canonicalize(
-                    {
-                        field.name: getattr(value, field.name)
-                        for field in fields(value)
-                    }
+                    {field.name: getattr(value, field.name) for field in fields(value)}
                 ),
             }
         if isinstance(value, Mapping):
@@ -122,10 +116,7 @@ def evidence_content_fingerprint(evidence: Evidence) -> str:
                 raise ValueError("evidence mappings must use string keys")
             return {
                 "type": "mapping",
-                "value": [
-                    [key, canonicalize(value[key])]
-                    for key in sorted(value)
-                ],
+                "value": [[key, canonicalize(value[key])] for key in sorted(value)],
             }
         if isinstance(value, tuple):
             return {
@@ -151,9 +142,7 @@ def evidence_content_fingerprint(evidence: Evidence) -> str:
                     ),
                 ),
             }
-        raise ValueError(
-            f"evidence value type {type(value).__name__} is not canonicalizable"
-        )
+        raise ValueError(f"evidence value type {type(value).__name__} is not canonicalizable")
 
     try:
         payload = canonicalize(evidence)

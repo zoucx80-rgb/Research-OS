@@ -21,11 +21,13 @@ _JSON_VALUES = st.recursive(
     | st.integers()
     | st.floats(allow_nan=False, allow_infinity=False)
     | _TEXT,
-    lambda children: st.lists(children, max_size=4)
-    | st.dictionaries(
-        st.sampled_from(("$type", "$ros_type", "value", "items", "ordinary")),
-        children,
-        max_size=5,
+    lambda children: (
+        st.lists(children, max_size=4)
+        | st.dictionaries(
+            st.sampled_from(("$type", "$ros_type", "value", "items", "ordinary")),
+            children,
+            max_size=5,
+        )
     ),
     max_leaves=20,
 )
@@ -75,9 +77,7 @@ def test_research_projection_is_deterministic_across_input_mapping_order(
     forward = _payload(items)
     backward = _payload(tuple(reversed(items)))
 
-    assert codec.encode_research_projection(forward) == codec.encode_research_projection(
-        backward
-    )
+    assert codec.encode_research_projection(forward) == codec.encode_research_projection(backward)
     assert codec.research_digest(forward) == codec.research_digest(backward)
 
 

@@ -32,13 +32,31 @@ def test_supported_method_executes_and_incompatible_basis_fails_reconciliation()
             basis="equity_per_share",
             valuation_date=date(2026, 9, 3),
             values={"eps": Decimal("1"), "multiple": Decimal("15")},
-            evidence_refs=(EvidenceRef(evidence_id="ev:eps", revision=1, content_fingerprint="a" * 64),),
+            evidence_refs=(
+                EvidenceRef(evidence_id="ev:eps", revision=1, content_fingerprint="a" * 64),
+            ),
         )
     )
     reconciliation = ValuationReconciler.reconcile(
         (
-            ValuationRange(range_id="pe", model_id="pe", role="model_implied", basis="equity_per_share", currency="CNY", low=12, high=18),
-            ValuationRange(range_id="dcf", model_id="dcf", role="model_implied", basis="enterprise_value", currency="CNY", low=100, high=120),
+            ValuationRange(
+                range_id="pe",
+                model_id="pe",
+                role="model_implied",
+                basis="equity_per_share",
+                currency="CNY",
+                low=12,
+                high=18,
+            ),
+            ValuationRange(
+                range_id="dcf",
+                model_id="dcf",
+                role="model_implied",
+                basis="enterprise_value",
+                currency="CNY",
+                low=100,
+                high=120,
+            ),
         )
     )
 

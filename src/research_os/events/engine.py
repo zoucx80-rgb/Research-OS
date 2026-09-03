@@ -70,9 +70,7 @@ class EventEngine:
             materiality=materiality,
             direction=direction,
             confidence_grade=(
-                "A"
-                if event.event_type in {"financial_report", "share_issue", "buyback"}
-                else "D"
+                "A" if event.event_type in {"financial_report", "share_issue", "buyback"} else "D"
             ),
             next_required_check="next material disclosure or scheduled reporting event",
         )

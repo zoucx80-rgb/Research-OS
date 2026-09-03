@@ -65,9 +65,7 @@ def _command() -> ResearchRunCommand:
                 research_os_version="1.6.0",
                 core_api_version="2.0",
             ),
-            evidence=EvidenceView(
-                (), company_id=COMPANY_ID, decision_ts=DECISION_TS
-            ),
+            evidence=EvidenceView((), company_id=COMPANY_ID, decision_ts=DECISION_TS),
             facts=FactView(
                 company_id=COMPANY_ID,
                 decision_ts=DECISION_TS,
@@ -100,9 +98,7 @@ def test_sql_query_adapter_serves_persisted_run_snapshot_and_artifact(tmp_path) 
         f"/api/v1/research-runs/{result.run_id}/artifacts/validation.repository_preflight"
     )
     list_response = client.get(f"/api/v1/companies/{COMPANY_ID}/snapshots")
-    snapshot_response = client.get(
-        f"/api/v1/snapshots/{result.snapshot.snapshot_id}"
-    )
+    snapshot_response = client.get(f"/api/v1/snapshots/{result.snapshot.snapshot_id}")
     research_view_response = client.get(
         f"/api/v1/snapshots/{result.snapshot.snapshot_id}/research-view"
     )
@@ -116,9 +112,7 @@ def test_sql_query_adapter_serves_persisted_run_snapshot_and_artifact(tmp_path) 
     ] == [200, 200, 200, 200, 200]
     assert run_response.json()["snapshot_id"] == result.snapshot.snapshot_id
     assert artifact_response.json()["producer_ids"] == ["core:repository-preflight"]
-    assert artifact_response.json()["value"]["repository_full_name"] == (
-        "zoucx80-rgb/Research-OS"
-    )
+    assert artifact_response.json()["value"]["repository_full_name"] == ("zoucx80-rgb/Research-OS")
     assert "$ros_type" not in artifact_response.json()["value"]
     assert list_response.json()["items"][0]["research_digest"] == result.snapshot.research_digest
     assert snapshot_response.json()["integrity_digest"] == result.snapshot.integrity_digest
@@ -126,9 +120,7 @@ def test_sql_query_adapter_serves_persisted_run_snapshot_and_artifact(tmp_path) 
     assert "$ros_type" not in snapshot_response.json()["payload"]
     assert research_view_response.json()["snapshot_id"] == result.snapshot.snapshot_id
 
-    invalid_cursor = client.get(
-        f"/api/v1/companies/{COMPANY_ID}/snapshots", params={"cursor": "x"}
-    )
+    invalid_cursor = client.get(f"/api/v1/companies/{COMPANY_ID}/snapshots", params={"cursor": "x"})
     assert invalid_cursor.status_code == 400
     assert invalid_cursor.json()["type"] == "urn:research-os:error:invalid-cursor"
 

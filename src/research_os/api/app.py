@@ -118,9 +118,7 @@ def create_app(query_service: ResearchQuery) -> FastAPI:
         return response
 
     @app.exception_handler(ResearchQueryError)
-    async def query_error_handler(
-        request: Request, error: ResearchQueryError
-    ) -> JSONResponse:
+    async def query_error_handler(request: Request, error: ResearchQueryError) -> JSONResponse:
         return _problem(
             request,
             problem_type=error.problem_type,
@@ -144,9 +142,7 @@ def create_app(query_service: ResearchQuery) -> FastAPI:
         )
 
     @app.exception_handler(HTTPException)
-    async def http_error_handler(
-        request: Request, error: HTTPException
-    ) -> JSONResponse:
+    async def http_error_handler(request: Request, error: HTTPException) -> JSONResponse:
         return _problem(
             request,
             problem_type="http-error",
@@ -156,9 +152,7 @@ def create_app(query_service: ResearchQuery) -> FastAPI:
         )
 
     @app.exception_handler(Exception)
-    async def unexpected_error_handler(
-        request: Request, error: Exception
-    ) -> JSONResponse:
+    async def unexpected_error_handler(request: Request, error: Exception) -> JSONResponse:
         del error
         return _problem(
             request,

@@ -9,18 +9,21 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from research_os.release.manifest import CURRENT_RELEASE
+from research_os.release.manifest import CURRENT_RELEASE  # noqa: E402
 
 
 TARGET = ROOT / "research_os_version.json"
 
 
 def rendered_metadata() -> str:
-    return json.dumps(
-        CURRENT_RELEASE.to_public_metadata(),
-        ensure_ascii=False,
-        indent=2,
-    ) + "\n"
+    return (
+        json.dumps(
+            CURRENT_RELEASE.to_public_metadata(),
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n"
+    )
 
 
 def main() -> None:

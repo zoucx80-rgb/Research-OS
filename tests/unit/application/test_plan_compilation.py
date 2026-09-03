@@ -99,8 +99,8 @@ def test_research_plan_uses_bootstrap_snapshot_and_adds_only_resolved_strategy_m
             value=BusinessModelProfile(
                 company_id=command.context.company.company_id,
                 primary_model="unknown",
-                    confidence_band="UNKNOWN",
-                    classification_status="INSUFFICIENT_EVIDENCE",
+                confidence_band="UNKNOWN",
+                classification_status="INSUFFICIENT_EVIDENCE",
             ),
             producer_id="core:business-model",
         )
@@ -133,10 +133,10 @@ def test_research_plan_rejects_a_resolved_plugin_missing_from_the_registry():
             value=BusinessModelProfile(
                 company_id=command.context.company.company_id,
                 primary_model="manufacturing",
-                    rule_match_score=1.0,
-                    usable_evidence_coverage=1.0,
-                    confidence_band="HIGH",
-                    classification_status="CLASSIFIED",
+                rule_match_score=1.0,
+                usable_evidence_coverage=1.0,
+                confidence_band="HIGH",
+                classification_status="CLASSIFIED",
             ),
             producer_id="core:business-model",
         )

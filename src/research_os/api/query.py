@@ -87,10 +87,7 @@ class ResearchQueryService:
         for snapshot in result.items:
             if snapshot.company_id != query.company_id:
                 raise QueryContractError("repository returned a different company")
-            if (
-                query.decision_ts_lte is not None
-                and snapshot.decision_ts > query.decision_ts_lte
-            ):
+            if query.decision_ts_lte is not None and snapshot.decision_ts > query.decision_ts_lte:
                 raise QueryContractError("repository violated the PIT upper bound")
         return result
 

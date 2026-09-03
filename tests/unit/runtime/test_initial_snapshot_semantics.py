@@ -22,16 +22,12 @@ def _snapshot(value: str):
 def test_engine_accepts_distinct_initial_snapshot_objects_with_same_semantics() -> None:
     key, catalog, compiled = _snapshot("same")
     replacement_store = ArtifactStore(catalog)
-    replacement_store.write(
-        ArtifactWrite(key=key, value="same", producer_id="bootstrap")
-    )
+    replacement_store.write(ArtifactWrite(key=key, value="same", producer_id="bootstrap"))
     replacement = replacement_store.freeze()
     assert replacement is not compiled
     plan = ModulePlanCompiler(catalog).compile((), initial_snapshot=compiled)
 
-    execution = ResearchEngine().execute(
-        plan, object(), catalog, initial_snapshot=replacement
-    )
+    execution = ResearchEngine().execute(plan, object(), catalog, initial_snapshot=replacement)
 
     assert execution.snapshot.require(key) == "same"
 
@@ -39,9 +35,7 @@ def test_engine_accepts_distinct_initial_snapshot_objects_with_same_semantics() 
 def test_engine_rejects_distinct_initial_snapshot_semantics() -> None:
     key, catalog, compiled = _snapshot("compiled")
     replacement_store = ArtifactStore(catalog)
-    replacement_store.write(
-        ArtifactWrite(key=key, value="different", producer_id="bootstrap")
-    )
+    replacement_store.write(ArtifactWrite(key=key, value="different", producer_id="bootstrap"))
     plan = ModulePlanCompiler(catalog).compile((), initial_snapshot=compiled)
 
     try:

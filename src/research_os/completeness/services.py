@@ -57,10 +57,7 @@ def build_consensus_distribution(
     source_ids = tuple(sorted(latest_by_source))
     evidence_ids = tuple(
         dict.fromkeys(
-            evidence_id
-            for item in selected
-            for evidence_id in item.evidence_ids
-            if evidence_id
+            evidence_id for item in selected for evidence_id in item.evidence_ids if evidence_id
         )
     )
     if not values:
@@ -88,9 +85,7 @@ def build_consensus_distribution(
     )
 
 
-def build_prior_run_review(
-    *, items: tuple[PriorRunReviewInput, ...]
-) -> PriorRunReview:
+def build_prior_run_review(*, items: tuple[PriorRunReviewInput, ...]) -> PriorRunReview:
     output: list[PriorRunReviewItem] = []
     for item in items:
         error = None
@@ -104,11 +99,7 @@ def build_prior_run_review(
             error = item.actual_value - item.predicted_value
             absolute_error = abs(error)
             status = "HIT" if absolute_error <= item.tolerance else "MISS"
-        evidence_ids = tuple(
-            dict.fromkeys(
-                [*item.prior_evidence_ids, *item.actual_evidence_ids]
-            )
-        )
+        evidence_ids = tuple(dict.fromkeys([*item.prior_evidence_ids, *item.actual_evidence_ids]))
         output.append(
             PriorRunReviewItem(
                 item_id=item.item_id,

@@ -141,8 +141,6 @@ def test_semantic_fingerprint_is_stable_across_model_and_projected_dict():
     )
 
     from_model = SemanticPreservationValidator.fingerprint((case,))
-    from_projection = SemanticPreservationValidator.fingerprint(
-        [case.model_dump(mode="python")]
-    )
+    from_projection = SemanticPreservationValidator.fingerprint([case.model_dump(mode="python")])
 
     assert from_model == from_projection

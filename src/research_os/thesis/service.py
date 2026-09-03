@@ -29,9 +29,7 @@ class ThesisService:
     @staticmethod
     def _evidence_ids_for(evidence, keys: set[str]) -> list[str]:
         return [
-            item.evidence_id
-            for item in evidence
-            if (item.source_table or item.evidence_id) in keys
+            item.evidence_id for item in evidence if (item.source_table or item.evidence_id) in keys
         ]
 
     @classmethod
@@ -114,7 +112,9 @@ class ThesisService:
         triggered = []
         for falsifier in thesis.falsifiers:
             value = self._value_for_metric(vals, falsifier.metric)
-            if isinstance(value, (int, float)) and OPS[falsifier.operator](value, falsifier.threshold):
+            if isinstance(value, (int, float)) and OPS[falsifier.operator](
+                value, falsifier.threshold
+            ):
                 triggered.append(falsifier.label())
         if not triggered:
             return thesis

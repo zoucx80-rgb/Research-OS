@@ -46,12 +46,8 @@ def upgrade() -> None:
         )
         batch.add_column(sa.Column("created_at", sa.DateTime(timezone=True), nullable=True))
         batch.add_column(sa.Column("baseline_json", sa.Text(), nullable=True))
-        batch.add_column(
-            sa.Column("component_fingerprints_json", sa.Text(), nullable=True)
-        )
-        batch.add_column(
-            sa.Column("artifact_fingerprints_json", sa.Text(), nullable=True)
-        )
+        batch.add_column(sa.Column("component_fingerprints_json", sa.Text(), nullable=True))
+        batch.add_column(sa.Column("artifact_fingerprints_json", sa.Text(), nullable=True))
         batch.add_column(sa.Column("research_digest", sa.String(), nullable=True))
         batch.add_column(sa.Column("integrity_digest", sa.String(), nullable=True))
         batch.create_unique_constraint("uq_research_snapshot_run_id", ["run_id"])
@@ -62,9 +58,7 @@ def upgrade() -> None:
         batch.add_column(sa.Column("lineage_json", sa.Text(), nullable=True))
         batch.add_column(sa.Column("content_hash", sa.String(), nullable=True))
 
-    op.create_index(
-        "ix_evidence_company_publish", "evidence", ["company_id", "publish_ts"]
-    )
+    op.create_index("ix_evidence_company_publish", "evidence", ["company_id", "publish_ts"])
     op.create_index(
         "ix_evidence_company_id_publish_revision",
         "evidence",
@@ -86,7 +80,10 @@ def upgrade() -> None:
         sa.Column("fingerprint", sa.String(), nullable=False),
         sa.ForeignKeyConstraint(["snapshot_id"], ["research_snapshot.snapshot_id"]),
         sa.UniqueConstraint(
-            "snapshot_id", "artifact_id", "schema_version", "provider_id",
+            "snapshot_id",
+            "artifact_id",
+            "schema_version",
+            "provider_id",
             name="uq_artifact_index_snapshot_key_provider",
         ),
     )
@@ -97,9 +94,7 @@ def downgrade() -> None:
     op.drop_index("ix_artifact_index_snapshot", table_name="artifact_index")
     op.drop_table("artifact_index")
     op.drop_index("ix_research_snapshot_company_decision", table_name="research_snapshot")
-    op.drop_index(
-        "ix_evidence_company_id_publish_revision", table_name="evidence"
-    )
+    op.drop_index("ix_evidence_company_id_publish_revision", table_name="evidence")
     op.drop_index("ix_evidence_company_publish", table_name="evidence")
     with op.batch_alter_table("evidence") as batch:
         batch.drop_column("content_hash")

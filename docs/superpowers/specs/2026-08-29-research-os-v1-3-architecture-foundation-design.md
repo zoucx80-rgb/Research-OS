@@ -190,6 +190,7 @@ class EvidenceView(Protocol):
     def as_of(self, decision_ts: datetime) -> list[Evidence]: ...
     def get(self, evidence_id: str) -> Evidence | None: ...
 
+
 class FactView(Protocol):
     def get(self, key: str, default: Any = None) -> Any: ...
     def evidence_ids(self, key: str) -> list[str]: ...
@@ -462,6 +463,7 @@ class KnowledgeQuery(BaseModel):
     as_of: datetime
     tags: set[str] = set()
 
+
 class KnowledgeItem(BaseModel):
     knowledge_id: str
     content: Any
@@ -469,6 +471,7 @@ class KnowledgeItem(BaseModel):
     publish_ts: datetime | None
     version: str
     evidence_ids: list[str]
+
 
 class KnowledgeProvider(Protocol):
     def query(self, query: KnowledgeQuery) -> list[KnowledgeItem]: ...

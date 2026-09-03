@@ -12,9 +12,7 @@ class PersistenceBase(DeclarativeBase):
 
 class EvidenceRecord(PersistenceBase):
     __tablename__ = "evidence"
-    __table_args__ = (
-        UniqueConstraint("evidence_id", "revision_no", name="uq_evidence_revision"),
-    )
+    __table_args__ = (UniqueConstraint("evidence_id", "revision_no", name="uq_evidence_revision"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     evidence_id: Mapped[str] = mapped_column(String, nullable=False)
@@ -61,9 +59,7 @@ class ResearchRunRecord(PersistenceBase):
 
 class ResearchSnapshotRecord(PersistenceBase):
     __tablename__ = "research_snapshot"
-    __table_args__ = (
-        UniqueConstraint("run_id", name="uq_research_snapshot_run_id"),
-    )
+    __table_args__ = (UniqueConstraint("run_id", name="uq_research_snapshot_run_id"),)
 
     snapshot_id: Mapped[str] = mapped_column(String, primary_key=True)
     company_id: Mapped[str] = mapped_column(String, nullable=False)

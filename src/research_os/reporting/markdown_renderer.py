@@ -85,9 +85,7 @@ class ResearchReportMarkdownRenderer:
 
     def render(self, document: ResearchReportDocument) -> str:
         if not isinstance(document, ResearchReportDocument):
-            raise TypeError(
-                "ResearchReportMarkdownRenderer.render requires ResearchReportDocument"
-            )
+            raise TypeError("ResearchReportMarkdownRenderer.render requires ResearchReportDocument")
         lines = [
             f"# Research OS 专业研究报告｜{document.company_id}",
             "",

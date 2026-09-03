@@ -117,9 +117,7 @@ class MoatAssessment(BaseModel):
             evidence_types & {"qualification_barrier", "customer_switching_cost"}
         )
         has_barrier = has_technical_barrier or has_other_barrier
-        has_commercial = bool(
-            evidence_types & {"customer_switching_cost", "commercial_advantage"}
-        )
+        has_commercial = bool(evidence_types & {"customer_switching_cost", "commercial_advantage"})
         has_economic_outcome = "economic_outcome" in evidence_types
 
         state: MoatState
@@ -127,11 +125,7 @@ class MoatAssessment(BaseModel):
             state = "ECONOMIC_MOAT_REALIZED"
             realized = True
         elif has_commercial:
-            state = (
-                "ECONOMIC_MOAT_UNREALIZED"
-                if has_barrier
-                else "INSUFFICIENT_MOAT_EVIDENCE"
-            )
+            state = "ECONOMIC_MOAT_UNREALIZED" if has_barrier else "INSUFFICIENT_MOAT_EVIDENCE"
             realized = False
         elif has_technical_barrier:
             state = "TECHNICAL_BARRIER_EVIDENCED"

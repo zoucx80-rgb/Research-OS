@@ -14,7 +14,7 @@ from research_os.version import (
 )
 
 
-def test_v1_6_version_contract_is_authoritative_across_public_surfaces():
+def test_v1_6_version_contract_is_authoritative_across_public_surfaces() -> None:
     assert RESEARCH_OS_VERSION == research_os.__version__ == "1.6.0"
     assert CORE_API_VERSION == "2.0"
     assert PLUGIN_API_VERSION == "2.0"
@@ -26,16 +26,16 @@ def test_v1_6_version_contract_is_authoritative_across_public_surfaces():
     assert CURRENT_RELEASE.plugin_api_version == PLUGIN_API_VERSION
     assert CURRENT_RELEASE.snapshot_schema_version == SNAPSHOT_SCHEMA_VERSION
     assert CURRENT_RELEASE.http_api_version == HTTP_API_VERSION
-    assert CURRENT_RELEASE.status == "development"
+    assert CURRENT_RELEASE.status == "stable"
 
 
-def test_generated_public_metadata_matches_the_v1_6_manifest():
+def test_generated_public_metadata_matches_the_v1_6_manifest() -> None:
     metadata = json.loads(Path("research_os_version.json").read_text(encoding="utf-8"))
 
     assert metadata == CURRENT_RELEASE.to_public_metadata()
 
 
-def test_development_manifest_lists_implemented_m1_through_m4_components():
+def test_stable_manifest_lists_implemented_v1_6_components() -> None:
     assert CURRENT_RELEASE.module_versions == {
         "repository_preflight": "2.0.0",
         "pit_lineage": "2.0.0",

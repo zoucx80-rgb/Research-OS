@@ -143,7 +143,9 @@ def test_composer_and_markdown_preserve_semantic_fingerprint_without_lineage_lea
         composer.compose({})  # type: ignore[arg-type]
 
 
-def test_current_reporting_source_does_not_import_research_engines_or_legacy_versioned_views() -> None:
+def test_current_reporting_source_does_not_import_research_engines_or_legacy_versioned_views() -> (
+    None
+):
     from research_os.reporting import composer, research_view
 
     source = inspect.getsource(research_view) + inspect.getsource(composer)

@@ -165,11 +165,13 @@ class MetricResult(BaseModel):
     formula_version: str
     evidence_ids: list[str]
 
+
 class KpiPack(Protocol):
     pack_id: str
     pack_version: str
     required_facts: frozenset[str]
     optional_facts: frozenset[str]
+
     def calculate(self, facts: Mapping[str, float | None]) -> list[MetricResult]: ...
 ```
 
@@ -234,13 +236,15 @@ git commit -m "refactor: move manufacturing metrics into KPI pack"
 
 ```python
 def test_ccc_equals_dso_plus_dio_minus_dpo():
-    result = DistributorPack().calculate({
-        "avg_ar": 100,
-        "revenue": 1000,
-        "avg_inventory": 200,
-        "cogs": 900,
-        "avg_ap": 150,
-    })
+    result = DistributorPack().calculate(
+        {
+            "avg_ar": 100,
+            "revenue": 1000,
+            "avg_inventory": 200,
+            "cogs": 900,
+            "avg_ap": 150,
+        }
+    )
     values = {m.metric_id: m.value for m in result}
     assert values["ccc_days"] == pytest.approx(
         values["dso_days"] + values["dio_days"] - values["dpo_days"]
@@ -267,11 +271,17 @@ Use it for DSO/DIO/DPO; calculate CCC only when all three exist.
 
 ```python
 def test_missing_ap_keeps_dpo_and_ccc_missing():
-    values = metric_map(DistributorPack().calculate({
-        "avg_ar": 100, "revenue": 1000,
-        "avg_inventory": 200, "cogs": 900,
-        "avg_ap": None,
-    }))
+    values = metric_map(
+        DistributorPack().calculate(
+            {
+                "avg_ar": 100,
+                "revenue": 1000,
+                "avg_inventory": 200,
+                "cogs": 900,
+                "avg_ap": None,
+            }
+        )
+    )
     assert values["dpo_days"] is None
     assert values["ccc_days"] is None
 ```
@@ -303,13 +313,15 @@ git commit -m "feat: add distributor capital-efficiency metrics"
 
 ```python
 def test_roic_and_incremental_roic_use_average_and_incremental_capital():
-    r = CapitalEfficiencyEngine().calculate({
-        "nopat": 12.0,
-        "invested_capital_begin": 90.0,
-        "invested_capital_end": 110.0,
-        "nopat_prev": 9.0,
-        "invested_capital_prev": 90.0,
-    })
+    r = CapitalEfficiencyEngine().calculate(
+        {
+            "nopat": 12.0,
+            "invested_capital_begin": 90.0,
+            "invested_capital_end": 110.0,
+            "nopat_prev": 9.0,
+            "invested_capital_prev": 90.0,
+        }
+    )
     assert r.roic == pytest.approx(12.0 / 100.0)
     assert r.incremental_roic == pytest.approx((12.0 - 9.0) / (110.0 - 90.0))
 ```
@@ -339,13 +351,15 @@ If a denominator is zero or missing, return `None` plus a status code; do not in
 
 ```python
 def test_growth_with_large_nwc_and_debt_increase_is_debt_funded():
-    r = CapitalEfficiencyEngine().funding_loop({
-        "delta_revenue": 100.0,
-        "delta_nwc": 60.0,
-        "delta_debt": 55.0,
-        "delta_equity": 0.0,
-        "operating_cash_flow": -20.0,
-    })
+    r = CapitalEfficiencyEngine().funding_loop(
+        {
+            "delta_revenue": 100.0,
+            "delta_nwc": 60.0,
+            "delta_debt": 55.0,
+            "delta_equity": 0.0,
+            "operating_cash_flow": -20.0,
+        }
+    )
     assert r.funding_state == "debt_funded"
 ```
 

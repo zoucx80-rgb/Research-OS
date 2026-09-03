@@ -95,7 +95,12 @@ def test_interim_period_without_length_is_missing():
 
 
 def test_fy_leap_year_derives_366_days():
-    p = ReportingPeriod(period_type="FY", period_start=date(2028,1,1), period_end=date(2028,12,31), is_cumulative=True)
+    p = ReportingPeriod(
+        period_type="FY",
+        period_start=date(2028, 1, 1),
+        period_end=date(2028, 12, 31),
+        is_cumulative=True,
+    )
     assert resolve_period_days(p) == 366
 
 
@@ -166,12 +171,14 @@ def test_negative_ocf_without_funding_inputs_does_not_invent_funding_state():
 
 
 def test_known_zero_debt_is_not_missing():
-    r = CapitalEfficiencyEngine().funding_loop({
-        "delta_nwc": 10.0,
-        "delta_debt": 0.0,
-        "delta_equity": 0.0,
-        "operating_cash_flow": 15.0,
-    })
+    r = CapitalEfficiencyEngine().funding_loop(
+        {
+            "delta_nwc": 10.0,
+            "delta_debt": 0.0,
+            "delta_equity": 0.0,
+            "operating_cash_flow": 15.0,
+        }
+    )
     assert r.funding_state == "self_funded"
 ```
 

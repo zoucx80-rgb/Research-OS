@@ -31,9 +31,7 @@ def _version(value: str, label: str) -> Version:
 class PluginRegistry:
     def __init__(self, *, core_api_version: str, research_os_version: str):
         self._core_api_version = _version(core_api_version, "core_api_version")
-        self._research_os_version = _version(
-            research_os_version, "Research OS version"
-        )
+        self._research_os_version = _version(research_os_version, "Research OS version")
         self.core_api_version = core_api_version
         self.research_os_version = research_os_version
         self._plugins: dict[str, Any] = {}
@@ -45,9 +43,7 @@ class PluginRegistry:
             required = ("applicability", "services")
         else:
             required = ("supports", "services")
-        missing = [
-            name for name in required if not callable(getattr(plugin, name, None))
-        ]
+        missing = [name for name in required if not callable(getattr(plugin, name, None))]
         if missing:
             raise PluginContractError(
                 f"{manifest.plugin_type} plugin {manifest.plugin_id} is missing contract methods: "
@@ -69,8 +65,7 @@ class PluginRegistry:
         if services.kpi_provider is not None:
             if not isinstance(services.kpi_provider, KpiProvider):
                 raise PluginContractError(
-                    f"plugin {manifest.plugin_id} kpi_provider does not satisfy "
-                    "KpiProvider",
+                    f"plugin {manifest.plugin_id} kpi_provider does not satisfy KpiProvider",
                     context={"plugin_id": manifest.plugin_id},
                 )
             _version(

@@ -14,9 +14,12 @@ def _load(name: str):
 def test_gross_profit_scale_corruption_fails():
     m = _load("research_os.validation.financial")
     result = m.FinancialSanityValidator().check_gross_profit(
-        revenue=655.25, revenue_unit="亿元",
-        cogs=634.01, cogs_unit="亿元",
-        declared_gross_profit=2.123, declared_unit="亿元",
+        revenue=655.25,
+        revenue_unit="亿元",
+        cogs=634.01,
+        cogs_unit="亿元",
+        declared_gross_profit=2.123,
+        declared_unit="亿元",
     )
     assert result.status == "FAIL"
     assert abs(result.expected_value / 100_000_000 - 21.24) < 0.01
@@ -25,8 +28,10 @@ def test_gross_profit_scale_corruption_fails():
 def test_gross_margin_inconsistent_with_profit_fails():
     m = _load("research_os.validation.financial")
     result = m.FinancialSanityValidator().check_gross_margin(
-        revenue=655.25, revenue_unit="亿元",
-        gross_profit=2.123, gross_profit_unit="亿元",
+        revenue=655.25,
+        revenue_unit="亿元",
+        gross_profit=2.123,
+        gross_profit_unit="亿元",
         declared_margin=0.0324,
     )
     assert result.status == "FAIL"
@@ -45,7 +50,9 @@ def test_market_cap_scale_corruption_fails():
 
 def test_yoy_mismatch_fails():
     m = _load("research_os.validation.financial")
-    result = m.FinancialSanityValidator().check_yoy(current=120.0, previous=100.0, declared_growth=0.12)
+    result = m.FinancialSanityValidator().check_yoy(
+        current=120.0, previous=100.0, declared_growth=0.12
+    )
     assert result.status == "FAIL"
     assert abs(result.expected_value - 0.20) < 1e-9
 
@@ -54,8 +61,24 @@ def test_same_metric_same_period_scope_version_conflict_fails():
     m = _load("research_os.validation.financial")
     Observation = m.FinancialMetricObservation
     observations = [
-        Observation(metric="inventory", period="2026H1", scope="consolidated", version="reported", value=115.2, unit="亿元", evidence_ids=["ev1"]),
-        Observation(metric="inventory", period="2026H1", scope="consolidated", version="reported", value=11.52, unit="亿元", evidence_ids=["ev2"]),
+        Observation(
+            metric="inventory",
+            period="2026H1",
+            scope="consolidated",
+            version="reported",
+            value=115.2,
+            unit="亿元",
+            evidence_ids=["ev1"],
+        ),
+        Observation(
+            metric="inventory",
+            period="2026H1",
+            scope="consolidated",
+            version="reported",
+            value=11.52,
+            unit="亿元",
+            evidence_ids=["ev2"],
+        ),
     ]
     result = m.FinancialSanityValidator().check_consistency(observations)
     assert result.status == "FAIL"

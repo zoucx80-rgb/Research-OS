@@ -17,8 +17,7 @@ def semantic_projection(snapshot: ArtifactSnapshot) -> tuple[dict[str, object], 
             "type_id": envelope.key.value_type.__qualname__,
             "producer_ids": list(envelope.producer_ids),
             "evidence_refs": [
-                reference.model_dump(mode="json")
-                for reference in envelope.evidence_refs
+                reference.model_dump(mode="json") for reference in envelope.evidence_refs
             ],
             "payload_fingerprint": envelope.value_fingerprint,
         }

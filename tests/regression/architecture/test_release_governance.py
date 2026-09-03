@@ -19,11 +19,7 @@ def test_build_safe_version_leaf_is_the_single_product_identity_source():
 
     version_source = Path("src/research_os/version.py").read_text(encoding="utf-8")
     tree = ast.parse(version_source)
-    imports = [
-        node
-        for node in ast.walk(tree)
-        if isinstance(node, (ast.Import, ast.ImportFrom))
-    ]
+    imports = [node for node in ast.walk(tree) if isinstance(node, (ast.Import, ast.ImportFrom))]
     assert imports == []
 
     metadata = json.loads(Path("research_os_version.json").read_text(encoding="utf-8"))
@@ -43,7 +39,9 @@ def test_release_gate_derives_required_checks_from_manifest_packs():
     assert CURRENT_RELEASE.verification_packs == (
         "m1-core-runtime",
         "m2-persistence-http",
+        "m3-professional-foundations",
         "m4-reporting-replay",
+        "m5-quality-release",
         "release-governance",
     )
     assert resolved["snapshot_schema_v2"] == "tests/unit/snapshots"
@@ -55,17 +53,21 @@ def test_release_gate_derives_required_checks_from_manifest_packs():
     assert resolved["http_api_v1_unit"] == "tests/unit/api"
     assert resolved["http_api_v1_integration"] == "tests/integration/api"
     assert resolved["http_api_v1_contract"] == "tests/contract/api"
+    assert resolved["m3_metrics"] == "tests/unit/metrics"
+    assert resolved["m3_forecasting"] == "tests/unit/forecasting"
     assert resolved["current_reporting_v2"] == (
         "tests/unit/reporting/test_v1_6_current_reporting.py"
     )
-    assert resolved["historical_replay_v2"] == (
-        "tests/unit/release/test_historical_replay_v1_6.py"
-    )
+    assert resolved["historical_replay_v2"] == ("tests/unit/release/test_historical_replay_v1_6.py")
     assert resolved["presentation_pipeline_v2"] == (
         "tests/integration/presentation/test_v1_6_pipeline.py"
     )
-    assert resolved["clean_break_v2"] == (
-        "tests/regression/architecture/test_clean_break_v1_6.py"
+    assert resolved["clean_break_v2"] == ("tests/regression/architecture/test_clean_break_v1_6.py")
+    assert resolved["m5_dependency_rules"] == (
+        "tests/regression/architecture/test_dependency_rules_v1_6.py"
+    )
+    assert resolved["m5_release_contract"] == (
+        "tests/regression/architecture/test_release_contract_v1_6_0.py"
     )
     assert resolved["release_governance"] == (
         "tests/regression/architecture/test_release_governance.py"
@@ -103,7 +105,7 @@ def test_field_replay_profiles_are_unique_and_historical_profiles_are_frozen():
         assert len(profile.source_commit_sha) == 40
         assert profile.expected_core_api_version == "1.0"
 
-    assert CURRENT_RELEASE.status == "development"
+    assert CURRENT_RELEASE.status == "stable"
 
 
 def test_ci_uses_stable_release_pipeline_instead_of_patch_specific_blocks():

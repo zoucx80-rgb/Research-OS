@@ -29,7 +29,11 @@ class ReportingPeriod(BaseModel):
 
     @model_validator(mode="after")
     def validate_dates(self):
-        if self.period_start is not None and self.period_end is not None and self.period_end < self.period_start:
+        if (
+            self.period_start is not None
+            and self.period_end is not None
+            and self.period_end < self.period_start
+        ):
             raise ValueError("period_end must be on or after period_start")
         return self
 
@@ -46,10 +50,12 @@ class ReportingPeriod(BaseModel):
         raw = facts.get("reporting_period")
         if raw is not None:
             return cls.coerce(raw)
-        return cls.model_validate({
-            "period_type": facts.get("period_type", "FY"),
-            "period_start": facts.get("period_start"),
-            "period_end": facts.get("period_end"),
-            "period_days": facts.get("period_days"),
-            "is_cumulative": facts.get("is_cumulative", True),
-        })
+        return cls.model_validate(
+            {
+                "period_type": facts.get("period_type", "FY"),
+                "period_start": facts.get("period_start"),
+                "period_end": facts.get("period_end"),
+                "period_days": facts.get("period_days"),
+                "is_cumulative": facts.get("is_cumulative", True),
+            }
+        )

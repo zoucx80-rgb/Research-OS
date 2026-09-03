@@ -36,5 +36,7 @@ def test_future_unused_event_passes_temporal_gate():
         event_time=datetime(2026, 10, 30, tzinfo=timezone.utc),
         evidence_ids=[],
     )
-    result = m.NextVerificationEventValidator().validate(event, reference_time=decision_ts, used_evidence_ids=[])
+    result = m.NextVerificationEventValidator().validate(
+        event, reference_time=decision_ts, used_evidence_ids=[]
+    )
     assert result.status == "PASS"

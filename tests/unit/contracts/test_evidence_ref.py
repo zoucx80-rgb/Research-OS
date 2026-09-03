@@ -46,9 +46,7 @@ def test_evidence_set_binds_every_row_to_its_exact_revision_and_content():
         content_fingerprint=evidence_content_fingerprint(evidence),
     )
 
-    assert EvidenceSet(items=(evidence,), evidence_refs=(reference,)).items == (
-        evidence,
-    )
+    assert EvidenceSet(items=(evidence,), evidence_refs=(reference,)).items == (evidence,)
     with pytest.raises(ValidationError, match="bound to its revision"):
         EvidenceSet(
             items=(evidence,),
@@ -83,9 +81,7 @@ def test_evidence_fingerprint_normalizes_equivalent_timezone_offsets():
         }
     )
 
-    assert evidence_content_fingerprint(utc) == evidence_content_fingerprint(
-        same_in_shanghai
-    )
+    assert evidence_content_fingerprint(utc) == evidence_content_fingerprint(same_in_shanghai)
 
 
 def test_evidence_fingerprint_normalizes_nested_datetime_values():
@@ -93,9 +89,7 @@ def test_evidence_fingerprint_normalizes_nested_datetime_values():
         update={
             "value": {
                 "observed_at": datetime(2026, 8, 20, 8, tzinfo=timezone.utc),
-                "history": (
-                    datetime(2026, 8, 19, 16, tzinfo=timezone.utc),
-                ),
+                "history": (datetime(2026, 8, 19, 16, tzinfo=timezone.utc),),
             },
         }
     )
@@ -121,9 +115,7 @@ def test_evidence_fingerprint_normalizes_nested_datetime_values():
         }
     )
 
-    assert evidence_content_fingerprint(utc) == evidence_content_fingerprint(
-        same_instants
-    )
+    assert evidence_content_fingerprint(utc) == evidence_content_fingerprint(same_instants)
 
 
 def test_evidence_fingerprint_rejects_naive_nested_datetime_values():

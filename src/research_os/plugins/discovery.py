@@ -64,10 +64,7 @@ def discover_plugins(
         ) from exc
     loaded: list[tuple[Any, Any]] = []
     for entry_point in candidates:
-        if (
-            getattr(entry_point, "group", PLUGIN_ENTRY_POINT_GROUP)
-            != PLUGIN_ENTRY_POINT_GROUP
-        ):
+        if getattr(entry_point, "group", PLUGIN_ENTRY_POINT_GROUP) != PLUGIN_ENTRY_POINT_GROUP:
             raise PluginDiscoveryError(
                 f"unsupported plugin entry point group: {entry_point.group}",
                 context={
@@ -80,18 +77,14 @@ def discover_plugins(
     ordered = tuple(
         sorted(
             loaded,
-            key=lambda candidate: getattr(
-                getattr(candidate[1], "manifest", None), "plugin_id", ""
-            ),
+            key=lambda candidate: getattr(getattr(candidate[1], "manifest", None), "plugin_id", ""),
         )
     )
     for entry_point, plugin in ordered:
         try:
             registry.register(plugin)
         except Exception as exc:
-            plugin_id = str(
-                getattr(getattr(plugin, "manifest", None), "plugin_id", "unknown")
-            )
+            plugin_id = str(getattr(getattr(plugin, "manifest", None), "plugin_id", "unknown"))
             raise PluginDiscoveryError(
                 "failed to register discovered plugin "
                 f"distribution={_distribution_name(entry_point)} "

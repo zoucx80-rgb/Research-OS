@@ -28,6 +28,7 @@ from .result import (
     RunVersionSet,
     VersionIdentity,
 )
+
 __all__ = [
     "ExpectationResearchInput",
     "ExternalVersionInputs",

@@ -116,16 +116,12 @@ def test_economic_moat_realization_requires_economic_outcome_evidence():
 
 
 def test_qualification_barrier_is_not_mislabeled_as_technical_evidence():
-    assessment = MoatAssessment.assess(
-        (MoatEvidence(evidence_type="qualification_barrier"),)
-    )
+    assessment = MoatAssessment.assess((MoatEvidence(evidence_type="qualification_barrier"),))
 
     assert assessment.state == "OTHER_BARRIER_EVIDENCED"
 
 
 def test_non_barrier_evidence_is_insufficient_for_a_moat_claim():
     for evidence_type in ("economic_outcome", "commercial_advantage"):
-        assessment = MoatAssessment.assess(
-            (MoatEvidence(evidence_type=evidence_type),)
-        )
+        assessment = MoatAssessment.assess((MoatEvidence(evidence_type=evidence_type),))
         assert assessment.state == "INSUFFICIENT_MOAT_EVIDENCE"

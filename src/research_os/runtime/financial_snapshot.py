@@ -78,9 +78,7 @@ class FinancialFactSnapshot(BaseModel):
     facts: tuple[FinancialFact, ...] = Field(default_factory=tuple)
 
 
-FINANCIAL_FACT_SNAPSHOT = ArtifactKey(
-    "financial.fact_snapshot", "2.0", FinancialFactSnapshot
-)
+FINANCIAL_FACT_SNAPSHOT = ArtifactKey("financial.fact_snapshot", "2.0", FinancialFactSnapshot)
 
 
 _RATIO_FACT_KEYS = frozenset(
@@ -223,9 +221,7 @@ class FinancialFactSnapshotModule:
 
         snapshot = build_financial_fact_snapshot(context)
         evidence_refs = tuple(
-            reference
-            for fact in snapshot.facts
-            for reference in fact.evidence_refs
+            reference for fact in snapshot.facts for reference in fact.evidence_refs
         )
         return ModuleResult(
             module_id=self.spec.module_id,

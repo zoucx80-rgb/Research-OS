@@ -92,7 +92,9 @@ def test_future_revision_cannot_support_a_historical_fact():
     ]
     assert snapshot.facts[0].reporting_period == ReportingPeriod(period_type="H1")
     assert snapshot.facts[0].accounting_scope == AccountingScope()
-    assert [(ref.evidence_id, ref.revision) for ref in context.evidence.refs()] == [("ev:revenue", 1)]
+    assert [(ref.evidence_id, ref.revision) for ref in context.evidence.refs()] == [
+        ("ev:revenue", 1)
+    ]
     assert context.facts.evidence_refs("revenue") == context.evidence.refs()
 
 
@@ -113,7 +115,9 @@ def test_evidence_view_is_order_independent_and_rejects_raw_ids_and_bad_fingerpr
 
 
 def test_evidence_view_rejects_cross_company_rows_and_conflicting_same_revision_content():
-    foreign = _evidence(revision=1, publish_ts=DECISION_TS, value=100, company_id="synthetic:other-company")
+    foreign = _evidence(
+        revision=1, publish_ts=DECISION_TS, value=100, company_id="synthetic:other-company"
+    )
     first = _evidence(revision=1, publish_ts=DECISION_TS, value=100)
     conflicting = _evidence(revision=1, publish_ts=DECISION_TS, value=999)
 

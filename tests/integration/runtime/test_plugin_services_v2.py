@@ -55,9 +55,7 @@ def _context() -> ResearchContext:
         company_id=COMPANY_ID,
         decision_ts=DECISION_TS,
     )
-    refs = {
-        ref.evidence_id.removeprefix("ev:"): ref for ref in evidence_view.refs()
-    }
+    refs = {ref.evidence_id.removeprefix("ev:"): ref for ref in evidence_view.refs()}
     return ResearchContext(
         run_id="run:plugin-services",
         company=CompanyRef(company_id=COMPANY_ID),

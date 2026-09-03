@@ -99,9 +99,8 @@ def evidence_from_record(record: EvidenceRecord) -> Evidence:
             "metric_kind": record.metric_kind,
         }
     )
-    if (
-        record.content_hash is not None
-        and record.content_hash != evidence_content_fingerprint(evidence)
+    if record.content_hash is not None and record.content_hash != evidence_content_fingerprint(
+        evidence
     ):
         raise ValueError(
             f"evidence content hash mismatch: {record.evidence_id}@{record.revision_no}"
@@ -177,9 +176,7 @@ def snapshot_from_record(
         or record.component_fingerprints_json is None
         or record.artifact_fingerprints_json is None
     ):
-        raise ValueError(
-            "only complete Snapshot Schema 2.0 rows using codec jcs-1 can be read"
-        )
+        raise ValueError("only complete Snapshot Schema 2.0 rows using codec jcs-1 can be read")
     payload_data = SnapshotCodecV2().decode_value(record.payload_json)
     if not isinstance(payload_data, dict):
         raise ValueError("stored snapshot payload must be an object")
@@ -223,9 +220,7 @@ def snapshot_from_record(
             )
     assumptions = payload_data.get("input_assumptions")
     if isinstance(assumptions, (list, tuple)):
-        payload_data["input_assumptions"] = tuple(
-            _freeze_value(item) for item in assumptions
-        )
+        payload_data["input_assumptions"] = tuple(_freeze_value(item) for item in assumptions)
     payload = ResearchSnapshotPayloadV2.model_validate(payload_data)
     snapshot = ResearchSnapshotV2.model_validate(
         {
@@ -246,9 +241,7 @@ def snapshot_from_record(
         }
     )
     codec = SnapshotCodecV2()
-    if record.payload_json != codec.encode_research_projection(snapshot.payload).decode(
-        "utf-8"
-    ):
+    if record.payload_json != codec.encode_research_projection(snapshot.payload).decode("utf-8"):
         raise ValueError("stored snapshot payload is not canonical")
     if record.research_digest != codec.research_digest(snapshot.payload):
         raise ValueError("stored snapshot research digest does not match payload")

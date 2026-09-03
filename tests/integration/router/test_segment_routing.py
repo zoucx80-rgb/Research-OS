@@ -33,9 +33,7 @@ def _context() -> ResearchContext:
             research_os_version="1.6.0",
             core_api_version="2.0",
         ),
-        evidence=EvidenceView(
-            (), company_id="synthetic:segments", decision_ts=decision_ts
-        ),
+        evidence=EvidenceView((), company_id="synthetic:segments", decision_ts=decision_ts),
         facts=FactView(
             company_id="synthetic:segments",
             decision_ts=decision_ts,
@@ -74,9 +72,7 @@ def test_secondary_segment_plugin_cannot_override_primary_exclusive_artifacts() 
     for plugin in BuiltinPluginProvider().plugins():
         registry.register(plugin)
 
-    resolution = StrategyResolver().resolve(
-        profile, _context(), registry, ResearchRunOptions()
-    )
+    resolution = StrategyResolver().resolve(profile, _context(), registry, ResearchRunOptions())
 
     assert tuple(item.plugin_id for item in resolution.industry_plugins) == (
         "industry:manufacturing",

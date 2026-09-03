@@ -49,17 +49,11 @@ def _json_compatible(codec: SnapshotCodecV2, value: object) -> JsonValue:
     if isinstance(value, Mapping):
         if any(not isinstance(key, str) for key in value):
             raise TypeError("query JSON mappings require string keys")
-        return {
-            key: _json_compatible(codec, item)
-            for key, item in value.items()
-        }
+        return {key: _json_compatible(codec, item) for key, item in value.items()}
     if isinstance(value, (tuple, list)):
         return [_json_compatible(codec, item) for item in value]
     if isinstance(value, (set, frozenset)):
-        return [
-            _json_compatible(codec, item)
-            for item in sorted(value, key=codec.encode_value)
-        ]
+        return [_json_compatible(codec, item) for item in sorted(value, key=codec.encode_value)]
     raise TypeError(f"cannot project {type(value).__name__} as query JSON")
 
 
@@ -132,11 +126,7 @@ class SqlResearchQueryRepository:
                 return None
             snapshot = snapshot_from_record(record, self._decoder_registry)
             artifact = next(
-                (
-                    item
-                    for item in snapshot.payload.artifacts
-                    if item.artifact_id == artifact_id
-                ),
+                (item for item in snapshot.payload.artifacts if item.artifact_id == artifact_id),
                 None,
             )
             if artifact is None:

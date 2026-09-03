@@ -39,10 +39,7 @@ class InMemorySnapshotRepository:
                 reverse=True,
             )
             if snapshot.company_id == query.company_id
-            and (
-                query.decision_ts_lte is None
-                or snapshot.decision_ts <= query.decision_ts_lte
-            )
+            and (query.decision_ts_lte is None or snapshot.decision_ts <= query.decision_ts_lte)
         )
         cursor = decode_snapshot_cursor(query.cursor) if query.cursor else None
         if cursor is not None:
@@ -50,8 +47,7 @@ class InMemorySnapshotRepository:
             snapshots = tuple(
                 snapshot
                 for snapshot in snapshots
-                if (snapshot.decision_ts, snapshot.snapshot_id)
-                < (cursor_ts, cursor_id)
+                if (snapshot.decision_ts, snapshot.snapshot_id) < (cursor_ts, cursor_id)
             )
         page_items = snapshots[: query.limit]
         next_cursor = None

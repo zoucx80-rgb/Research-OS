@@ -44,9 +44,7 @@ def test_policy_registry_requires_unique_policy_id_and_version() -> None:
     with pytest.raises(PolicyRegistryConflictError, match="policy:test"):
         PolicyRegistry((_policy(), _policy()))
     with pytest.raises(PolicyRegistryConflictError, match="policy:test"):
-        PolicyRegistry(
-            (_policy(), _policy().model_copy(update={"policy_version": "2.0.0"}))
-        )
+        PolicyRegistry((_policy(), _policy().model_copy(update={"policy_version": "2.0.0"})))
 
 
 def test_policy_parameter_enforces_declared_type_unit_and_range() -> None:
@@ -128,7 +126,11 @@ def test_expectation_and_funding_thresholds_use_actual_policy_overrides() -> Non
                 operator="analyst:1",
                 reason="require stronger consensus sources",
                 override_ts=override_ts,
-                parameters={"minimum_source_quality": _policy().parameters["minimum_score"].model_copy(update={"value": Decimal("0.8")})},
+                parameters={
+                    "minimum_source_quality": _policy()
+                    .parameters["minimum_score"]
+                    .model_copy(update={"value": Decimal("0.8")})
+                },
             ),
             PolicyOverride(
                 policy_id="funding_loop",
@@ -136,7 +138,11 @@ def test_expectation_and_funding_thresholds_use_actual_policy_overrides() -> Non
                 operator="analyst:1",
                 reason="company-specific factoring materiality",
                 override_ts=override_ts,
-                parameters={"factoring_to_ar_materiality": _policy().parameters["minimum_score"].model_copy(update={"value": Decimal("0.5")})},
+                parameters={
+                    "factoring_to_ar_materiality": _policy()
+                    .parameters["minimum_score"]
+                    .model_copy(update={"value": Decimal("0.5")})
+                },
             ),
         ),
     )

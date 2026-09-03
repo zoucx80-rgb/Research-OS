@@ -64,9 +64,7 @@ def _completion(status: str = "COMPLETE") -> ExecutionCompletionResult:
     return ExecutionCompletionResult(
         final_status=status,
         blocking_capabilities=() if status == "COMPLETE" else ("core:pit",),
-        module_statuses={
-            "core:pit": "PASS" if status == "COMPLETE" else "INSUFFICIENT_EVIDENCE"
-        },
+        module_statuses={"core:pit": "PASS" if status == "COMPLETE" else "INSUFFICIENT_EVIDENCE"},
     )
 
 

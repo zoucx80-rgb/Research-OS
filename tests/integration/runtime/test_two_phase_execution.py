@@ -42,9 +42,7 @@ def _command() -> ResearchRunCommand:
                 repository_full_name="zoucx80-rgb/Research-OS",
                 repository_id=1350382205,
                 branch="main",
-                commit_sha=subprocess.check_output(
-                    ("git", "rev-parse", "HEAD"), text=True
-                ).strip(),
+                commit_sha=subprocess.check_output(("git", "rev-parse", "HEAD"), text=True).strip(),
                 research_os_version="1.6.0",
                 core_api_version="2.0",
             ),
@@ -122,7 +120,9 @@ def test_two_phase_execution_retains_bootstrap_and_engine_writes_precomputed_str
     assert professional_execution.snapshot.require(REPOSITORY_PREFLIGHT) == command.context.baseline
     assert professional_execution.snapshot.require(EVIDENCE_PIT) == EvidenceSet()
     assert professional_execution.snapshot.require(FINANCIAL_FACT_SNAPSHOT).facts == ()
-    assert professional_execution.snapshot.require(BUSINESS_MODEL_PROFILE).primary_model == "unknown"
+    assert (
+        professional_execution.snapshot.require(BUSINESS_MODEL_PROFILE).primary_model == "unknown"
+    )
     assert professional_execution.snapshot.require(STRATEGY_RESOLUTION) == strategy
     assert professional_execution.snapshot.envelope(STRATEGY_RESOLUTION).evidence_refs == (
         applicability_ref,

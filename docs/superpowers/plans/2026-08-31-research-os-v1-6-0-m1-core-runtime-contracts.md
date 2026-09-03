@@ -53,17 +53,21 @@ class EvidenceRef(BaseModel):
     revision: int
     content_fingerprint: str
 
+
 class EvidenceView(Protocol):
     company_id: str
     decision_ts: datetime
+
     def get(self, ref: EvidenceRef) -> RawEvidence: ...
     def refs(self) -> tuple[EvidenceRef, ...]: ...
+
 
 class FactView(Protocol):
     company_id: str
     decision_ts: datetime
     reporting_period: ReportingPeriod
     accounting_scope: AccountingScope
+
     def get(self, fact_id: str, default: object | None = None) -> object | None: ...
     def evidence_refs(self, fact_id: str) -> tuple[EvidenceRef, ...]: ...
 ```
@@ -131,9 +135,11 @@ class ArtifactKey(Generic[T]):
     schema_version: str
     value_type: type[T]
 
+
 class ArtifactMode(StrEnum):
     EXCLUSIVE = "exclusive"
     COLLECTION = "collection"
+
 
 @dataclass(frozen=True, slots=True)
 class ArtifactWrite(Generic[T]):
@@ -174,6 +180,7 @@ class ModuleSpec(BaseModel):
     provides: frozenset[ArtifactKey[Any]]
     required_for_completion: bool
 
+
 class ModuleResult(BaseModel):
     module_id: str
     status: ModuleStatus
@@ -204,6 +211,7 @@ class ModuleResult(BaseModel):
 ```python
 class BootstrapPlanCompiler:
     def compile(self, command: ResearchRunCommand) -> ModulePlan: ...
+
 
 class ResearchPlanCompiler:
     def compile(
@@ -238,8 +246,10 @@ class ResearchPlanCompiler:
 @runtime_checkable
 class IndustryPlugin(Protocol):
     manifest: PluginManifest
+
     def applicability(self, context, business_model) -> ApplicabilityResult: ...
     def services(self) -> PluginServices: ...
+
 
 class SupportAssessment(BaseModel):
     supported: bool
@@ -247,10 +257,12 @@ class SupportAssessment(BaseModel):
     evidence_refs: tuple[EvidenceRef, ...] = ()
     limitations: tuple[str, ...] = ()
 
+
 @runtime_checkable
 class KpiProvider(Protocol):
     provider_id: str
     provider_version: str
+
     def metric_ids(self) -> frozenset[str]: ...
     def calculate(
         self,

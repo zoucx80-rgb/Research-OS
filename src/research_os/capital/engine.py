@@ -58,16 +58,14 @@ class CapitalEfficiencyEngine:
 
     def funding_loop(self, f):
         factoring_materiality = float(
-            self._policy.value("funding_loop", "factoring_to_ar_materiality")
+            self._policy.decimal_value("funding_loop", "factoring_to_ar_materiality")
         )
         high_iwcr = float(
-            self._policy.value("funding_loop", "incremental_working_capital_high")
+            self._policy.decimal_value("funding_loop", "incremental_working_capital_high")
         )
-        high_debt_share = float(
-            self._policy.value("funding_loop", "debt_share_high")
-        )
+        high_debt_share = float(self._policy.decimal_value("funding_loop", "debt_share_high"))
         stressed_debt_share = float(
-            self._policy.value("funding_loop", "debt_share_stressed")
+            self._policy.decimal_value("funding_loop", "debt_share_stressed")
         )
         dnwc = f.get("delta_nwc")
         drev = f.get("delta_revenue")

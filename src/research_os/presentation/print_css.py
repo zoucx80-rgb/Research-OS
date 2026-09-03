@@ -1,4 +1,5 @@
-A4_PRINT_CSS = """
+A4_PRINT_CSS = (
+    """
 :root {
   color-scheme: light;
   font-family: "Noto Sans CJK SC", "Source Han Sans SC", "PingFang SC",
@@ -221,4 +222,6 @@ tbody tr:nth-child(even) td {
     text-decoration: underline;
   }
 }
-""".strip() + "\n"
+""".strip()
+    + "\n"
+)

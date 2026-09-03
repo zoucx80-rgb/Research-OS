@@ -38,6 +38,7 @@ from datetime import datetime, timezone
 from research_os.domain.enums import ConfidenceGrade, VerificationStatus
 from research_os.domain.evidence import Evidence
 
+
 def test_evidence_keeps_period_and_publish_time_separate():
     e = Evidence(
         evidence_id="e1",
@@ -65,6 +66,7 @@ Expected: FAIL because `research_os.domain.evidence` does not exist.
 ```python
 from enum import StrEnum
 
+
 class ConfidenceGrade(StrEnum):
     A = "A"
     B = "B"
@@ -72,12 +74,14 @@ class ConfidenceGrade(StrEnum):
     D = "D"
     E = "E"
 
+
 class VerificationStatus(StrEnum):
     PRIMARY_VERIFIED = "PRIMARY_VERIFIED"
     SECONDARY_VERIFIED = "SECONDARY_VERIFIED"
     SECONDARY_UNVERIFIED = "SECONDARY_UNVERIFIED"
     ESTIMATED = "ESTIMATED"
     ASSUMPTION = "ASSUMPTION"
+
 
 class EvidenceType(StrEnum):
     FILING_FACT = "filing_fact"
@@ -97,6 +101,7 @@ from datetime import date, datetime
 from typing import Any
 from pydantic import BaseModel, ConfigDict
 from .enums import ConfidenceGrade, EvidenceType, VerificationStatus
+
 
 class Evidence(BaseModel):
     model_config = ConfigDict(frozen=True)
@@ -166,6 +171,7 @@ Expected: FAIL because `EvidenceStore` is missing.
 ```python
 from datetime import datetime
 from sqlalchemy import select
+
 
 class EvidenceStore:
     def __init__(self, session):
@@ -262,6 +268,7 @@ Expected: FAIL because snapshot service is missing.
 ```python
 from pydantic import BaseModel, ConfigDict
 
+
 class VersionBundle(BaseModel):
     model_config = ConfigDict(frozen=True)
     research_os_version: str
@@ -316,6 +323,7 @@ git commit -m "feat: freeze reproducible research snapshots"
 
 ```python
 from hypothesis import given, strategies as st
+
 
 @given(
     publish_offset=st.integers(min_value=1, max_value=365),

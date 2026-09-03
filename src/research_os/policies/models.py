@@ -43,9 +43,7 @@ class PolicyParameter(BaseModel):
             "string": isinstance(self.value, str),
         }[self.value_type]
         if not valid:
-            raise ValueError(
-                f"policy parameter value must match declared {self.value_type} type"
-            )
+            raise ValueError(f"policy parameter value must match declared {self.value_type} type")
         if isinstance(self.value, (Decimal, int)) and not isinstance(self.value, bool):
             if self.minimum is not None and self.value < self.minimum:
                 raise ValueError("policy parameter value is below minimum")
@@ -67,9 +65,7 @@ class PolicyDefinition(BaseModel):
     rationale: str
     source: str
 
-    @field_validator(
-        "policy_id", "policy_version", "policy_type", "rationale", "source"
-    )
+    @field_validator("policy_id", "policy_version", "policy_type", "rationale", "source")
     @classmethod
     def _identity_required(cls, value: str) -> str:
         normalized = value.strip()
