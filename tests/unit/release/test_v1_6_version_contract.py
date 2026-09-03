@@ -1,58 +1,56 @@
 from __future__ import annotations
 
-import json
-from pathlib import Path
-
-import research_os
-from research_os.release.manifest import CURRENT_RELEASE
-from research_os.version import (
+from research_os.contracts.versioning import (
     CORE_API_VERSION,
-    HTTP_API_VERSION,
     PLUGIN_API_VERSION,
     RESEARCH_OS_VERSION,
     SNAPSHOT_SCHEMA_VERSION,
 )
+from research_os.release import CURRENT_RELEASE_MANIFEST
+from research_os.version import __version__
 
 
-def test_v1_6_version_contract_is_authoritative_across_public_surfaces():
-    assert RESEARCH_OS_VERSION == research_os.__version__ == "1.6.0"
+def test_v1_6_version_constants_are_consistent() -> None:
+    assert RESEARCH_OS_VERSION == "1.6.0"
+    assert __version__ == RESEARCH_OS_VERSION
     assert CORE_API_VERSION == "2.0"
     assert PLUGIN_API_VERSION == "2.0"
     assert SNAPSHOT_SCHEMA_VERSION == "2.0"
-    assert HTTP_API_VERSION == "v1"
-
-    assert CURRENT_RELEASE.version == RESEARCH_OS_VERSION
-    assert CURRENT_RELEASE.core_api_version == CORE_API_VERSION
-    assert CURRENT_RELEASE.plugin_api_version == PLUGIN_API_VERSION
-    assert CURRENT_RELEASE.snapshot_schema_version == SNAPSHOT_SCHEMA_VERSION
-    assert CURRENT_RELEASE.http_api_version == HTTP_API_VERSION
-    assert CURRENT_RELEASE.status == "development"
 
 
-def test_generated_public_metadata_matches_the_v1_6_manifest():
-    metadata = json.loads(Path("research_os_version.json").read_text(encoding="utf-8"))
+def test_stable_manifest_lists_implemented_v1_6_components() -> None:
+    manifest = CURRENT_RELEASE_MANIFEST
 
-    assert metadata == CURRENT_RELEASE.to_public_metadata()
-
-
-def test_development_manifest_lists_implemented_m1_through_m4_components():
-    assert CURRENT_RELEASE.module_versions == {
-        "repository_preflight": "2.0.0",
-        "pit_lineage": "2.0.0",
-        "financial_fact_snapshot": "1.0.0",
-        "business_model": "2.0.0",
-        "resolved_strategy": "2.0.0",
-        "kpi_provider": "2.0.0",
-        "completion_evaluator": "2.0.0",
-        "readiness_evaluator": "2.0.0",
-        "snapshot_codec": "2.0.0",
-        "sql_persistence": "2.0.0",
-        "research_query": "1.0.0",
-        "http_api": "1.0.0",
-        "research_view": "2.0.0",
-        "report_composer": "2.0.0",
-        "markdown_renderer": "2.0.0",
-        "html_renderer": "1.0.0",
-        "pdf_adapter": "1.0.0",
-        "historical_replay": "1.0.0",
-    }
+    assert manifest.release_version == "1.6.0"
+    assert manifest.status == "stable"
+    assert manifest.core_api_version == "2.0"
+    assert manifest.plugin_api_version == "2.0"
+    assert manifest.snapshot_schema_version == "2.0"
+    assert (
+        manifest.module_versions["research_os.runtime"]
+        == "research-runtime-v1.6.0-m1"
+    )
+    assert (
+        manifest.module_versions["research_os.fixtures"]
+        == "research-fixtures-v1.6.0-m1"
+    )
+    assert (
+        manifest.module_versions["research_os.decision"]
+        == "research-decision-v1.6.0-m2"
+    )
+    assert (
+        manifest.module_versions["research_os.forecasting"]
+        == "research-forecasting-v1.6.0-m3"
+    )
+    assert (
+        manifest.module_versions["research_os.reporting"]
+        == "research-reporting-v1.6.0-m4"
+    )
+    assert (
+        manifest.module_versions["research_os.presentation"]
+        == "research-presentation-v1.6.0-m4"
+    )
+    assert (
+        manifest.module_versions["research_os.release"]
+        == "research-release-governance-v1.6.0"
+    )

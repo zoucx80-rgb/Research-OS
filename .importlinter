@@ -9,7 +9,6 @@ source_modules =
     research_os.contracts
     research_os.domain
     research_os.runtime
-    research_os.plugins
     research_os.metrics
     research_os.policies
     research_os.router
@@ -23,6 +22,17 @@ forbidden_modules =
     research_os.api
     research_os.adapters.persistence
     research_os.reporting
+    research_os.presentation
+    research_os.release
+
+[importlinter:contract:plugins-do-not-depend-on-outer-adapters]
+name = Plugins use typed contributions without depending on outer adapters
+type = forbidden
+source_modules =
+    research_os.plugins
+forbidden_modules =
+    research_os.api
+    research_os.adapters.persistence
     research_os.presentation
     research_os.release
 

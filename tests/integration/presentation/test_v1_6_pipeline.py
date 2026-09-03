@@ -3,12 +3,33 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from research_os.presentation import ProfessionalPresentationPipeline, canonical_document_hash
+from research_os.presentation.artifacts import (
+    HtmlPresentationArtifact,
+    PdfPresentationArtifact,
+)
 from research_os.reporting import (
     AuditArtifactLineage,
     ReportArtifactBlock,
     ReportSection,
     ResearchReportDocument,
 )
+
+
+class _DeterministicPdfAdapter:
+    """Browser-free adapter for deterministic integration semantics."""
+
+    def render(self, html: HtmlPresentationArtifact) -> PdfPresentationArtifact:
+        content = b"%PDF-1.4\n" + html.content_hash.encode("ascii") + b"\n%%EOF\n"
+        return PdfPresentationArtifact.from_html(
+            html=html,
+            renderer_version="deterministic-test-pdf@1.0.0",
+            backend_version="deterministic-test-backend",
+            content=content,
+        )
+
+
+def _pipeline() -> ProfessionalPresentationPipeline:
+    return ProfessionalPresentationPipeline(pdf_adapter=_DeterministicPdfAdapter())
 
 
 def _document() -> ResearchReportDocument:
@@ -57,7 +78,7 @@ def _document() -> ResearchReportDocument:
 def test_current_document_markdown_html_pdf_hash_chain_is_auditable() -> None:
     document = _document()
 
-    bundle = ProfessionalPresentationPipeline().render(document)
+    bundle = _pipeline().render(document)
 
     assert bundle.markdown.source_hash == canonical_document_hash(document)
     assert bundle.html.source_hash == bundle.markdown.content_hash
@@ -83,8 +104,8 @@ def test_presentation_pipeline_does_not_recalculate_research_semantics() -> None
         }
     )
 
-    original = ProfessionalPresentationPipeline().render(document)
-    changed = ProfessionalPresentationPipeline().render(changed_display)
+    original = _pipeline().render(document)
+    changed = _pipeline().render(changed_display)
 
     assert document.semantic_fingerprint == changed_display.semantic_fingerprint
     assert original.markdown.content_hash != changed.markdown.content_hash
