@@ -55,7 +55,7 @@ class PlaywrightPdfAdapter:
         self._validate_passive_html(html.content)
 
         try:
-            from playwright.sync_api import sync_playwright
+            from playwright.sync_api import sync_playwright  # type: ignore[import-not-found]
         except ImportError as exc:
             raise RuntimeError(
                 "Playwright is optional; install research-os[pdf] and run "
