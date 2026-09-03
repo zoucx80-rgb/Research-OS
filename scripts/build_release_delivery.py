@@ -61,9 +61,7 @@ def write_sha256sums(directory: Path, output: Path) -> None:
 def _verify_single_commit_delivery(parent_sha: str, head_sha: str) -> None:
     actual_parent = _git("rev-parse", f"{head_sha}^")
     if actual_parent != parent_sha:
-        raise SystemExit(
-            f"delivery parent mismatch: expected {parent_sha}, got {actual_parent}"
-        )
+        raise SystemExit(f"delivery parent mismatch: expected {parent_sha}, got {actual_parent}")
     count = _git("rev-list", "--count", f"{parent_sha}..{head_sha}")
     if count != "1":
         raise SystemExit(f"delivery commit count must be 1, got {count}")
