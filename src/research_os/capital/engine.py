@@ -63,9 +63,7 @@ class CapitalEfficiencyEngine:
         high_iwcr = float(
             self._policy.decimal_value("funding_loop", "incremental_working_capital_high")
         )
-        high_debt_share = float(
-            self._policy.decimal_value("funding_loop", "debt_share_high")
-        )
+        high_debt_share = float(self._policy.decimal_value("funding_loop", "debt_share_high"))
         stressed_debt_share = float(
             self._policy.decimal_value("funding_loop", "debt_share_stressed")
         )
