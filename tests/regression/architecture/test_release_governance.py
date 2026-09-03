@@ -43,7 +43,9 @@ def test_release_gate_derives_required_checks_from_manifest_packs():
     assert CURRENT_RELEASE.verification_packs == (
         "m1-core-runtime",
         "m2-persistence-http",
+        "m3-professional-foundations",
         "m4-reporting-replay",
+        "m5-quality-release",
         "release-governance",
     )
     assert resolved["snapshot_schema_v2"] == "tests/unit/snapshots"
@@ -55,6 +57,8 @@ def test_release_gate_derives_required_checks_from_manifest_packs():
     assert resolved["http_api_v1_unit"] == "tests/unit/api"
     assert resolved["http_api_v1_integration"] == "tests/integration/api"
     assert resolved["http_api_v1_contract"] == "tests/contract/api"
+    assert resolved["m3_metrics"] == "tests/unit/metrics"
+    assert resolved["m3_forecasting"] == "tests/unit/forecasting"
     assert resolved["current_reporting_v2"] == (
         "tests/unit/reporting/test_v1_6_current_reporting.py"
     )
@@ -66,6 +70,12 @@ def test_release_gate_derives_required_checks_from_manifest_packs():
     )
     assert resolved["clean_break_v2"] == (
         "tests/regression/architecture/test_clean_break_v1_6.py"
+    )
+    assert resolved["m5_dependency_rules"] == (
+        "tests/regression/architecture/test_dependency_rules_v1_6.py"
+    )
+    assert resolved["m5_release_contract"] == (
+        "tests/regression/architecture/test_release_contract_v1_6_0.py"
     )
     assert resolved["release_governance"] == (
         "tests/regression/architecture/test_release_governance.py"
@@ -103,7 +113,7 @@ def test_field_replay_profiles_are_unique_and_historical_profiles_are_frozen():
         assert len(profile.source_commit_sha) == 40
         assert profile.expected_core_api_version == "1.0"
 
-    assert CURRENT_RELEASE.status == "development"
+    assert CURRENT_RELEASE.status == "stable"
 
 
 def test_ci_uses_stable_release_pipeline_instead_of_patch_specific_blocks():
