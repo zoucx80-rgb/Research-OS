@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from typing import Protocol, cast
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
-
 from research_os.contracts.evidence import EvidenceRef
 from research_os.contracts.errors import PluginError
 from research_os.plugins.models import (
@@ -11,6 +9,7 @@ from research_os.plugins.models import (
     CoverageGap,
     PluginManifest,
     ResolvedPlugin,
+    StrategyResolution,
     SupportAssessment,
 )
 from research_os.plugins.protocols import IndustryPlugin, MethodologyPlugin, ResearchPlugin
@@ -28,38 +27,6 @@ class StrategyOptions(Protocol):
     methodology_plugin_overrides: tuple[str, ...]
     override_rationale: str | None
     allow_experimental_plugins: bool
-
-
-class StrategyResolution(BaseModel):
-    model_config = ConfigDict(frozen=True, extra="forbid")
-
-    industry_plugins: tuple[ResolvedPlugin, ...] = Field(default_factory=tuple)
-    methodology_plugins: tuple[ResolvedPlugin, ...] = Field(default_factory=tuple)
-    coverage_gaps: tuple[CoverageGap, ...] = Field(default_factory=tuple)
-    rationale: tuple[str, ...] = Field(default_factory=tuple)
-    evidence_refs: tuple[EvidenceRef, ...] = Field(default_factory=tuple)
-
-    @field_validator("evidence_refs")
-    @classmethod
-    def _canonical_evidence_refs(
-        cls, references: tuple[EvidenceRef, ...]
-    ) -> tuple[EvidenceRef, ...]:
-        by_id: dict[str, EvidenceRef] = {}
-        for reference in references:
-            existing = by_id.get(reference.evidence_id)
-            if existing is not None and existing != reference:
-                raise ValueError("strategy lineage has conflicting evidence revisions")
-            by_id[reference.evidence_id] = reference
-        return tuple(
-            sorted(
-                by_id.values(),
-                key=lambda item: (
-                    item.evidence_id,
-                    item.revision,
-                    item.content_fingerprint,
-                ),
-            )
-        )
 
 
 class StrategyResolver:
