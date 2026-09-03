@@ -80,9 +80,7 @@ def _payload(*, run_payload: object) -> ResearchSnapshotPayloadV2:
                 fingerprint="b" * 64,
             ),
         ),
-        artifacts=(
-            artifact,
-        ),
+        artifacts=(artifact,),
     )
 
 
@@ -104,9 +102,7 @@ def _snapshot(payload: ResearchSnapshotPayloadV2, *, run_id: str) -> ResearchSna
                 artifact_id="decision.record",
                 schema_version="2.0",
                 type_id="decision-record-v2",
-                value_fingerprint=artifact_value_fingerprint(
-                    payload.artifacts[0].payload
-                ),
+                value_fingerprint=artifact_value_fingerprint(payload.artifacts[0].payload),
             ),
         ),
         payload=payload,
@@ -134,26 +130,44 @@ def test_canonical_encoding_has_one_form_for_datetime_decimal_enum_and_model() -
     offset = utc.astimezone(timezone(timedelta(hours=8)))
     left = _payload(
         run_payload=MappingProxyType(
-            {"when": utc, "amount": Decimal("1.2300"), "state": _State.WAIT, "model": _ExampleModel(name="x", amount=Decimal("2.0"))}
+            {
+                "when": utc,
+                "amount": Decimal("1.2300"),
+                "state": _State.WAIT,
+                "model": _ExampleModel(name="x", amount=Decimal("2.0")),
+            }
         )
     )
     right = _payload(
         run_payload=MappingProxyType(
-            {"model": _ExampleModel(name="x", amount=Decimal("2")), "state": _State.WAIT, "amount": Decimal("1.23"), "when": offset}
+            {
+                "model": _ExampleModel(name="x", amount=Decimal("2")),
+                "state": _State.WAIT,
+                "amount": Decimal("1.23"),
+                "when": offset,
+            }
         )
     )
 
     assert codec.encode_research_projection(left) == codec.encode_research_projection(right)
 
 
+def test_artifact_fingerprint_uses_the_same_decimal_canonical_form_as_snapshot_codec() -> None:
+    """Equivalent Decimal scales must survive Snapshot round-trip without changing Artifact identity."""
+    left = _ExampleModel(name="typed-value", amount=Decimal("1.2300"))
+    right = _ExampleModel(name="typed-value", amount=Decimal("1.23"))
+
+    assert artifact_value_fingerprint(left) == artifact_value_fingerprint(right)
+
+
 @pytest.mark.parametrize(
-"payload",
-[
-    MappingProxyType({1: "not-a-string-key"}),
-    MappingProxyType({"value": float("nan")}),
-    MappingProxyType({"value": float("inf")}),
-    object(),
-],
+    "payload",
+    [
+        MappingProxyType({1: "not-a-string-key"}),
+        MappingProxyType({"value": float("nan")}),
+        MappingProxyType({"value": float("inf")}),
+        object(),
+    ],
 )
 def test_canonical_encoding_fails_closed_for_unrepresentable_values(payload: object) -> None:
     """Relaxing the codec to stringify invalid values would corrupt the audit hash."""

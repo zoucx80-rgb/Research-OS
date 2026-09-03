@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from statistics import median
+from typing import Literal
 
 from research_os.completeness.models import (
     CashFlowQualityBridge,
@@ -94,7 +95,7 @@ def build_prior_run_review(
     for item in items:
         error = None
         absolute_error = None
-        status = "UNKNOWN"
+        status: Literal["HIT", "MISS", "UNKNOWN"] = "UNKNOWN"
         if (
             item.predicted_value is not None
             and item.actual_value is not None

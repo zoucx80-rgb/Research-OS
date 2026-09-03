@@ -1,0 +1,15 @@
+{
+  "case_id": "coverage_limited_no_plugin",
+  "company_id": "synthetic:m4:no-plugin",
+  "decision_ts": "2026-09-03T08:00:00+00:00",
+  "expected_primary_model": "unknown",
+  "expected_completion": "INCOMPLETE",
+  "expected_readiness": "NOT_READY",
+  "expected_machine_semantics": "PASS",
+  "expected_research_depth": "LIMITED",
+  "expected_presentation": "PASS",
+  "valuation_ranges": [],
+  "values": {
+    "business_description": "biotechnology licensing platform"
+  }
+}

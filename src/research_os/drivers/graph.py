@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .models import DriverEdge, DriverGraphResult, DriverNode
+from .models import DriverEdge, DriverGraphResult, DriverNode, Relation
 
 
 class DriverValidationError(ValueError):
@@ -70,7 +70,7 @@ class DriverGraph:
         ids: set[str],
         source: str,
         target: str,
-        relation: str,
+        relation: Relation,
     ) -> None:
         if source in ids and target in ids:
             edges.append(
@@ -101,7 +101,7 @@ class DriverGraph:
             cls._add_node(nodes, index, driver_id="ocf", name="Operating Cash Flow", driver_type="working_capital", facts=("ocf", "operating_cash_flow"), critical=True)
 
             ids = {node.driver_id for node in nodes}
-            for source, target, relation in (
+            edge_specs: tuple[tuple[str, str, Relation], ...] = (
                 ("demand", "revenue", "positive"),
                 ("revenue", "ar", "positive"),
                 ("revenue", "inventory", "positive"),
@@ -112,7 +112,8 @@ class DriverGraph:
                 ("debt", "interest", "positive"),
                 ("interest", "net_profit", "negative"),
                 ("nwc", "ocf", "negative"),
-            ):
+            )
+            for source, target, relation in edge_specs:
                 cls._edge_if_present(edges, ids, source, target, relation)
         elif "manufacturing" in pack_ids:
             cls._add_node(nodes, index, driver_id="revenue", name="Revenue", driver_type="volume", facts=("revenue", "revenue_growth"), critical=True)
@@ -126,7 +127,7 @@ class DriverGraph:
                 nodes.append(DriverNode(driver_id="fcf", name="Free Cash Flow", driver_type="cash", evidence_ids=fcf_ids, critical=False))
 
             ids = {node.driver_id for node in nodes}
-            for source, target, relation in (
+            edge_specs = (
                 ("revenue", "margin", "positive"),
                 ("revenue", "ar", "positive"),
                 ("revenue", "inventory", "positive"),
@@ -135,7 +136,8 @@ class DriverGraph:
                 ("inventory", "ocf", "negative"),
                 ("capex", "fcf", "negative"),
                 ("ocf", "fcf", "positive"),
-            ):
+            )
+            for source, target, relation in edge_specs:
                 cls._edge_if_present(edges, ids, source, target, relation)
         else:
             cls._add_node(nodes, index, driver_id="revenue", name="Revenue", driver_type="volume", facts=("revenue", "revenue_growth"))

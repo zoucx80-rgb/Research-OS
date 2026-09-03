@@ -69,10 +69,13 @@ class PlaywrightPdfAdapter:
         try:
             with sync_playwright() as playwright:
                 try:
-                    launch_options: dict[str, object] = {"headless": True}
-                    if self._executable_path is not None:
-                        launch_options["executable_path"] = self._executable_path
-                    browser = playwright.chromium.launch(**launch_options)
+                    if self._executable_path is None:
+                        browser = playwright.chromium.launch(headless=True)
+                    else:
+                        browser = playwright.chromium.launch(
+                            headless=True,
+                            executable_path=self._executable_path,
+                        )
                     context = browser.new_context(
                         java_script_enabled=False,
                         service_workers="block",

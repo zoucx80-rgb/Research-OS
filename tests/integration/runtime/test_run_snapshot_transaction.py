@@ -16,6 +16,7 @@ from research_os.adapters.persistence.schema import (
 from research_os.adapters.persistence.unit_of_work import SqlUnitOfWork
 from research_os.application import ResearchApplication, ResearchRunCommand
 from research_os.application.bootstrap import RepositoryAttestation
+from research_os.application.command import ResearchRunOptions
 from research_os.contracts.errors import PersistenceError
 from research_os.contracts.evidence import EvidenceSet
 from research_os.contracts.values import AccountingScope
@@ -28,6 +29,7 @@ from research_os.runtime import (
     FactView,
     ResearchContext,
 )
+from research_os.snapshots.service import SnapshotService
 
 
 DECISION_TS = datetime(2026, 9, 2, tzinfo=timezone.utc)
@@ -123,6 +125,28 @@ def test_application_atomically_persists_run_snapshot_and_artifact_index(tmp_pat
     )
     assert isinstance(pit.payload, EvidenceSet)
     assert pit.payload.items[0].value == {"nested": [1]}
+
+
+def test_persistence_toggle_does_not_change_research_semantic_digest() -> None:
+    base_command = _command()
+    no_persist = base_command.model_copy(
+        update={"options": ResearchRunOptions(persist_snapshot=False)}
+    )
+    persist = base_command.model_copy(
+        update={"options": ResearchRunOptions(persist_snapshot=True)}
+    )
+    result = ResearchApplication.build(
+        repository_attestor=_RepositoryAttestor()
+    ).run(no_persist)
+    service = SnapshotService(
+        snapshot_id_factory=lambda: "snapshot:semantic",
+        clock=lambda: DECISION_TS,
+    )
+
+    no_persist_digest = service.build(command=no_persist, result=result).payload_hash
+    persist_digest = service.build(command=persist, result=result).payload_hash
+
+    assert no_persist_digest == persist_digest
 
 
 def test_application_rolls_back_run_when_snapshot_append_fails(tmp_path) -> None:

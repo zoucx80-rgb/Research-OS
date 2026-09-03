@@ -1,0 +1,24 @@
+{
+  "case_id": "manufacturing_typed_architecture",
+  "company_id": "synthetic:m4:manufacturing",
+  "decision_ts": "2026-09-03T08:00:00+00:00",
+  "expected_primary_model": "manufacturing",
+  "expected_machine_semantics": "PASS",
+  "expected_research_depth": "PASS",
+  "expected_presentation": "PASS",
+  "valuation_ranges": [
+    {"range_id": "dcf", "model_id": "dcf", "role": "model_implied", "basis": "equity_value_per_share", "currency": "CNY", "low": 18.0, "high": 24.0},
+    {"range_id": "pe", "model_id": "pe", "role": "model_implied", "basis": "equity_value_per_share", "currency": "CNY", "low": 20.0, "high": 26.0}
+  ],
+  "values": {
+    "business_description": "precision manufacturing producer",
+    "revenue": 1000.0,
+    "net_profit_parent": 80.0,
+    "assets_begin": 800.0,
+    "assets_end": 920.0,
+    "equity_begin": 410.0,
+    "equity_end": 470.0,
+    "fixed_asset_to_assets": 0.42,
+    "gross_margin": 0.31
+  }
+}

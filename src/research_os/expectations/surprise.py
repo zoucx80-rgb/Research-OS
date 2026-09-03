@@ -105,11 +105,11 @@ def build_expectation_gap(
 
     limitations: list[str] = []
     policy = policy_registry or builtin_policy_registry()
-    minimum_source_count = int(
-        policy.value("expectation_quality", "minimum_gap_source_count")
+    minimum_source_count = policy.integer_value(
+        "expectation_quality", "minimum_gap_source_count"
     )
     high_quality_source = float(
-        policy.value("expectation_quality", "high_quality_source")
+        policy.decimal_value("expectation_quality", "high_quality_source")
     )
     source_count = market.get("source_count")
     source_quality = market.get("source_quality")

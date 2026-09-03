@@ -41,6 +41,28 @@ class FinalizedExecution:
     readiness: ResearchReadinessAssessment
 
 
+def _snapshot_semantic_identity(snapshot: ArtifactSnapshot) -> tuple[object, ...]:
+    """Compare immutable bootstrap snapshots by durable semantic identity."""
+    return tuple(
+        (
+            envelope.key.artifact_id,
+            envelope.key.schema_version,
+            envelope.key.value_type.__qualname__,
+            envelope.producer_ids,
+            tuple(
+                (
+                    reference.evidence_id,
+                    reference.revision,
+                    reference.content_fingerprint,
+                )
+                for reference in envelope.evidence_refs
+            ),
+            envelope.value_fingerprint,
+        )
+        for envelope in snapshot.envelopes()
+    )
+
+
 class ResearchEngine:
     def finalize(
         self,
@@ -98,7 +120,8 @@ class ResearchEngine:
         if (
             initial_snapshot is not None
             and plan.initial_snapshot is not None
-            and initial_snapshot is not plan.initial_snapshot
+            and _snapshot_semantic_identity(initial_snapshot)
+            != _snapshot_semantic_identity(plan.initial_snapshot)
         ):
             raise PipelineDefinitionError(
                 "initial snapshot differs from the snapshot validated by the plan"

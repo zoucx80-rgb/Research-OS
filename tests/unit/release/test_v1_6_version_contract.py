@@ -35,7 +35,7 @@ def test_generated_public_metadata_matches_the_v1_6_manifest():
     assert metadata == CURRENT_RELEASE.to_public_metadata()
 
 
-def test_development_manifest_lists_implemented_m1_and_m2_components():
+def test_development_manifest_lists_implemented_m1_through_m4_components():
     assert CURRENT_RELEASE.module_versions == {
         "repository_preflight": "2.0.0",
         "pit_lineage": "2.0.0",
@@ -49,4 +49,10 @@ def test_development_manifest_lists_implemented_m1_and_m2_components():
         "sql_persistence": "2.0.0",
         "research_query": "1.0.0",
         "http_api": "1.0.0",
+        "research_view": "2.0.0",
+        "report_composer": "2.0.0",
+        "markdown_renderer": "2.0.0",
+        "html_renderer": "1.0.0",
+        "pdf_adapter": "1.0.0",
+        "historical_replay": "1.0.0",
     }

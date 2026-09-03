@@ -27,10 +27,21 @@ _M2_PERSISTENCE_HTTP_CHECKS: dict[str, str] = {
     "http_api_v1_integration": "tests/integration/api",
     "http_api_v1_contract": "tests/contract/api",
 }
+_M4_REPORTING_REPLAY_CHECKS: dict[str, str] = {
+    "current_reporting_v2": "tests/unit/reporting/test_v1_6_current_reporting.py",
+    "historical_replay_v2": "tests/unit/release/test_historical_replay_v1_6.py",
+    "presentation_pipeline_v2": "tests/integration/presentation/test_v1_6_pipeline.py",
+    "field_acceptance_contract_v2": (
+        "tests/integration/presentation/test_field_acceptance_v1_6_0.py"
+    ),
+    "clean_break_v2": "tests/regression/architecture/test_clean_break_v1_6.py",
+    "v1_6_examples": "tests/integration/examples/test_v1_6_examples.py",
+}
 
 CHECK_REGISTRY: Mapping[str, str] = {
     **_BASELINE_CHECKS,
     **_M2_PERSISTENCE_HTTP_CHECKS,
+    **_M4_REPORTING_REPLAY_CHECKS,
     **_RELEASE_GOVERNANCE_CHECKS,
 }
 
@@ -42,6 +53,10 @@ PACK_REGISTRY: Mapping[str, VerificationPack] = {
     "m2-persistence-http": VerificationPack(
         pack_id="m2-persistence-http",
         check_ids=tuple(_M2_PERSISTENCE_HTTP_CHECKS),
+    ),
+    "m4-reporting-replay": VerificationPack(
+        pack_id="m4-reporting-replay",
+        check_ids=tuple(_M4_REPORTING_REPLAY_CHECKS),
     ),
     "release-governance": VerificationPack(
         pack_id="release-governance",

@@ -19,13 +19,7 @@ _SEMVER = re.compile(r"^\d+\.\d+\.\d+$")
 
 @dataclass(frozen=True)
 class ReleaseManifest:
-    """Immutable description of one Research OS release.
-
-    Version identity comes from the import-free ``research_os.version`` leaf so
-    build tooling can read it before the package is installed. The manifest is
-    the canonical descriptor for release policy, component fingerprints and
-    verification composition.
-    """
+    """Immutable description of one Research OS release."""
 
     version: str
     core_api_version: str
@@ -88,11 +82,24 @@ CURRENT_RELEASE = ReleaseManifest(
         "sql_persistence": "2.0.0",
         "research_query": "1.0.0",
         "http_api": "1.0.0",
+        "research_view": "2.0.0",
+        "report_composer": "2.0.0",
+        "markdown_renderer": "2.0.0",
+        "html_renderer": "1.0.0",
+        "pdf_adapter": "1.0.0",
+        "historical_replay": "1.0.0",
     },
     verification_packs=(
         "m1-core-runtime",
         "m2-persistence-http",
+        "m4-reporting-replay",
         "release-governance",
     ),
-    field_replay_profiles=(),
+    field_replay_profiles=(
+        "field-v1.5.08",
+        "field-v1.5.09",
+        "field-v1.5.10",
+        "field-v1.5.11",
+        "field-v1.5.12",
+    ),
 )

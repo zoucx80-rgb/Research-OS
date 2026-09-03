@@ -12,6 +12,19 @@ ClaimStrength = Literal[
     "STRONG",
     "CONFIRMED",
 ]
+CycleState = Literal[
+    "RECOVERY_NOT_OBSERVED",
+    "RECOVERY_OBSERVED",
+    "TROUGH_UNCONFIRMED",
+    "TROUGH_CONFIRMED",
+]
+MoatState = Literal[
+    "INSUFFICIENT_MOAT_EVIDENCE",
+    "OTHER_BARRIER_EVIDENCED",
+    "TECHNICAL_BARRIER_EVIDENCED",
+    "ECONOMIC_MOAT_UNREALIZED",
+    "ECONOMIC_MOAT_REALIZED",
+]
 
 
 class ClaimSupport(BaseModel):
@@ -45,12 +58,7 @@ class ClaimStrengthPolicy:
 class CycleAssessment(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    state: Literal[
-        "RECOVERY_NOT_OBSERVED",
-        "RECOVERY_OBSERVED",
-        "TROUGH_UNCONFIRMED",
-        "TROUGH_CONFIRMED",
-    ]
+    state: CycleState
     claim_strength: ClaimStrength
     recovery_observed: bool
 
@@ -62,6 +70,7 @@ class CycleAssessment(BaseModel):
         turning_point_support: ClaimSupport,
     ) -> Self:
         strength = ClaimStrengthPolicy.assess(turning_point_support)
+        state: CycleState
         if not recovery_observed:
             state = "RECOVERY_NOT_OBSERVED"
         elif strength == "CONFIRMED":
@@ -75,6 +84,7 @@ class CycleAssessment(BaseModel):
             claim_strength=strength,
             recovery_observed=recovery_observed,
         )
+
 
 MoatEvidenceType = Literal[
     "technical_barrier",
@@ -95,13 +105,7 @@ class MoatEvidence(BaseModel):
 class MoatAssessment(BaseModel):
     model_config = ConfigDict(frozen=True)
 
-    state: Literal[
-        "INSUFFICIENT_MOAT_EVIDENCE",
-        "OTHER_BARRIER_EVIDENCED",
-        "TECHNICAL_BARRIER_EVIDENCED",
-        "ECONOMIC_MOAT_UNREALIZED",
-        "ECONOMIC_MOAT_REALIZED",
-    ]
+    state: MoatState
     economic_realization: bool
     evidence: tuple[MoatEvidence, ...] = Field(default_factory=tuple)
 
@@ -118,6 +122,7 @@ class MoatAssessment(BaseModel):
         )
         has_economic_outcome = "economic_outcome" in evidence_types
 
+        state: MoatState
         if has_barrier and has_commercial and has_economic_outcome:
             state = "ECONOMIC_MOAT_REALIZED"
             realized = True

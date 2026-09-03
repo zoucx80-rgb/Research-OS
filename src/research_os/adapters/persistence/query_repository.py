@@ -63,6 +63,25 @@ def _json_compatible(codec: SnapshotCodecV2, value: object) -> JsonValue:
     raise TypeError(f"cannot project {type(value).__name__} as query JSON")
 
 
+def _utc(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
+def _validate_run_snapshot_binding(
+    run: ResearchRunRecord,
+    snapshot: ResearchSnapshotV2,
+) -> None:
+    if (
+        run.run_id != snapshot.run_id
+        or run.company_id != snapshot.company_id
+        or _utc(run.decision_ts) != _utc(snapshot.decision_ts)
+        or _utc(run.created_at) != _utc(snapshot.created_at)
+    ):
+        raise ValueError("research run metadata does not match verified snapshot")
+
+
 class SqlResearchQueryRepository:
     def __init__(
         self,
@@ -85,13 +104,14 @@ class SqlResearchQueryRepository:
             if run is None or snapshot_record is None:
                 return None
             snapshot = snapshot_from_record(snapshot_record, self._decoder_registry)
+            _validate_run_snapshot_binding(run, snapshot)
             completion = snapshot.payload.execution_completion
             readiness = snapshot.payload.research_readiness
             if completion is None or readiness is None:
                 return None
             return ResearchRunView(
-                run_id=run.run_id,
-                company_id=run.company_id,
+                run_id=snapshot.run_id,
+                company_id=snapshot.company_id,
                 decision_ts=snapshot.decision_ts,
                 created_at=snapshot.created_at,
                 execution_completion=completion.final_status,

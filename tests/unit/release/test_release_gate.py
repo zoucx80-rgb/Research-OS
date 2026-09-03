@@ -1,28 +1,23 @@
 from research_os.release.gate import REQUIRED, evaluate_release_gate
+from research_os.release.manifest import CURRENT_RELEASE
+from research_os.release.verification import resolve_release_checks
 
 
-SAFETY_CHECKS = {
-    "repository_preflight",
-    "evidence_lineage",
-    "financial_sanity",
-    "expectation_evidence",
-    "valuation_execution",
-    "decision_validation",
-    "completion_gate",
-    "temporal_consistency",
-    "distributor_kpi_safety",
-}
+def test_release_gate_tracks_current_manifest_checks_exactly():
+    assert REQUIRED == tuple(resolve_release_checks(CURRENT_RELEASE))
 
 
-def test_release_gate_requires_all_research_safety_checks():
-    assert SAFETY_CHECKS.issubset(set(REQUIRED))
-    status = {k: True for k in REQUIRED}
-    status["financial_sanity"] = False
-    r = evaluate_release_gate(status)
-    assert r.ready is False
-    assert "financial_sanity" in r.failed
+def test_release_gate_fails_closed_for_any_declared_condition():
+    assert REQUIRED
+    failed_key = REQUIRED[0]
+    status = {key: True for key in REQUIRED}
+    status[failed_key] = False
+    result = evaluate_release_gate(status)
+    assert result.ready is False
+    assert result.failed == [failed_key]
 
 
 def test_release_gate_accepts_every_declared_condition():
-    r = evaluate_release_gate({k: True for k in REQUIRED})
-    assert r.ready is True and r.failed == []
+    result = evaluate_release_gate({key: True for key in REQUIRED})
+    assert result.ready is True
+    assert result.failed == []

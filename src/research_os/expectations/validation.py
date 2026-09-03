@@ -68,14 +68,16 @@ class ExpectationEvidenceValidator:
 
         reasons: list[str] = []
         age_days = max(0, (decision_ts.date() - vintage.as_of.date()).days)
-        minimum_source_count = int(
-            self._policy.value("expectation_quality", "minimum_source_count")
+        minimum_source_count = self._policy.integer_value(
+            "expectation_quality", "minimum_source_count"
         )
         minimum_source_quality = float(
-            self._policy.value("expectation_quality", "minimum_source_quality")
+            self._policy.decimal_value(
+                "expectation_quality", "minimum_source_quality"
+            )
         )
-        maximum_age_days = int(
-            self._policy.value("expectation_quality", "maximum_consensus_age_days")
+        maximum_age_days = self._policy.integer_value(
+            "expectation_quality", "maximum_consensus_age_days"
         )
         if (
             vintage.source_count is not None

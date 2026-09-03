@@ -43,6 +43,7 @@ def test_release_gate_derives_required_checks_from_manifest_packs():
     assert CURRENT_RELEASE.verification_packs == (
         "m1-core-runtime",
         "m2-persistence-http",
+        "m4-reporting-replay",
         "release-governance",
     )
     assert resolved["snapshot_schema_v2"] == "tests/unit/snapshots"
@@ -54,6 +55,18 @@ def test_release_gate_derives_required_checks_from_manifest_packs():
     assert resolved["http_api_v1_unit"] == "tests/unit/api"
     assert resolved["http_api_v1_integration"] == "tests/integration/api"
     assert resolved["http_api_v1_contract"] == "tests/contract/api"
+    assert resolved["current_reporting_v2"] == (
+        "tests/unit/reporting/test_v1_6_current_reporting.py"
+    )
+    assert resolved["historical_replay_v2"] == (
+        "tests/unit/release/test_historical_replay_v1_6.py"
+    )
+    assert resolved["presentation_pipeline_v2"] == (
+        "tests/integration/presentation/test_v1_6_pipeline.py"
+    )
+    assert resolved["clean_break_v2"] == (
+        "tests/regression/architecture/test_clean_break_v1_6.py"
+    )
     assert resolved["release_governance"] == (
         "tests/regression/architecture/test_release_governance.py"
     )
@@ -63,9 +76,12 @@ def test_release_gate_derives_required_checks_from_manifest_packs():
 
 def test_release_runtime_has_no_patch_version_specific_module():
     assert list(Path("src/research_os/release").glob("runtime_v*.py")) == []
-    source = Path("scripts/release_gate_v1_1.py").read_text(encoding="utf-8")
-    assert "research_os.release.runtime import run_release_checks" in source
+    source = Path("scripts/verify_release_pipeline.py").read_text(encoding="utf-8")
+    assert "from research_os.release.manifest import CURRENT_RELEASE" in source
+    assert "from research_os.release.verification import resolve_release_checks" in source
+    assert "resolve_release_checks(CURRENT_RELEASE)" in source
     assert "runtime_v" not in source
+    assert "release_gate_v1_" not in source
 
 
 def test_field_replay_profiles_are_unique_and_historical_profiles_are_frozen():
@@ -73,11 +89,19 @@ def test_field_replay_profiles_are_unique_and_historical_profiles_are_frozen():
     ids = [profile.profile_id for profile in profiles]
     assert len(ids) == len(set(ids))
     assert ids == list(CURRENT_RELEASE.field_replay_profiles)
-    assert profiles == ()
+    assert ids == [
+        "field-v1.5.08",
+        "field-v1.5.09",
+        "field-v1.5.10",
+        "field-v1.5.11",
+        "field-v1.5.12",
+    ]
 
-    for profile_id in ("field-v1.5.08", "field-v1.5.09", "field-v1.5.10", "field-v1.5.11"):
-        assert REPLAY_REGISTRY[profile_id].frozen is True
-    assert REPLAY_REGISTRY["field-v1.5.12"].frozen is False
+    for profile in profiles:
+        assert profile.frozen is True
+        assert REPLAY_REGISTRY[profile.profile_id] == profile
+        assert len(profile.source_commit_sha) == 40
+        assert profile.expected_core_api_version == "1.0"
 
     assert CURRENT_RELEASE.status == "development"
 
@@ -85,9 +109,11 @@ def test_field_replay_profiles_are_unique_and_historical_profiles_are_frozen():
 def test_ci_uses_stable_release_pipeline_instead_of_patch_specific_blocks():
     workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
     assert "python scripts/verify_release_pipeline.py" in workflow
-    for version in ("1_5_08", "1_5_09", "1_5_10", "1_5_11"):
+    for version in ("1_5_08", "1_5_09", "1_5_10", "1_5_11", "1_5_12"):
         assert f"render_field_acceptance_v{version}.py" not in workflow
     assert "build/field-acceptance-*" in workflow
+    assert "build/historical-replay" in workflow
+    assert "fetch-depth: 0" in workflow
 
 
 def test_release_governance_keeps_acceptance_company_identity_out_of_production():

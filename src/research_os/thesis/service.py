@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, timedelta
+from typing import Literal
 
 from .models import Falsifier, Thesis, ThesisSignalAssessment
 
@@ -93,6 +94,7 @@ class ThesisService:
             used_keys.add("inventory_growth")
             negative.append("存货增长较快")
 
+        status: Literal["SUPPORTED", "MIXED", "INSUFFICIENT"]
         if positive and negative:
             status = "MIXED"
         elif len(positive) >= 2:
@@ -150,10 +152,7 @@ class ThesisService:
                 mechanism="Revenue growth must translate through working-capital efficiency into operating cash flow.",
                 anti_thesis="Growth remains dependent on inventory, receivables and external financing, so cash quality deteriorates.",
                 status="active",
-                supporting_drivers=[
-                    node.driver_id
-                    for node in supporting_nodes
-                ],
+                supporting_drivers=[node.driver_id for node in supporting_nodes],
                 supporting_evidence=self._driver_evidence_ids(supporting_nodes),
                 falsifiers=falsifiers,
                 verification_metrics=["ocf", "ccc_days", "funding_loop_debt_share"],

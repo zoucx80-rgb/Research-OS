@@ -1,121 +1,90 @@
-# Research OS v1.5.12
+# Research OS v1.6.0
 
-Research OS v1.5.12 (code SemVer `1.5.12`) is a Point-in-Time, evidence-linked investment research operating system built around one canonical, extensible runtime. This PATCH release hardens **semantic preservation, claim strength, threshold context, and valuation reconciliation** while retaining v1.5.11 comparison-basis and missingness safety.
+Research OS is a Point-in-Time, evidence-linked investment research operating system. v1.6.0 is the clean-break architecture release for **Core API 2.0**, **Plugin API 2.0**, **Snapshot Schema 2.0**, and read-only **HTTP API v1**.
+
+The current package contains only the v2 runtime contracts. Historical v1.5 releases are reproduced by commit-addressed **historical replay** in their own detached worktrees and environments; current v1.6 code does not import or emulate a v1 runtime.
 
 ## Core invariants
 
-- No time travel: only evidence with `publish_ts <= decision_ts` may enter a run.
-- No fabricated data: missing facts remain missing; `None` is never silently treated as economic zero.
-- Facts, calculations, statistical evidence, analyst assumptions, and derived states remain distinct.
-- Material metrics and conclusions retain evidence lineage and version metadata.
-- Period-sensitive balance/flow metrics require truthful reporting-period semantics.
-- Cross-metric directional comparisons require compatible comparison basis and economic metric kind; incompatible comparisons fail closed.
-- Generic infrastructure is not specialized industry coverage.
-- Missing professional coverage cannot be filled by narrative confidence.
-- Funding-loop classification requires evidenced operands.
-- Market-expectation claims require traceable and event-aware expectation evidence; absence is `UNKNOWN`, not a synthetic directional state.
-- Decision states are research outputs, never automatic trade orders.
-- `ResearchCompletionGate` remains the single authority for machine `COMPLETE` / `INCOMPLETE`.
-- `research_completeness` is an acceptance/readiness layer over explicit canonical artifacts; it does not become a second Completion Gate or Decision Engine.
-- Reporting consumes canonical research state and cannot redefine completion or decision semantics.
-- Human-facing presentation translates, composes, and renders canonical machine semantics without changing them.
+- **No Time Travel** — material evidence must satisfy `publish_ts <= decision_ts`.
+- **No Fabricated Data** — missing facts remain missing; `None` is never silently treated as economic zero.
+- **Facts ≠ Calculations ≠ Statistical Evidence ≠ Assumptions**.
+- **Everything Has Lineage** — material artifacts preserve evidence or explicit assumption lineage.
+- **Models Beat Simple Benchmarks** before promotion.
+- **Research Signal ≠ Auto Trading**.
+- Completion and Readiness are independent machine contracts; a polished report cannot convert incomplete research into complete research.
+- Presentation is downstream-only and never recalculates research semantics.
 
-## Canonical runtime
+## v1.6 architecture
+
+A current research run is strictly staged:
 
 ```text
-ResearchContext + ResearchInputs
-        ↓
-ResearchRuntimeFactory
-        ↓
-ResearchRuntime
-        ↓
-ResearchEngine + run-scoped PluginRegistry
-        ↓
-ResearchRunResult + Snapshot
+ResearchRunCommand
+    ↓
+Repository Preflight
+    ↓
+Bootstrap Plan
+    ├─ PIT Evidence
+    ├─ Financial Fact Snapshot
+    └─ Business Model Profile
+    ↓
+Strategy Resolution (Plugin API 2.0)
+    ↓
+Professional Module Plan
+    ↓
+ResearchEngine
+    ↓
+Completion + Readiness
+    ↓
+ResearchRunResult
+    ↓
+Snapshot Schema 2.0 (optional persistence)
 ```
 
-`ResearchRuntime` owns composition policy, completion evaluation, component fingerprinting, report contributions, and snapshot freezing. `ResearchEngine` executes capability dependencies only and remains unaware of company or industry identities.
+`ResearchEngine` is the sole module invoker. Modules communicate through typed `ArtifactKey` / `ArtifactEnvelope` contracts. `ResearchApplication` owns orchestration, preflight, plugin resolution, version identity, component fingerprints, finalization, and optional persistence.
 
-## Business-model routing and strategy isolation
+### Frozen public contracts
 
-`BusinessModelRouter` is `router@1.2.0`. Period-sensitive `inventory_to_revenue` evidence contributes only when its Evidence period is explicitly annual. Lease-heavy operating models suppress the low-PPE distributor heuristic when right-of-use assets or lease liabilities are economically material. The standard taxonomy includes `hospitality` without pretending that a Hospitality strategy plugin exists.
+- **Core API 2.0** — typed commands, contexts, artifacts, execution result, Completion and Readiness.
+- **Plugin API 2.0** — `PluginManifest`, applicability/support assessment, typed services, explicit compatibility ranges.
+- **Snapshot Schema 2.0** — canonical research digest plus separate integrity digest; operational persistence controls do not alter research semantics.
+- **HTTP API v1** — read-only run, artifact, snapshot, research-view, list and health endpoints. Query paths consume verified persisted snapshots and fail closed on tampering.
 
-`BusinessModelProfile.classification_status` distinguishes `classified`, `unsupported_taxonomy`, and `insufficient_evidence`. Canonical industry execution follows the **primary business model only**. Secondary models remain classification and coverage metadata and do not contaminate the primary KPI / Driver / Thesis chain.
+See:
 
-## Coverage-aware professional research
+- `docs/architecture/core-api-v2.md`
+- `docs/architecture/plugin-authoring-v2.md`
+- `docs/migrations/v1.6.0.md`
+- `docs/adr/adr-0002-v1-6-0-controlled-breaking-contract-upgrade.md`
 
-When the primary model has no compatible industry strategy plugin, the Coverage Gap remains explicit; a generic Driver Graph may be produced only as an informational fallback; no active specialized Thesis or Claim is generated; and the final completion state continues to come only from `ResearchCompletionGate`.
+## Plugin model
 
-v1.5.03 added structured professional-question coverage. Industry contributions can declare required capabilities and evidence keys, and the runtime records whether each question is supported or blocked by missing capability/evidence. Asking a professional-looking question is not treated as professional coverage by itself.
+Industry and methodology plugins are orthogonal. Normal runs resolve compatible plugins automatically from the PIT business-model profile. Overrides require explicit rationale; experimental plugins require explicit opt-in.
 
-v1.5.05 report composition keeps **evidence missing**, **capability missing**, **not applicable**, and **presentation/deferred** limitations distinct instead of collapsing them into one generic gap list.
+A plugin declares its API and Research OS compatibility in `PluginManifest`. Its declared `service_capabilities` must exactly match the services it returns. Missing specialized coverage remains a typed coverage limitation; generic infrastructure must not masquerade as industry expertise.
 
-## State Provenance
+## Professional research foundations
 
-High-level fundamental, valuation, and expectation states carry explicit provenance. Legacy string inputs remain compatible but are identified as **analyst assumptions** rather than being narrated as Research OS-derived conclusions. Structured state inputs can identify derived, analyst-assumption, external-model, or manual-override sources together with supporting evidence and method metadata.
+v1.6 retains explicit typed domains for, among others:
 
-## Evidence-driven Thesis and Driver lineage
+- financial time series and operating evidence;
+- KPI packs and business-model routing;
+- capital efficiency, Funding Loop and cash-flow quality;
+- Driver Graph;
+- Thesis / Anti-Thesis / Falsifiers and semantic claims;
+- market expectations and Expectation Gap;
+- forecast evidence and benchmark discipline;
+- valuation fitness, execution and reconciliation;
+- monitoring, prior-run review and next verification events;
+- Research Decision State;
+- Completion and Research Readiness.
 
-The built-in thesis engine does not default to `Fundamentals improve`. Directional operating signals determine whether evidence is improving, mixed, weakening, or insufficient before a thesis is formed. Driver nodes carry fact-specific evidence IDs rather than inheriting the complete run evidence set.
+Unavailable evidence is represented as `INSUFFICIENT_EVIDENCE`, `NOT_APPLICABLE`, a coverage gap, or another explicit typed state. It is never filled to make the report look complete.
 
-Manufacturing Driver Graphs can include supported revenue, margin, receivables, inventory, capex, and cash-generation nodes. Missing order, capacity, utilization, yield, qualification, or product-mix evidence remains an explicit question-level coverage gap rather than being fabricated.
+## Reporting and presentation
 
-v1.5.11 makes the directional boundary typed. `SemanticThesisService` emits explicit signal directions and comparison assessments. A stock-change metric such as period-end-vs-period-begin receivables growth cannot be compared directionally with a YoY flow-growth metric unless both comparison basis and economic kind are explicitly compatible. Mixed current evidence without an explicit prior directional thesis becomes `UNRESOLVED`; weakening requires an actual prior thesis to weaken.
-
-## Funding-loop and economic exposure integrity
-
-Severe Funding Loop evidence continues to feed the existing `DecisionContext.material_risk` boundary. Distributor analytics additionally expose factoring, derecognized receivables, receivable transfers, other working-capital financing, and total financing burden relative to gross profit. These exposures remain economically visible without being automatically relabeled as debt.
-
-v1.5.04 requires explicit matching `<fact>_comparison_basis` values before delta facts form incremental ratios. Reported book-equity change (`delta_equity`) is informational; only explicit `external_equity_financing` drives equity-funding math, and only `equity_dilution=True` emits dilution risk. Missing or mismatched semantics remain missing rather than becoming professional-looking ratios.
-
-## Field-correctness hardening
-
-- filing YoY values rounded to two decimal percentage points pass ordinary financial-sanity validation while material discrepancies still fail;
-- `cfo`, `ocf`, and `operating_cash_flow` are canonical aliases for falsifier evaluation, and new theses emit `ocf`;
-- financing theses cite the evidence attached to their actual working-capital/financing drivers rather than the complete evidence set;
-- a distributor PE route is penalized when the canonical Funding Loop is debt-funded with negative operating cash flow;
-- no separate risk, decision or completion engine is introduced.
-
-## Expectation gap and valuation result contracts
-
-v1.5.05 adds structured expectation-gap and valuation-output contracts without weakening missing-value discipline.
-
-- Missing consensus produces no fabricated expectation gap.
-- Thin, stale, or pre-event consensus retains an explicit qualification.
-- Directional expectation gaps do not invent numeric magnitude.
-- `ValuationResult` can carry explicit Bear/Base/Bull cases, primary ranges, per-share values, sensitivities, evidence and assumption lineage.
-- Presentation does not derive upside/downside merely because current price and a valuation estimate are present.
-
-Expectation quality continues to use `ConsensusVintage.source_count`, `source_quality`, calendar age, and event-relative freshness. In v1.5.11, missing auditable PIT expectation evidence resolves to `UNKNOWN` and is presented as market-expectation evidence insufficiency rather than being conflated with an explicit `MIXED` assessment.
-
-## Professional human-readable research, composition, and rendering
-
-Complete human-facing research uses:
-
-```python
-from research_os.reporting import (
-    ResearchReportComposer,
-    ResearchReportMarkdownRenderer,
-    ResearchViewPresenter,
-)
-
-view = ResearchViewPresenter().build(result, locale="zh-CN")
-document = ResearchReportComposer().compose(view)
-markdown = ResearchReportMarkdownRenderer().render(document)
-```
-
-Typed HTML/PDF output uses the optional presentation pipeline:
-
-```python
-from research_os.presentation import ProfessionalPresentationPipeline
-
-bundle = ProfessionalPresentationPipeline().render(document)
-markdown_artifact = bundle.markdown
-html_artifact = bundle.html
-pdf_artifact = bundle.pdf
-```
-
-The canonical direction is strictly one-way:
+The current v1.6 reporting direction is strictly one-way:
 
 ```text
 ResearchRunResult
@@ -137,133 +106,95 @@ HtmlPresentationArtifact
 PdfPresentationArtifact
 ```
 
-Historical Research OS v1.5.08 used `professional-research-view@1.3.0`, `research-report-composer@1.1.0`, `professional-markdown-renderer@1.0.0`, `professional-html-renderer@1.0.0`, and `professional-pdf-adapter@1.0.0`. That replay path remains covered and immutable.
+`HumanReadableResearchView`, `ResearchReportDocument`, Markdown, HTML and PDF carry the same research semantics forward. The reporting/presentation layers may translate, organize, style, paginate and export, but may not recompute KPI, Funding Loop, Driver/Thesis, Expectation Gap, Forecast, Valuation, Decision, Completion, Readiness, sensitivity or monitoring meaning.
 
-Research OS v1.5.09 used `professional-research-view@1.4.0`, `research-report-composer@1.2.0`, and `professional-markdown-renderer@1.1.0`. Its historical field runner is explicitly pinned to those implementations so later top-level reporting versions cannot mutate v1.5.09 replay semantics.
+`SemanticPreservationValidator` verifies artifact identity, lineage, payload fingerprints, reporting-chain semantic fingerprint, and required sensitivity/monitoring qualifiers.
 
-Research OS v1.5.10 used `professional-research-view@1.5.0`, `research-report-composer@1.3.0`, and `professional-markdown-renderer@1.2.0`.
+PDF acceptance uses a real Playwright Chromium render, not a serialization substitute.
 
-For v1.5.12 the active upstream fingerprints are `professional-research-view@1.7.0`, `research-report-composer@1.4.0`, and `professional-markdown-renderer@1.4.0`. HTML/PDF remain `professional-html-renderer@1.0.0` and `professional-pdf-adapter@1.0.0`.
+## Historical replay
 
-`HumanReadableResearchView` remains a read-only projection of canonical research artifacts. `ResearchReportComposer` accepts that view only; it does not accept a raw dictionary as an alternate semantic path and does not calculate or alter completion, decision, thesis, fundamental, expectation, valuation, funding, forecast, business-model, consensus, peer, sensitivity, monitoring, or prior-run state.
+Historical releases are immutable execution targets, not compatibility code inside v1.6.
 
-### v1.5.09 professional research-depth hardening
+The M4 replay registry pins the supported field releases to exact commits:
 
-v1.5.09 added a read-only `FinancialFactSnapshot` (`financial_fact_snapshot@1.0.0`) so material PIT-safe filed financial facts already in the canonical run can survive the reporting chain without ad-hoc dictionary access or renderer-side reconstruction. It is a projection contract, not a new financial engine.
+- v1.5.08 — `f7863e0b0aeb657ac19b0a63761788d40118e6bf`
+- v1.5.09 — `a3e82b3cc80b871b559ac9f5cd29e18e97b8e98d`
+- v1.5.10 — `05a3ba99edc02ac93ee9fdf1130485da7e6fa8ab`
+- v1.5.11 — `5067e4decb673a39cb96085e34a3a555fe24d58e`
+- v1.5.12 — `72ab06c619678b35c31cf7edef7547849e803d16`
 
-Field acceptance became explicitly dual-status: `presentation` verifies typed Markdown → HTML → real Chromium PDF output, while `research_depth` verifies that required professional content is actually present and missingness remains truthful. A polished PDF therefore cannot hide a thin or incomplete research output.
+Each replay uses a detached worktree, a dedicated virtualenv, sanitized import environment and the historical release's own runner/fixtures. Artifacts are staged and published only after successful execution. The v1.5.08 Playwright cleanup compatibility is bounded by exact commit and exact source-blob identity; it does not create a general v1 adapter.
 
-Permanent v1.5.09 regressions cover Manufacturing, Distributor and lease-heavy Hospitality/no-plugin archetypes. The fixtures are test data only; production `src/research_os` contains no company-specific identifiers or branches.
+The immutable v1.5.12 reference is under `tests/fixtures/historical_replay/v1_5_12/`.
 
-### v1.5.10 professional research completeness
+## v1.6 field acceptance
 
-v1.5.10 adds the canonical `research_completeness@1.0.0` module and typed optional inputs for operating evidence, multi-period financial series, cash-flow quality, consensus observations, peer comparables, sensitivity cases, monitoring rules, verification events, and prior-run review items.
+Current acceptance uses exactly three synthetic, identity-free fixtures:
 
-The module emits only explicit-input-supported canonical artifacts. It never manufactures missing history, order/capacity evidence, peer values, consensus sources, cash-flow decomposition, sensitivity results, monitoring thresholds, or prior-run outcomes.
+- `manufacturing_typed_architecture.json` — machine semantics `PASS`, research depth `PASS`, presentation `PASS`.
+- `distributor_funding_and_valuation.json` — machine semantics `PASS`, research depth `LIMITED`, presentation `PASS`.
+- `coverage_limited_no_plugin.json` — machine semantics `PASS`, research depth `LIMITED`, presentation `PASS`.
 
-The Research Completeness Gate evaluates nine independent dimensions:
+The three statuses are evaluated separately. Machine semantics checks v2 contract/schema identity, typed Readiness/Thesis artifacts, Snapshot verification and Semantic Preservation. Research depth evaluates actual business-model coverage and valuation reconciliation. Presentation requires non-empty Markdown/HTML and a real `%PDF` artifact.
 
-- `time_series`
-- `operating_evidence`
-- `cash_flow`
-- `consensus`
-- `peers`
-- `sensitivity`
-- `monitoring_events`
-- `prior_run_validation`
-- `methodology`
+## Executable examples
 
-Every dimension is exactly `PASS`, `INCOMPLETE`, or `NOT_APPLICABLE`. A required `INCOMPLETE` dimension fails closed. `NOT_APPLICABLE` must be explicit and does not trigger synthetic data or synthetic report sections. This is a professional-output acceptance gate, not a second machine Completion Gate.
+The examples are deliberately offline and synthetic:
 
-Cash-flow methodology is deliberately narrow: `simplified FCF = operating cash flow - capex cash` is emitted only when both operands are explicit, is labeled **not FCFF**, and does not infer a working-capital contribution when the decomposition was not supplied. Prior-run hit/miss scoring requires an explicit per-item tolerance; there is no hidden universal accuracy threshold. Consensus is multi-source only when multiple explicit PIT-safe source observations exist.
+```bash
+python examples/core_api_v2_run.py
+python examples/plugin_api_v2.py
+python examples/http_api_v1.py
+```
 
-The v1.5.10 generic Manufacturing acceptance fixture contains no identity from the three permanent real-company validation cases. It verifies time series, product mix, order/capacity evidence, subsidiaries, receivables aging, cash-flow decomposition, multi-source consensus, peer/product-line comparison, sensitivities, monitoring/event calendar, prior-run validation, methodology disclosure, audit separation and real presentation output without adding company-specific Core logic.
+- `examples/core_api_v2_run.py` — minimal Core API 2.0 run with an explicit synthetic repository attestor.
+- `examples/plugin_api_v2.py` — minimal Plugin API 2.0 manifest/registry contract.
+- `examples/http_api_v1.py` — constructs the HTTP API v1 adapter/OpenAPI contract without opening a server or database.
 
-### v1.5.11 semantic correctness and presentation integrity
-
-v1.5.11 adds a canonical typed semantic-signal artifact, fail-closed comparison assessments, `UNRESOLVED` thesis lifecycle semantics, and `UNKNOWN` market-expectation missingness. The active professional report consumes that canonical typed artifact instead of recalculating directional meaning.
-
-The active presentation layer also removes literal null leakage, deduplicates only equivalent OCF aliases while preserving combined evidence lineage, renders the investor-facing decision date at day precision while audit metadata retains exact timestamps, labels admitted evidence as evidence quality rather than model confidence, and shows valuation fitness categorically in the body instead of presenting a pseudo-precise decimal score.
-
-A generic synthetic Manufacturing field fixture verifies machine semantics plus Markdown/HTML/PDF output. Historical v1.5.08-v1.5.10 field replay remains part of CI, and production `src/research_os` is scanned for validation-company special cases.
-
-Raw evidence IDs, assumption IDs, repository/plugin/module metadata remain in the audit appendix rather than primary investment prose. Distributor factoring remains an economic financing exposure without being relabeled as debt. A coverage-limited Hospitality company without a compatible strategy plugin still does not receive fabricated RevPAR, ADR, OCC, same-store or lease-adjusted economics.
-
-KPI display semantics continue to include formatted values, display units, period labels, period days, and annualization flags. Machine values remain unchanged for auditability.
-
-`DecisionSummaryPresenter` / `semantic-report@1.0.0` remains available for compatibility.
+Production code should normally use the default `GitRepositoryAttestor` and a verified persistence repository.
 
 ## Repository map
 
-- `src/research_os/runtime/` — canonical context, inputs, provenance, module graph, runtime, result, financial fact snapshots, research-completeness integration, fingerprints and snapshots.
-- `src/research_os/completeness/` — typed professional-completeness contracts and deterministic services.
-- `src/research_os/plugins/` — plugin manifests, registry, resolver, built-ins and extension protocols.
-- `src/research_os/knowledge/` — PIT-aware knowledge-provider interface.
-- `src/research_os/preflight/` — exact repository identity and frozen-HEAD validation.
-- `src/research_os/domain/` — Evidence and lineage contracts.
-- `src/research_os/validation/` — financial sanity validation.
-- `src/research_os/period/` — reporting-period semantics.
-- `src/research_os/completion/` — the single machine research completion policy.
-- `src/research_os/router/` — business-model classification.
-- `src/research_os/kpi/` — built-in KPI packs.
-- `src/research_os/capital/` — capital efficiency, Funding Loop, and economic financing exposure.
-- `src/research_os/drivers/` — Driver Graph, coverage scope, and driver-specific lineage.
-- `src/research_os/thesis/` — evidence-driven Thesis / Anti-Thesis / Falsifiers and v1.5.11 typed semantic signals.
-- `src/research_os/expectations/` — expectation vintages, validation, quality, structured expectation gaps and canonical consensus distribution inputs.
-- `src/research_os/valuation/` — model fitness, routing, execution validation, and additive valuation results.
-- `src/research_os/decision/` — deterministic research decision-state engine.
-- `src/research_os/reporting/` — semantic projection, report composition/document types, deterministic Markdown rendering, display formatting, and audit separation.
-- `src/research_os/presentation/` — typed Markdown/HTML/PDF artifacts, deterministic HTML/A4 CSS, strict pipeline, and optional Playwright PDF adapter.
-- `src/research_os/version.py` — `RESEARCH_OS_VERSION` and `CORE_API_VERSION`.
+- `src/research_os/application/` — Core API 2.0 command/orchestration/finalization boundary.
+- `src/research_os/contracts/` — typed durable artifact/value/evidence contracts.
+- `src/research_os/runtime/` — Engine, module plan/state and current v2 artifact registrations.
+- `src/research_os/plugins/` — Plugin API 2.0 contracts, discovery, registry and resolver.
+- `src/research_os/snapshots/` — Snapshot Schema 2.0 canonical codec, digest and service.
+- `src/research_os/adapters/persistence/` — SQL persistence adapters and verified snapshot loading.
+- `src/research_os/api/` — read-only HTTP API v1.
+- `src/research_os/reporting/` — human-readable projection, report document and Markdown rendering.
+- `src/research_os/presentation/` — typed Markdown/HTML/PDF pipeline and Playwright adapter.
+- `src/research_os/semantics/` — semantic fingerprint and preservation validation.
+- `src/research_os/release/` — release manifest, verification packs and historical replay isolation.
 
-## Local verification
+## Verification
+
+Install development and PDF dependencies, then install Chromium:
 
 ```bash
-python -m pip install -e . --no-deps --no-build-isolation
-
-pytest -q \
-  tests/unit/runtime \
-  tests/unit/plugins \
-  tests/unit/knowledge \
-  tests/integration/runtime \
-  tests/regression/architecture
-
-pytest -q \
-  tests/regression/research_patterns/test_v1_2_1_correctness_patterns.py \
-  tests/unit/kpi/test_period_sensitive_packs.py \
-  tests/unit/capital/test_engine.py \
-  tests/unit/kpi/test_applicability.py \
-  tests/unit/completion/test_consistency.py \
-  tests/unit/test_version_consistency_v1_2_1.py
-
-pytest -q tests/integration/storage/test_v1_2_lineage_migration.py
-pytest -q tests/unit/reporting tests/unit/expectations tests/unit/valuation
-pytest -q tests/regression/architecture tests/regression/research_patterns/test_v1_5_05_reporting_patterns.py
-pytest -q tests/regression/architecture tests/unit/reporting/test_composition_coverage_v1_5_06.py
-pytest -q tests/unit/reporting/test_markdown_renderer.py tests/regression/research_patterns/test_v1_5_07_renderer_patterns.py
-RESEARCH_OS_RUN_PDF_INTEGRATION=1 pytest -q tests/unit/presentation tests/integration/presentation tests/regression/research_patterns/test_v1_5_08_presentation_patterns.py
-pytest -q tests/unit/runtime/test_financial_fact_snapshot_v1_5_09.py tests/unit/reporting/test_research_depth_semantics_v1_5_09.py tests/unit/reporting/test_professional_output_depth_v1_5_09.py tests/integration/presentation/test_field_acceptance_v1_5_09.py tests/regression/research_patterns/test_v1_5_09_field_depth_patterns.py tests/regression/architecture/test_release_contract_v1_5_09.py
-python scripts/render_field_acceptance_v1_5_09.py --input-dir tests/fixtures/field_acceptance/v1_5_09 --output-dir build/field-acceptance-v1.5.09 --repository-root . --commit-sha <FROZEN_SHA>
-pytest -q tests/unit/completeness/test_models_and_services.py tests/unit/runtime/test_research_completeness_v1_5_10.py tests/unit/reporting/test_research_completeness_v1_5_10.py tests/integration/presentation/test_field_acceptance_v1_5_10.py tests/regression/research_patterns/test_v1_5_10_research_completeness.py tests/regression/architecture/test_release_contract_v1_5_10.py
-python scripts/render_field_acceptance_v1_5_10.py --input-dir tests/fixtures/field_acceptance/v1_5_10 --output-dir build/field-acceptance-v1.5.10 --repository-root . --commit-sha <FROZEN_SHA>
-pytest -q tests/unit/thesis/test_semantic_signals_v1_5_11.py tests/unit/thesis/test_lifecycle_semantics_v1_5_11.py tests/unit/decision/test_missing_expectation_v1_5_11.py tests/integration/runtime/test_semantic_thesis_runtime_v1_5_11.py tests/unit/reporting/test_semantic_integrity_v1_5_11.py tests/integration/presentation/test_field_acceptance_v1_5_11.py tests/regression/research_patterns/test_v1_5_11_semantic_output_patterns.py tests/regression/research_patterns/test_v1_5_11_semantic_correctness.py tests/regression/architecture/test_semantic_correctness_contract_v1_5_11.py tests/regression/architecture/test_release_contract_v1_5_11.py
-python scripts/render_field_acceptance_v1_5_11.py --input-dir tests/fixtures/field_acceptance/v1_5_11 --output-dir build/field-acceptance-v1.5.11 --repository-root . --commit-sha <FROZEN_SHA>
-pytest -q
-python scripts/release_gate_v1_1.py
+python -m pip install -e ".[test,pdf]"
+python -m playwright install chromium
 ```
 
-CI enforces architecture contracts, correctness regressions, storage migration smoke, reporting/expectation/valuation regressions, v1.5.05 cross-model reporting safeguards, v1.5.06 composition coverage, v1.5.07 Markdown regressions, v1.5.08 typed HTML/PDF replay, v1.5.09 professional research-depth replay, v1.5.10 research-completeness field acceptance, v1.5.11 semantic-correctness field acceptance, the full suite, and the release gate.
+Run the release gate:
 
-## Version governance
+```bash
+python scripts/verify_release_pipeline.py
+```
 
-`RESEARCH_OS_VERSION = "1.5.11"` and `CORE_API_VERSION = "1.0"`. Package metadata, public version metadata, plugin versions, presenter/composer/renderer fingerprints, and runtime component fingerprints must agree.
+Before a v1.6 release is merged, also run the full gates explicitly:
 
-Snapshots separately freeze dataset, parser, formula, router, KPI pack, driver, forecast, valuation, report and OS versions plus payload hash and component fingerprints. Historical release tags and snapshots remain immutable.
+```bash
+pytest -q
+mypy src tests
+python scripts/render_field_acceptance_v1_6_0.py \
+  --input-dir tests/fixtures/field_acceptance/v1_6_0 \
+  --output-dir build/field-acceptance/v1.6.0
+```
 
-## Migration and deferred scope
+CI additionally runs the commit-addressed v1.5.08–v1.5.12 historical replay and uploads current/historical presentation artifacts.
 
-No database or Alembic migration is required for v1.5.11. Existing machine integrations remain compatible; HTML/PDF consumers continue to use `research-os[pdf]`, Chromium, and the strict typed presentation pipeline.
+## Research invocation protocol
 
-v1.5.11 deliberately does not add a full Hospitality Plugin, lease-adjusted valuation, a second generic-financial Decision state machine, a second Completion Gate, a Forecast/Evidence Quality rewrite, automatic trading logic, company-specific Core logic, a second PDF backend, or renderer-side research calculations.
-
-See `docs/migrations/v1.5.11.md`, `docs/migrations/v1.5.10.md`, `docs/migrations/v1.5.09.md`, `docs/migrations/v1.5.08.md`, `docs/migrations/v1.5.07.md`, `docs/migrations/v1.5.06.md`, `docs/migrations/v1.5.05.md`, `docs/migrations/v1.5.04.md`, `docs/migrations/v1.5.03.md`, `docs/migrations/v1.5.02.md`, `docs/migrations/v1.5.01.md`, `docs/architecture/plugin-authoring-v1.md`, `CHANGELOG.md`, and the v1.5.11 design/implementation plan under `docs/superpowers/`.
+For company research, use `docs/prompts/stock_research.md`. Company evidence must be re-established for the requested `decision_ts`; project memory or another company's run is not company-fact evidence.

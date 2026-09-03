@@ -1,9 +1,33 @@
-"""Report contribution contracts exposed to Core/Plugin API 2.0.
+"""Stable current Reporting API for Core/Plugin API 2.0."""
 
-The v1 report composer is intentionally not imported here. Reporting migration is
-owned by M4 and must not make the M1 runtime depend on the retired v1 result model.
-"""
-
+from .composer import ResearchReportComposer
 from .contributions import ReportContribution, ResearchQuestionSpec
+from .fingerprint import semantic_fingerprint
+from .markdown_renderer import MarkdownArtifactRenderer, ResearchReportMarkdownRenderer
+from .models import (
+    AuditArtifactLineage,
+    HumanReadableResearchView,
+    MarkdownRenderResult,
+    PresentedArtifact,
+    ReportArtifactBlock,
+    ReportSection,
+    ResearchReportDocument,
+)
+from .research_view import ResearchViewPresenter
 
-__all__ = ["ReportContribution", "ResearchQuestionSpec"]
+__all__ = [
+    "AuditArtifactLineage",
+    "HumanReadableResearchView",
+    "MarkdownArtifactRenderer",
+    "MarkdownRenderResult",
+    "PresentedArtifact",
+    "ReportArtifactBlock",
+    "ReportContribution",
+    "ReportSection",
+    "ResearchQuestionSpec",
+    "ResearchReportComposer",
+    "ResearchReportDocument",
+    "ResearchReportMarkdownRenderer",
+    "ResearchViewPresenter",
+    "semantic_fingerprint",
+]

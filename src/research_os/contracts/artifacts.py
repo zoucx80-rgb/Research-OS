@@ -37,6 +37,18 @@ def _canonical_json(value: object) -> str:
     )
 
 
+def _canonical_decimal_text(value: Decimal) -> str:
+    """Use the same scale-insensitive Decimal identity as Snapshot Codec V2."""
+    if not value.is_finite():
+        raise ArtifactTypeMismatchError(
+            "canonical artifact value requires finite Decimal values"
+        )
+    if value.is_zero():
+        return "0"
+    text = format(value.normalize(), "f")
+    return text.rstrip("0").rstrip(".") if "." in text else text
+
+
 def _canonical_artifact_value(value: object) -> object:
     if value is None:
         return {"type": "null"}
@@ -58,11 +70,7 @@ def _canonical_artifact_value(value: object) -> object:
             )
         return {"type": "float", "value": 0.0 if value == 0 else value}
     if isinstance(value, Decimal):
-        if not value.is_finite():
-            raise ArtifactTypeMismatchError(
-                "canonical artifact value requires finite Decimal values"
-            )
-        return {"type": "decimal", "value": str(value)}
+        return {"type": "decimal", "value": _canonical_decimal_text(value)}
     if isinstance(value, datetime):
         if value.tzinfo is None or value.utcoffset() is None:
             raise ArtifactTypeMismatchError(

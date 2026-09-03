@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from types import MappingProxyType
 from typing import Any
 
+from research_os.contracts.artifacts import artifact_value_fingerprint
 from research_os.contracts.evidence import evidence_content_fingerprint
 from research_os.domain.evidence import Evidence
 from research_os.snapshots.codec import (
@@ -185,16 +186,41 @@ def snapshot_from_record(
     artifacts = payload_data.get("artifacts", [])
     if not isinstance(artifacts, (list, tuple)):
         raise ValueError("stored snapshot artifacts must be an array")
+    fingerprint_data = json.loads(record.artifact_fingerprints_json)
+    if not isinstance(fingerprint_data, list):
+        raise ValueError("stored artifact fingerprints must be an array")
+    fingerprints = {
+        (
+            item.get("artifact_id", ""),
+            item.get("schema_version", ""),
+            item.get("type_id", ""),
+        ): item.get("value_fingerprint", "")
+        for item in fingerprint_data
+        if isinstance(item, dict)
+    }
     registry = decoder_registry or build_core_artifact_decoder_registry()
     for artifact in artifacts:
         if not isinstance(artifact, dict) or "payload" not in artifact:
             raise ValueError("stored snapshot artifact must be an object")
+        identity = (
+            artifact.get("artifact_id", ""),
+            artifact.get("schema_version", ""),
+            artifact.get("type_id", ""),
+        )
         artifact["payload"] = registry.decode(
-            artifact_id=artifact.get("artifact_id", ""),
-            schema_version=artifact.get("schema_version", ""),
-            type_id=artifact.get("type_id", ""),
+            artifact_id=identity[0],
+            schema_version=identity[1],
+            type_id=identity[2],
             payload=artifact["payload"],
         )
+        expected_fingerprint = fingerprints.get(identity)
+        actual_fingerprint = artifact_value_fingerprint(artifact["payload"])
+        if expected_fingerprint != actual_fingerprint:
+            raise ValueError(
+                "stored artifact fingerprint drift after controlled decode: "
+                f"{identity[0]}@{identity[1]} ({identity[2]}), "
+                f"expected={expected_fingerprint}, actual={actual_fingerprint}"
+            )
     assumptions = payload_data.get("input_assumptions")
     if isinstance(assumptions, (list, tuple)):
         payload_data["input_assumptions"] = tuple(
@@ -214,7 +240,7 @@ def snapshot_from_record(
             "baseline": json.loads(record.baseline_json),
             "versions": json.loads(record.versions_json),
             "component_fingerprints": json.loads(record.component_fingerprints_json),
-            "artifact_fingerprints": json.loads(record.artifact_fingerprints_json),
+            "artifact_fingerprints": fingerprint_data,
             "payload": payload,
             "payload_hash": record.payload_hash,
         }

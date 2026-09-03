@@ -4,7 +4,10 @@ from collections.abc import Mapping
 from decimal import Decimal, InvalidOperation
 
 from research_os.contracts.evidence import EvidenceRef
-from research_os.contracts.metrics import MetricResult
+from research_os.contracts.metrics import (
+    MetricDefinition as ContractMetricDefinition,
+    MetricResult,
+)
 from research_os.contracts.policies import PolicySnapshot
 from research_os.contracts.values import Money, Quantity, Ratio
 from research_os.metrics.models import MetricDefinition
@@ -18,9 +21,13 @@ class MetricCalculationEngine:
     def calculate(
         self,
         facts: FactView,
-        definition: MetricDefinition,
+        definition: ContractMetricDefinition,
         policy: PolicySnapshot,
     ) -> MetricResult:
+        if not isinstance(definition, MetricDefinition):
+            raise TypeError(
+                "MetricCalculationEngine requires an implemented metric definition"
+            )
         del policy  # Formula thresholds are introduced through typed policies in M3 Task 3.
         values = facts.as_mapping()
         inputs = tuple(item.fact_id for item in definition.required_inputs)
@@ -79,7 +86,9 @@ class MetricCalculationEngine:
         return resolved
 
     @classmethod
-    def _ratio(cls, numerator: object, denominator: object) -> tuple[Decimal | None, str | None]:
+    def _ratio(
+        cls, numerator: object, denominator: object
+    ) -> tuple[Decimal | None, str | None]:
         if isinstance(numerator, Money) and isinstance(denominator, Money):
             numerator._require_same_currency(denominator)
         if isinstance(numerator, Quantity) and isinstance(denominator, Quantity):
@@ -90,7 +99,9 @@ class MetricCalculationEngine:
         return cls._number(numerator) / den, None
 
     @staticmethod
-    def _comparison_reason(values: Mapping[str, object], inputs: tuple[str, ...]) -> str | None:
+    def _comparison_reason(
+        values: Mapping[str, object], inputs: tuple[str, ...]
+    ) -> str | None:
         bases = [values.get(f"{fact_id}_comparison_basis") for fact_id in inputs]
         if any(not isinstance(item, str) or not item.strip() for item in bases):
             return "COMPARISON_BASIS_REQUIRED"
@@ -121,7 +132,12 @@ class MetricCalculationEngine:
             return self._ratio(numerator, denominator)
         if formula_id == "difference":
             return self._number(raw[0]) - self._number(raw[1]), None
-        if formula_id in {"turnover_days", "average_turnover_days", "cash_conversion_cycle_days", "annualized_ratio"}:
+        if formula_id in {
+            "turnover_days",
+            "average_turnover_days",
+            "cash_conversion_cycle_days",
+            "annualized_ratio",
+        }:
             days = resolve_period_days(facts.reporting_period)
             if days is None:
                 return None, "PERIOD_LENGTH_REQUIRED"
@@ -135,7 +151,11 @@ class MetricCalculationEngine:
                 return (None, reason) if ratio is None else (ratio * period_days, None)
             if formula_id == "annualized_ratio":
                 ratio, reason = self._ratio(raw[0], raw[1])
-                return (None, reason) if ratio is None else (ratio * Decimal(365) / period_days, None)
+                return (
+                    (None, reason)
+                    if ratio is None
+                    else (ratio * Decimal(365) / period_days, None)
+                )
             dso, dso_reason = self._ratio(raw[0], raw[1])
             dio, dio_reason = self._ratio(raw[2], raw[3])
             dpo, dpo_reason = self._ratio(raw[4], raw[3])
@@ -144,10 +164,14 @@ class MetricCalculationEngine:
                 return None, reason
             return (dso + dio - dpo) * period_days, None
         if formula_id == "working_capital_ratio":
-            denominator = self._number(raw[0]) + self._number(raw[1]) - self._number(raw[2])
+            denominator = (
+                self._number(raw[0]) + self._number(raw[1]) - self._number(raw[2])
+            )
             return self._ratio(denominator, raw[3])
         if formula_id == "ratio_to_working_capital":
-            denominator = self._number(raw[1]) + self._number(raw[2]) - self._number(raw[3])
+            denominator = (
+                self._number(raw[1]) + self._number(raw[2]) - self._number(raw[3])
+            )
             return self._ratio(raw[0], denominator)
         if formula_id == "comparable_ratio":
             reason = self._comparison_reason(values, inputs)

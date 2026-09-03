@@ -148,6 +148,7 @@ class CoverageGap(BaseModel):
         "capability",
         "business_model_taxonomy",
         "business_model_evidence",
+        "business_model_ambiguity",
     ]
     business_model: str | None = None
     missing_capability: str | None = None

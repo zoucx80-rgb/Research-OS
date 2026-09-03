@@ -8,7 +8,18 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from research_os.application.result import ResearchRunResult
 from research_os.completeness.models import MonitoringRule, SensitivityCase
+from research_os.contracts.artifact_values import (
+    MonitoringPlan,
+    SensitivitySet,
+)
+from research_os.reporting.models import (
+    HumanReadableResearchView,
+    ResearchReportDocument,
+)
+from research_os.runtime.core_artifacts import MONITORING_PLAN, SCENARIO_SENSITIVITIES
+from research_os.semantics.fingerprint import semantic_fingerprint
 
 
 class SemanticViolation(BaseModel):
@@ -24,15 +35,24 @@ class SemanticPreservationValidation(BaseModel):
 
     status: Literal["PASS", "FAIL"]
     violations: tuple[SemanticViolation, ...] = Field(default_factory=tuple)
+    research_fingerprint: str | None = None
     sensitivity_fingerprint: str | None = None
     monitoring_fingerprint: str | None = None
 
 
 class SemanticPreservationValidator:
-    """Validate inseparable qualifiers before presentation sees an artifact."""
+    """Validate semantic qualifiers at domain and reporting boundaries."""
 
+    version = "semantic-preservation@2.0.0"
     _LINEAGE_KEYS = frozenset(
-        {"evidence_id", "evidence_ids", "assumption_id", "assumption_ids"}
+        {
+            "evidence_id",
+            "evidence_ids",
+            "evidence_refs",
+            "assumption_id",
+            "assumption_ids",
+            "assumption_refs",
+        }
     )
 
     @classmethod
@@ -64,8 +84,7 @@ class SemanticPreservationValidator:
 
     @classmethod
     def _semantic_projection(cls, value: Any) -> Any:
-        """Project the investor-visible semantic payload without audit-only lineage."""
-
+        """Project investor-visible qualifiers without audit-only lineage identifiers."""
         if isinstance(value, BaseModel):
             value = value.model_dump(mode="python")
         if isinstance(value, dict):
@@ -80,14 +99,10 @@ class SemanticPreservationValidator:
 
     @classmethod
     def sensitivity_projection(cls, value: Any) -> Any:
-        """Canonical result-plus-qualifier projection at every reporting boundary."""
-
         return cls._semantic_projection(value)
 
     @classmethod
     def monitoring_projection(cls, value: Any) -> Any:
-        """Canonical rule projection; calendar events are independently presentational."""
-
         if isinstance(value, BaseModel):
             value = value.model_dump(mode="python")
         if isinstance(value, dict) and "rules" in value:
@@ -145,6 +160,7 @@ class SemanticPreservationValidator:
         sensitivities: tuple[SensitivityCase, ...],
         monitoring_rules: tuple[MonitoringRule, ...],
     ) -> SemanticPreservationValidation:
+        """Retain the pre-2.0 qualifier validator for frozen characterization tests."""
         violations = tuple(
             [
                 violation
@@ -166,4 +182,192 @@ class SemanticPreservationValidator:
             monitoring_fingerprint=(
                 cls.monitoring_fingerprint(monitoring_rules) if monitoring_rules else None
             ),
+        )
+
+    @classmethod
+    def validate_v2_qualifiers(
+        cls,
+        *,
+        sensitivities: SensitivitySet | None,
+        monitoring_plan: MonitoringPlan | None,
+    ) -> SemanticPreservationValidation:
+        violations: list[SemanticViolation] = []
+        if sensitivities is not None:
+            for case in sensitivities.cases:
+                if case.result is None:
+                    continue
+                if not case.material_assumptions:
+                    violations.append(
+                        SemanticViolation(
+                            code="SENSITIVITY_ASSUMPTIONS_MISSING",
+                            item_id=case.case_key,
+                            field="material_assumptions",
+                        )
+                    )
+                if not (case.model_boundary or "").strip():
+                    violations.append(
+                        SemanticViolation(
+                            code="SENSITIVITY_MODEL_BOUNDARY_MISSING",
+                            item_id=case.case_key,
+                            field="model_boundary",
+                        )
+                    )
+                if not (
+                    case.evidence_refs
+                    or case.assumption_refs
+                    or case.material_assumptions
+                ):
+                    violations.append(
+                        SemanticViolation(
+                            code="SENSITIVITY_LINEAGE_MISSING",
+                            item_id=case.case_key,
+                            field="lineage",
+                        )
+                    )
+        if monitoring_plan is not None:
+            for item in monitoring_plan.items:
+                if not item.metric_id.strip() or not item.condition.strip():
+                    violations.append(
+                        SemanticViolation(
+                            code="MONITORING_QUALIFIER_MISSING",
+                            item_id=item.item_key,
+                            field="metric_id/condition",
+                        )
+                    )
+                if not (item.evidence_refs or item.assumption_refs):
+                    violations.append(
+                        SemanticViolation(
+                            code="MONITORING_LINEAGE_MISSING",
+                            item_id=item.item_key,
+                            field="lineage",
+                        )
+                    )
+        return SemanticPreservationValidation(
+            status="FAIL" if violations else "PASS",
+            violations=tuple(violations),
+            sensitivity_fingerprint=(
+                cls.sensitivity_fingerprint(sensitivities)
+                if sensitivities is not None
+                else None
+            ),
+            monitoring_fingerprint=(
+                cls.monitoring_fingerprint(monitoring_plan)
+                if monitoring_plan is not None
+                else None
+            ),
+        )
+
+    @classmethod
+    def validate_reporting_chain(
+        cls,
+        *,
+        result: ResearchRunResult,
+        view: HumanReadableResearchView,
+        document: ResearchReportDocument,
+    ) -> SemanticPreservationValidation:
+        if not isinstance(result, ResearchRunResult):
+            raise TypeError("result must be ResearchRunResult")
+        if not isinstance(view, HumanReadableResearchView):
+            raise TypeError("view must be HumanReadableResearchView")
+        if not isinstance(document, ResearchReportDocument):
+            raise TypeError("document must be ResearchReportDocument")
+
+        expected_fingerprint = semantic_fingerprint(result.artifacts)
+        violations: list[SemanticViolation] = []
+        if view.semantic_fingerprint != expected_fingerprint:
+            violations.append(
+                SemanticViolation(
+                    code="VIEW_SEMANTIC_FINGERPRINT_MISMATCH",
+                    item_id="research-view",
+                    field="semantic_fingerprint",
+                )
+            )
+        if document.semantic_fingerprint != expected_fingerprint:
+            violations.append(
+                SemanticViolation(
+                    code="DOCUMENT_SEMANTIC_FINGERPRINT_MISMATCH",
+                    item_id="research-document",
+                    field="semantic_fingerprint",
+                )
+            )
+
+        view_by_identity = {
+            (item.artifact_id, item.schema_version): item for item in view.artifacts
+        }
+        audit_by_identity = {
+            (item.artifact_id, item.schema_version): item
+            for item in document.audit_appendix
+        }
+        document_payloads = {
+            (item.artifact_id, item.schema_version): item.payload
+            for section in document.sections
+            for item in section.artifacts
+        }
+        for envelope in result.artifacts.envelopes():
+            identity = (envelope.key.artifact_id, envelope.key.schema_version)
+            presented = view_by_identity.get(identity)
+            if presented is None:
+                violations.append(
+                    SemanticViolation(
+                        code="VIEW_ARTIFACT_MISSING",
+                        item_id=envelope.key.artifact_id,
+                        field="artifact",
+                    )
+                )
+                continue
+            if (
+                presented.type_id != envelope.key.value_type.__qualname__
+                or presented.producer_ids != envelope.producer_ids
+                or presented.evidence_refs != envelope.evidence_refs
+                or presented.value_fingerprint != envelope.value_fingerprint
+            ):
+                violations.append(
+                    SemanticViolation(
+                        code="VIEW_ARTIFACT_IDENTITY_MISMATCH",
+                        item_id=envelope.key.artifact_id,
+                        field="schema/provider/lineage/payload_fingerprint",
+                    )
+                )
+            audit = audit_by_identity.get(identity)
+            if audit is None:
+                violations.append(
+                    SemanticViolation(
+                        code="DOCUMENT_AUDIT_LINEAGE_MISSING",
+                        item_id=envelope.key.artifact_id,
+                        field="audit_appendix",
+                    )
+                )
+            elif (
+                audit.type_id != presented.type_id
+                or audit.producer_ids != presented.producer_ids
+                or audit.evidence_refs != presented.evidence_refs
+                or audit.value_fingerprint != presented.value_fingerprint
+            ):
+                violations.append(
+                    SemanticViolation(
+                        code="DOCUMENT_AUDIT_LINEAGE_MISMATCH",
+                        item_id=envelope.key.artifact_id,
+                        field="audit_appendix",
+                    )
+                )
+            if document_payloads.get(identity) != presented.payload:
+                violations.append(
+                    SemanticViolation(
+                        code="DOCUMENT_ARTIFACT_PAYLOAD_MISMATCH",
+                        item_id=envelope.key.artifact_id,
+                        field="payload",
+                    )
+                )
+
+        qualifier_validation = cls.validate_v2_qualifiers(
+            sensitivities=result.artifacts.get(SCENARIO_SENSITIVITIES),
+            monitoring_plan=result.artifacts.get(MONITORING_PLAN),
+        )
+        violations.extend(qualifier_validation.violations)
+        return SemanticPreservationValidation(
+            status="FAIL" if violations else "PASS",
+            violations=tuple(violations),
+            research_fingerprint=expected_fingerprint,
+            sensitivity_fingerprint=qualifier_validation.sensitivity_fingerprint,
+            monitoring_fingerprint=qualifier_validation.monitoring_fingerprint,
         )

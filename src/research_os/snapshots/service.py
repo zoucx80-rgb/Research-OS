@@ -51,6 +51,44 @@ def _freeze_assumption(value: object) -> object:
     return value
 
 
+def _semantic_inputs(command: ResearchRunCommand) -> tuple[object, ...]:
+    """Freeze only inputs that can influence research semantics.
+
+    Persistence is an output-side concern and must never change the research digest.
+    Plugin selection controls and external-version identities remain semantic because
+    they can change the implementation or evidence interpretation used by the run.
+    """
+
+    domain_fields = tuple(
+        MappingProxyType({field_name: _freeze_assumption(getattr(command, field_name))})
+        for field_name in (
+            "financial",
+            "thesis",
+            "expectations",
+            "valuation",
+            "monitoring",
+            "forecasting",
+            "peers",
+            "readiness",
+        )
+    )
+    options = command.options
+    semantic_options = MappingProxyType(
+        {
+            "industry_plugin_override": _freeze_assumption(
+                options.industry_plugin_override
+            ),
+            "methodology_plugin_overrides": _freeze_assumption(
+                options.methodology_plugin_overrides
+            ),
+            "override_rationale": _freeze_assumption(options.override_rationale),
+            "allow_experimental_plugins": options.allow_experimental_plugins,
+            "external_versions": _freeze_assumption(options.external_versions),
+        }
+    )
+    return (*domain_fields, MappingProxyType({"options": semantic_options}))
+
+
 class SnapshotVerification(BaseModel):
     model_config = ConfigDict(frozen=True)
 
@@ -97,13 +135,6 @@ class SnapshotService:
             )
             for envelope in envelopes
         )
-        assumptions = tuple(
-            MappingProxyType(
-                {field_name: _freeze_assumption(getattr(command, field_name))}
-            )
-            for field_name in type(command).model_fields
-            if field_name != "context"
-        )
         payload = ResearchSnapshotPayloadV2(
             company=result.company,
             decision_ts=result.decision_ts,
@@ -111,7 +142,7 @@ class SnapshotService:
             versions=result.versions,
             component_fingerprints=result.component_fingerprints,
             artifacts=artifacts,
-            input_assumptions=assumptions,
+            input_assumptions=_semantic_inputs(command),
             execution_completion=result.execution_completion,
             research_readiness=result.research_readiness,
         )

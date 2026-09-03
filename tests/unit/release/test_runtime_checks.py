@@ -1,35 +1,34 @@
+from research_os.release.manifest import CURRENT_RELEASE
 from research_os.release.runtime import CHECKS, run_release_checks
+from research_os.release.verification import resolve_release_checks
 
 
-def test_runtime_release_checks_include_machine_safety_regressions():
-    required = {
-        "repository_preflight",
-        "evidence_lineage",
-        "financial_sanity",
-        "expectation_evidence",
-        "valuation_execution",
-        "decision_validation",
-        "completion_gate",
-        "temporal_consistency",
-        "distributor_kpi_safety",
-    }
-    assert required.issubset(CHECKS)
-    seen=[]
-    distributor_nodeid = CHECKS["distributor"]
-    def fake_runner(nodeid):
+def test_runtime_release_checks_match_current_manifest():
+    assert CHECKS == resolve_release_checks(CURRENT_RELEASE)
+
+
+def test_runtime_release_checks_preserve_per_check_failure():
+    failed_key = next(iter(CHECKS))
+    failed_nodeid = CHECKS[failed_key]
+    seen: list[str] = []
+
+    def fake_runner(nodeid: str) -> bool:
         seen.append(nodeid)
-        return nodeid != distributor_nodeid
-    status=run_release_checks(fake_runner)
-    assert status["distributor"] is False
-    assert status["pit"] is True
-    assert len(seen)==len(CHECKS)
+        return nodeid != failed_nodeid
+
+    status = run_release_checks(fake_runner)
+    assert status[failed_key] is False
+    assert all(status[key] is True for key in CHECKS if key != failed_key)
+    assert len(seen) == len(CHECKS)
 
 
-def test_default_path_can_use_single_batch_runner_for_all_release_checks():
-    calls=[]
+def test_default_path_can_use_single_batch_runner_for_current_checks():
+    calls: list[list[str]] = []
+
     def batch(nodes):
-        calls.append(list(nodes)); return True
-    status=run_release_checks(batch_runner=batch)
+        calls.append(list(nodes))
+        return True
+
+    status = run_release_checks(batch_runner=batch)
     assert all(status.values())
-    assert len(calls)==1
-    assert len(calls[0])==len(CHECKS)
+    assert calls == [list(CHECKS.values())]

@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from research_os.release.gate import evaluate_release_gate
+from research_os.release.historical_executor import HistoricalReplayExecutor
 from research_os.release.manifest import CURRENT_RELEASE
 from research_os.release.replays import resolve_replay_profiles
 from research_os.release.verification import resolve_release_checks
@@ -41,23 +42,36 @@ def _run_release_checks() -> dict[str, bool]:
     return {check_id: True for check_id in checks}
 
 
+def _run_current_field_acceptance() -> None:
+    commit_sha = os.environ.get("GITHUB_SHA") or subprocess.check_output(
+        ("git", "-C", str(ROOT), "rev-parse", "HEAD"), text=True
+    ).strip()
+    _run(
+        "current v1.6.0 field acceptance",
+        [
+            sys.executable,
+            "scripts/render_field_acceptance_v1_6_0.py",
+            "--input-dir",
+            "tests/fixtures/field_acceptance/v1_6_0",
+            "--output-dir",
+            "build/field-acceptance-v1.6.0",
+            "--repository-root",
+            ".",
+            "--commit-sha",
+            commit_sha,
+        ],
+    )
+
+
 def _run_field_replays() -> None:
-    commit_sha = os.environ.get("GITHUB_SHA", "local")
+    executor = HistoricalReplayExecutor(ROOT)
     for profile in resolve_replay_profiles(CURRENT_RELEASE):
-        _run(
-            f"field replay {profile.profile_id}",
-            [
-                sys.executable,
-                profile.runner_script,
-                "--input-dir",
-                profile.fixture_dir,
-                "--output-dir",
-                profile.output_dir,
-                "--repository-root",
-                ".",
-                "--commit-sha",
-                commit_sha,
-            ],
+        print(f"\n=== historical replay {profile.profile_id} ===", flush=True)
+        result = executor.execute(profile)
+        print(
+            f"{profile.profile_id}: {result.source_commit_sha} "
+            f"v{result.product_version} -> {result.output_dir}",
+            flush=True,
         )
 
 
@@ -68,9 +82,10 @@ def main() -> None:
     )
     _verify_metadata()
     status = _run_release_checks()
+    _run_current_field_acceptance()
     _run_field_replays()
-    if CURRENT_RELEASE.status == "stable":
-        _run("full pytest suite", [sys.executable, "-m", "pytest", "-q"])
+    _run("full pytest suite", [sys.executable, "-m", "pytest", "-q"])
+    _run("mypy", [sys.executable, "-m", "mypy", "src"])
 
     gate = evaluate_release_gate(status)
     if not gate.ready:

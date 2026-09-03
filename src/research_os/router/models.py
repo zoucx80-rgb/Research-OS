@@ -31,10 +31,10 @@ class BusinessModelProfile(BaseModel):
     company_id: str
     primary_model: str
     secondary_models: tuple[str, ...] = Field(default_factory=tuple)
-    rule_match_score: float = Field(default=0, ge=0)
-    usable_evidence_coverage: float = Field(default=0, ge=0, le=1)
+    rule_match_score: float = Field(default=0.0, ge=0)
+    usable_evidence_coverage: float = Field(default=0.0, ge=0, le=1)
     confidence_band: ConfidenceBand = "UNKNOWN"
-    ambiguity: float = Field(default=1, ge=0, le=1)
+    ambiguity: float = Field(default=1.0, ge=0, le=1)
     candidates: tuple[RoutingCandidate, ...] = Field(default_factory=tuple)
     positive_evidence: tuple[EvidenceRef, ...] = Field(default_factory=tuple)
     counter_evidence: tuple[EvidenceRef, ...] = Field(default_factory=tuple)

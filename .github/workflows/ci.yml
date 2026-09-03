@@ -1,5 +1,8 @@
 name: ci
 on: [push, pull_request]
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -7,17 +10,21 @@ jobs:
       RESEARCH_OS_RUN_PDF_INTEGRATION: '1'
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with: {python-version: '3.12'}
       - run: pip install -e ".[test,pdf]"
       - run: sudo apt-get update && sudo apt-get install -y fonts-noto-cjk poppler-utils
       - run: python -m playwright install --with-deps chromium
       - run: python scripts/verify_release_pipeline.py
-      - name: Upload release field acceptance artifacts
+      - name: Upload release verification artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: release-field-acceptance
-          path: build/field-acceptance-*
+          name: release-verification-artifacts
+          path: |
+            build/field-acceptance-*
+            build/historical-replay
           if-no-files-found: ignore
           retention-days: 14

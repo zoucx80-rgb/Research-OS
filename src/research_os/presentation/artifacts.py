@@ -9,7 +9,7 @@ from typing import Any, Literal, Mapping, Self
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from research_os.reporting.document import ResearchReportDocument
+from research_os.reporting import ResearchReportDocument
 
 
 _SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
@@ -69,8 +69,6 @@ class _PresentationArtifact(BaseModel):
         update: Mapping[str, Any] | None = None,
         deep: bool = False,
     ) -> Self:
-        """Copy through validation so provenance cannot become stale."""
-
         payload = self.model_dump(mode="python")
         if deep:
             payload = deepcopy(payload)

@@ -9,7 +9,11 @@ from sqlalchemy import create_engine, update
 from sqlalchemy.orm import sessionmaker
 
 from research_os.adapters.persistence.query_repository import SqlResearchQueryRepository
-from research_os.adapters.persistence.schema import PersistenceBase, ResearchSnapshotRecord
+from research_os.adapters.persistence.schema import (
+    PersistenceBase,
+    ResearchRunRecord,
+    ResearchSnapshotRecord,
+)
 from research_os.api.contracts import SnapshotQuery
 from research_os.api.errors import InvalidCursorError
 from research_os.adapters.persistence.unit_of_work import SqlUnitOfWork
@@ -150,7 +154,26 @@ def test_sql_query_adapter_does_not_misclassify_snapshot_tampering_as_cursor_err
 
     repository = SqlResearchQueryRepository(sessions)
     with pytest.raises(ValueError) as caught:
-        repository.list_snapshots(
-            SnapshotQuery(company_id=COMPANY_ID)
-        )
+        repository.list_snapshots(SnapshotQuery(company_id=COMPANY_ID))
     assert not isinstance(caught.value, InvalidCursorError)
+
+
+def test_sql_query_adapter_rejects_tampered_run_identity(tmp_path) -> None:
+    engine = create_engine(f"sqlite+pysqlite:///{tmp_path / 'tampered-run.sqlite3'}")
+    PersistenceBase.metadata.create_all(engine)
+    sessions = sessionmaker(engine, expire_on_commit=False)
+    result = ResearchApplication.build(
+        repository_attestor=_Attestor(),
+        unit_of_work_factory=lambda: SqlUnitOfWork(sessions),
+    ).run(_command())
+    assert result.snapshot is not None
+
+    with sessions.begin() as session:
+        session.execute(
+            update(ResearchRunRecord)
+            .where(ResearchRunRecord.run_id == result.run_id)
+            .values(company_id="synthetic:tampered-company")
+        )
+
+    with pytest.raises(ValueError, match="metadata does not match verified snapshot"):
+        SqlResearchQueryRepository(sessions).get_run(result.run_id)
