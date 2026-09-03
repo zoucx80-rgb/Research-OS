@@ -67,14 +67,11 @@ def test_inner_runtime_packages_do_not_depend_on_outer_adapters() -> None:
         for path in _python_files(root):
             for imported in _imports(path):
                 if any(
-                    _matches_prefix(imported, forbidden)
-                    for forbidden in FORBIDDEN_OUTER_PREFIXES
+                    _matches_prefix(imported, forbidden) for forbidden in FORBIDDEN_OUTER_PREFIXES
                 ):
                     violations.append(f"{path}: {imported}")
 
-    assert not violations, "inner runtime dependency violations:\n" + "\n".join(
-        violations
-    )
+    assert not violations, "inner runtime dependency violations:\n" + "\n".join(violations)
 
 
 def test_plugins_only_depend_on_typed_reporting_contributions() -> None:
@@ -100,14 +97,11 @@ def test_reporting_does_not_depend_on_research_runtime_engine() -> None:
     for path in _python_files(REPORTING_ROOT):
         for imported in _imports(path):
             if any(
-                _matches_prefix(imported, forbidden)
-                for forbidden in REPORTING_FORBIDDEN_PREFIXES
+                _matches_prefix(imported, forbidden) for forbidden in REPORTING_FORBIDDEN_PREFIXES
             ):
                 violations.append(f"{path}: {imported}")
 
-    assert not violations, "reporting dependency violations:\n" + "\n".join(
-        violations
-    )
+    assert not violations, "reporting dependency violations:\n" + "\n".join(violations)
 
 
 def test_import_linter_configuration_declares_same_boundaries() -> None:
