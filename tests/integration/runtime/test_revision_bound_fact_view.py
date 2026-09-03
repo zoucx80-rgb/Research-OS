@@ -12,7 +12,7 @@ from research_os.contracts.evidence import (
 )
 from research_os.domain.evidence import Evidence
 from research_os.period.models import ReportingPeriod
-from research_os.contracts.values import AccountingScope
+from research_os.contracts.values import AccountingScope, Money
 from research_os.runtime import (
     BaselineFingerprint,
     CompanyRef,
@@ -87,7 +87,11 @@ def test_future_revision_cannot_support_a_historical_fact():
 
     snapshot = build_financial_fact_snapshot(context)
 
-    assert [(item.fact_key, item.value) for item in snapshot.facts] == [("revenue", 100)]
+    assert [(item.fact_key, item.value) for item in snapshot.facts] == [
+        ("revenue", Money(amount=100, currency="CNY"))
+    ]
+    assert snapshot.facts[0].reporting_period == ReportingPeriod(period_type="H1")
+    assert snapshot.facts[0].accounting_scope == AccountingScope()
     assert [(ref.evidence_id, ref.revision) for ref in context.evidence.refs()] == [("ev:revenue", 1)]
     assert context.facts.evidence_refs("revenue") == context.evidence.refs()
 

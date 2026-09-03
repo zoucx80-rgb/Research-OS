@@ -264,6 +264,9 @@ class Thesis(LineageValue):
     falsifier_statements: tuple[str, ...] = Field(default_factory=tuple)
     next_check_date: date | None = None
     confidence: float | None = Field(default=None, ge=0, le=1)
+    claim_strength: Literal[
+        "OBSERVED", "SUGGESTIVE", "SUPPORTED", "STRONG", "CONFIRMED"
+    ] = "OBSERVED"
 
 
 class ThesisPortfolio(DomainArtifact):
@@ -397,6 +400,7 @@ class DecisionStateRecord(DomainArtifact):
     company_id: str | None = None
     state: str = "INSUFFICIENT_EVIDENCE"
     decision_ts: datetime | None = None
+    thesis_keys: tuple[str, ...] = Field(default_factory=tuple)
     claim_keys: tuple[str, ...] = Field(default_factory=tuple)
     reason_codes: tuple[str, ...] = Field(default_factory=tuple)
 

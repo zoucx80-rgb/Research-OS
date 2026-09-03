@@ -262,7 +262,7 @@ class BootstrapBusinessModelModule:
         )
         status: ModuleStatus = (
             "PASS"
-            if profile.classification_status == "classified"
+            if profile.classification_status == "CLASSIFIED"
             else "INSUFFICIENT_EVIDENCE"
         )
         return ModuleResult(

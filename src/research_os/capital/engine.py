@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 
 from research_os.period.comparison import comparable_ratio, common_comparison_basis
+from research_os.policies import PolicyRegistry, builtin_policy_registry
 
 
 def safe_ratio(n, d):
@@ -33,7 +34,8 @@ class FundingLoopResult(BaseModel):
 
 
 class CapitalEfficiencyEngine:
-    FACTORING_TO_AR_MATERIALITY = 0.20
+    def __init__(self, *, policy_registry: PolicyRegistry | None = None) -> None:
+        self._policy = policy_registry or builtin_policy_registry()
 
     def calculate(self, f):
         b = f.get("invested_capital_begin")
@@ -55,6 +57,18 @@ class CapitalEfficiencyEngine:
         )
 
     def funding_loop(self, f):
+        factoring_materiality = float(
+            self._policy.value("funding_loop", "factoring_to_ar_materiality")
+        )
+        high_iwcr = float(
+            self._policy.value("funding_loop", "incremental_working_capital_high")
+        )
+        high_debt_share = float(
+            self._policy.value("funding_loop", "debt_share_high")
+        )
+        stressed_debt_share = float(
+            self._policy.value("funding_loop", "debt_share_stressed")
+        )
         dnwc = f.get("delta_nwc")
         drev = f.get("delta_revenue")
         dd = f.get("delta_debt")
@@ -96,15 +110,20 @@ class CapitalEfficiencyEngine:
         factoring_exposure = factoring if factoring is not None else derecognized
         factoring_to_ar = safe_ratio(factoring_exposure, ar)
 
-        if dnwc is not None and dnwc > 0 and iwcr is not None and iwcr >= 0.4:
+        if dnwc is not None and dnwc > 0 and iwcr is not None and iwcr >= high_iwcr:
             reasons.append("HIGH_IWCR")
-        if dnwc is not None and dnwc > 0 and debt_share is not None and debt_share >= 0.6:
+        if (
+            dnwc is not None
+            and dnwc > 0
+            and debt_share is not None
+            and debt_share >= high_debt_share
+        ):
             reasons.append("DEBT_FUNDS_NWC")
         if ocf is not None and ocf < 0:
             reasons.append("NEGATIVE_OCF")
         if f.get("equity_dilution") is True:
             reasons.append("EQUITY_DILUTION")
-        if factoring_to_ar is not None and factoring_to_ar >= self.FACTORING_TO_AR_MATERIALITY:
+        if factoring_to_ar is not None and factoring_to_ar >= factoring_materiality:
             reasons.append("MATERIAL_FACTORING_EXPOSURE")
 
         state = "unknown"
@@ -115,7 +134,7 @@ class CapitalEfficiencyEngine:
             and ocf is not None
             and ocf < 0
             and debt_share is not None
-            and debt_share > 1.2
+            and debt_share > stressed_debt_share
             and dd > 0
         ):
             state = "stressed"
@@ -124,7 +143,7 @@ class CapitalEfficiencyEngine:
             and dnwc > 0
             and dd is not None
             and debt_share is not None
-            and debt_share >= 0.6
+            and debt_share >= high_debt_share
             and dd > 0
         ):
             state = "debt_funded"

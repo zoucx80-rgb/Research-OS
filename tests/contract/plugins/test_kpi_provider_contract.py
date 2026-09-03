@@ -9,6 +9,7 @@ from research_os.contracts.metrics import MetricDefinition, MetricResult
 from research_os.contracts.policies import PolicySnapshot
 from research_os.contracts.values import AccountingScope
 from research_os.period.models import ReportingPeriod
+from research_os.metrics import builtin_metric_registry
 from research_os.plugins.builtins import ManufacturingIndustryPlugin
 from research_os.plugins.protocols import KpiProvider, MetricDefinitionRegistry
 from research_os.domain.evidence import Evidence
@@ -24,6 +25,9 @@ class _Definitions:
 
 
 def _definitions_for(provider: KpiProvider) -> _Definitions:
+    builtins = builtin_metric_registry()
+    if all(builtins.get(metric_id) is not None for metric_id in provider.metric_ids()):
+        return builtins.select(provider.metric_ids())  # type: ignore[return-value]
     return _Definitions(
         tuple(
             MetricDefinition(
@@ -193,26 +197,23 @@ def test_builtin_provider_fails_closed_for_unknown_metric_definitions():
         provider.calculate(facts, _Definitions(), PolicySnapshot())
 
 
-def test_builtin_provider_rejects_a_metric_unit_that_conflicts_with_core_definition():
+def test_builtin_provider_projects_the_core_definition_unit_without_pack_override():
     provider = _builtin_provider()
-    definitions = list(_definitions_for(provider)._definitions.values())
-    first = definitions[0]
-    incompatible = first.model_copy(update={"output_unit": "definitely-not-the-pack-unit"})
-    registry = _Definitions((incompatible, *definitions[1:]))
+    registry = _definitions_for(provider)
+    results = provider.calculate(
+        FactView(
+            company_id="synthetic:company",
+            decision_ts=datetime(2026, 8, 20, tzinfo=timezone.utc),
+            values={},
+            evidence_refs_by_fact={},
+            reporting_period=ReportingPeriod(period_type="FY"),
+            accounting_scope=AccountingScope(),
+        ),
+        registry,
+        PolicySnapshot(),
+    )
 
-    with pytest.raises(ValueError, match="unit conflicts with definition"):
-        provider.calculate(
-            FactView(
-                company_id="synthetic:company",
-                decision_ts=datetime(2026, 8, 20, tzinfo=timezone.utc),
-                values={},
-                evidence_refs_by_fact={},
-                reporting_period=ReportingPeriod(period_type="FY"),
-                accounting_scope=AccountingScope(),
-            ),
-            registry,
-            PolicySnapshot(),
-        )
+    assert all(item.unit == registry.get(item.metric_id).output_unit for item in results)
 
 
 def test_provider_fact_view_rejects_values_without_lineage():

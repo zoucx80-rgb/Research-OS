@@ -152,7 +152,7 @@ class StrategyResolver:
     def _business_model_gap(profile: BusinessModelProfile) -> CoverageGap | None:
         if profile.primary_model != "unknown":
             return None
-        if profile.classification_status == "unsupported_taxonomy":
+        if profile.classification_status == "UNSUPPORTED_TAXONOMY":
             return CoverageGap(
                 gap_type="business_model_taxonomy",
                 business_model="unknown",
@@ -161,12 +161,21 @@ class StrategyResolver:
                 affected_capabilities=("industry_strategy",),
                 fallback_available=True,
             )
-        if profile.classification_status == "insufficient_evidence":
+        if profile.classification_status == "INSUFFICIENT_EVIDENCE":
             return CoverageGap(
                 gap_type="business_model_evidence",
                 business_model="unknown",
                 reason="insufficient usable evidence to classify the primary business model",
                 reason_code="INSUFFICIENT_BUSINESS_MODEL_EVIDENCE",
+                affected_capabilities=("industry_strategy",),
+                fallback_available=True,
+            )
+        if profile.classification_status == "UNRESOLVED":
+            return CoverageGap(
+                gap_type="business_model_ambiguity",
+                business_model="unknown",
+                reason="top business-model candidates are inside the policy gap",
+                reason_code="BUSINESS_MODEL_UNRESOLVED",
                 affected_capabilities=("industry_strategy",),
                 fallback_available=True,
             )

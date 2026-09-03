@@ -35,7 +35,7 @@ def test_router_classifies_high_inventory_low_fixed_asset_company_as_distributor
         ],
     )
     assert profile.primary_model == "distributor"
-    assert profile.confidence >= 0.80
+    assert profile.rule_match_score >= 0.80
     assert all(isinstance(reference, EvidenceRef) for reference in profile.evidence_refs)
     assert {reference.evidence_id for reference in profile.evidence_refs} == {
         "fixed_asset_to_assets",
@@ -89,7 +89,7 @@ def test_interim_inventory_to_revenue_does_not_add_distributor_score():
     )
 
     assert profile.primary_model == "unknown"
-    assert profile.classification_status == "insufficient_evidence"
+    assert profile.classification_status == "INSUFFICIENT_EVIDENCE"
 
 
 def test_annual_inventory_to_revenue_can_add_distributor_score():
@@ -98,7 +98,7 @@ def test_annual_inventory_to_revenue_can_add_distributor_score():
     )
 
     assert profile.primary_model == "distributor"
-    assert profile.classification_status == "classified"
+    assert profile.classification_status == "CLASSIFIED"
 
 
 def test_router_represents_hospitality_without_industry_plugin_assumption():
@@ -108,7 +108,7 @@ def test_router_represents_hospitality_without_industry_plugin_assumption():
     )
 
     assert profile.primary_model == "hospitality"
-    assert profile.classification_status == "classified"
+    assert profile.classification_status == "CLASSIFIED"
 
 
 def test_router_distinguishes_unsupported_taxonomy_from_missing_evidence():
@@ -118,6 +118,6 @@ def test_router_distinguishes_unsupported_taxonomy_from_missing_evidence():
     missing = BusinessModelRouter().classify("Y", [])
 
     assert unsupported.primary_model == "unknown"
-    assert unsupported.classification_status == "unsupported_taxonomy"
+    assert unsupported.classification_status == "UNSUPPORTED_TAXONOMY"
     assert missing.primary_model == "unknown"
-    assert missing.classification_status == "insufficient_evidence"
+    assert missing.classification_status == "INSUFFICIENT_EVIDENCE"

@@ -1,6 +1,9 @@
 import importlib
 import importlib.util
 
+from research_os.contracts.evidence import EvidenceRef
+from research_os.valuation.methods import ValuationSupportAssessment
+
 
 def _load(name: str):
     try:
@@ -15,18 +18,21 @@ def _base_execution(**updates):
     m = _load("research_os.valuation.execution")
     data = dict(
         selected_model="ps",
-        model_fitness_score=0.8,
-        selection_reason="distributor earnings are distorted by funding costs",
+        support_assessment=ValuationSupportAssessment(
+            method_id="ps",
+            status="CONDITIONALLY_SUPPORTED",
+            reason_codes=("FUNDING_COST_DISTORTS_EARNINGS",),
+            rationale="Distributor earnings are distorted by funding costs.",
+        ),
         executed_model="ps",
         business_model="distributor",
         inputs={"revenue": 100.0},
-        assumptions=[{"label": "ASSUMPTION", "name": "multiple", "value": 0.5}],
         scenario_logic="revenue times sales multiple",
-        lineage={"revenue": ["ev:revenue"]},
-        driver_bridge=[
+        evidence_refs=(EvidenceRef(evidence_id="ev:revenue", revision=1, content_fingerprint="a" * 64),),
+        driver_bridge=(
             "Revenue", "Gross Profit", "Working Capital", "Financing Requirement",
             "Financing Cost", "Credit / Inventory Loss", "Net Profit / Cash Economics", "Valuation",
-        ],
+        ),
     )
     data.update(updates)
     return m.ValuationExecution(**data)
@@ -46,5 +52,7 @@ def test_distributor_execution_requires_driver_bridge():
 
 def test_matching_model_with_complete_driver_bridge_passes():
     m = _load("research_os.valuation.execution")
-    result = m.ValuationExecutionValidator().validate(_base_execution())
+    execution = _base_execution()
+    result = m.ValuationExecutionValidator().validate(execution)
     assert result.status == "PASS"
+    assert execution.model_dump(mode="json")["inputs"] == {"revenue": 100.0}

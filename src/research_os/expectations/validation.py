@@ -7,6 +7,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 from .models import ConsensusVintage, ExpectationEvidence
+from research_os.policies import PolicyRegistry, builtin_policy_registry
 
 
 class ExpectationAssessment(BaseModel):
@@ -41,6 +42,9 @@ _MARKET_EXPECTATION_TERMS = (
 
 
 class ExpectationEvidenceValidator:
+    def __init__(self, *, policy_registry: PolicyRegistry | None = None) -> None:
+        self._policy = policy_registry or builtin_policy_registry()
+
     @staticmethod
     def _requires_baseline(conclusion: str | None) -> bool:
         if not conclusion:
@@ -64,11 +68,26 @@ class ExpectationEvidenceValidator:
 
         reasons: list[str] = []
         age_days = max(0, (decision_ts.date() - vintage.as_of.date()).days)
-        if vintage.source_count is not None and vintage.source_count < 3:
+        minimum_source_count = int(
+            self._policy.value("expectation_quality", "minimum_source_count")
+        )
+        minimum_source_quality = float(
+            self._policy.value("expectation_quality", "minimum_source_quality")
+        )
+        maximum_age_days = int(
+            self._policy.value("expectation_quality", "maximum_consensus_age_days")
+        )
+        if (
+            vintage.source_count is not None
+            and vintage.source_count < minimum_source_count
+        ):
             reasons.append("THIN_CONSENSUS")
-        if vintage.source_quality is not None and vintage.source_quality < 0.5:
+        if (
+            vintage.source_quality is not None
+            and vintage.source_quality < minimum_source_quality
+        ):
             reasons.append("LOW_SOURCE_QUALITY")
-        if age_days > 90:
+        if age_days > maximum_age_days:
             reasons.append("STALE_CONSENSUS")
         if vintage.source_count is None and vintage.source_quality is None:
             reasons.append("CONSENSUS_METADATA_MISSING")

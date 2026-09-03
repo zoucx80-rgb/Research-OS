@@ -1,16 +1,14 @@
 from __future__ import annotations
 
-from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, Protocol, cast
+from typing import TYPE_CHECKING, Any
 
 from research_os.contracts.metrics import MetricResult as ContractMetricResult
 from research_os.contracts.policies import PolicySnapshot
-from research_os.contracts.values import AccountingScope
 from research_os.kpi.distributor import DistributorPack
 from research_os.kpi.manufacturing import ManufacturingPack
+from research_os.metrics import MetricCalculationEngine
 from research_os.plugins.models import ApplicabilityResult, PluginManifest
 from research_os.plugins.protocols import PluginServices, ResearchPlugin
-from research_os.period.models import ReportingPeriod
 from research_os.reporting.contributions import ReportContribution, ResearchQuestionSpec
 from research_os.router.models import BusinessModelProfile
 from research_os.runtime.context import FactView, ResearchContext
@@ -19,25 +17,15 @@ if TYPE_CHECKING:
     from research_os.plugins.protocols import MetricDefinitionRegistry
 
 
-class _KpiFactView(Protocol):
-    reporting_period: ReportingPeriod
-    accounting_scope: AccountingScope
-
-    def as_mapping(self) -> Mapping[str, Any]: ...
-
-
 class _BuiltinKpiProvider:
     def __init__(self, *, provider_id: str, pack: Any):
         self.provider_id = provider_id
         self.provider_version = pack.pack_version.rsplit("@", 1)[-1]
-        self.__calculate = pack.calculate
-        self.__metric_dependencies = {
-            metric_id: tuple(fact_ids)
-            for metric_id, fact_ids in pack.metric_dependencies.items()
-        }
+        self.__metric_ids = frozenset(pack.metric_ids)
+        self.__calculator = MetricCalculationEngine()
 
     def metric_ids(self) -> frozenset[str]:
-        return frozenset(self.__metric_dependencies)
+        return self.__metric_ids
 
     def calculate(
         self,
@@ -45,72 +33,12 @@ class _BuiltinKpiProvider:
         definitions: MetricDefinitionRegistry,
         policy: PolicySnapshot,
     ) -> tuple[ContractMetricResult, ...]:
-        typed_facts = cast(_KpiFactView, facts)
-        period = typed_facts.reporting_period
-        scope = typed_facts.accounting_scope
-        values = dict(typed_facts.as_mapping())
-        values.update(
-            {
-                "period_type": period.period_type,
-                "period_start": period.period_start,
-                "period_end": period.period_end,
-                "period_days": period.period_days,
-                "is_cumulative": period.is_cumulative,
-            }
-        )
-        calculated_metrics = self.__calculate(values)
-        results = []
-        for item in calculated_metrics:
-            definition = definitions.get(item.metric_id)
+        results: list[ContractMetricResult] = []
+        for metric_id in sorted(self.__metric_ids):
+            definition = definitions.get(metric_id)
             if definition is None:
-                raise ValueError(f"undefined metric: {item.metric_id}")
-            if (
-                definition.output_unit != "provider-defined"
-                and definition.output_unit != item.unit
-            ):
-                raise ValueError(
-                    f"metric {item.metric_id} unit conflicts with definition: "
-                    f"{item.unit!r} != {definition.output_unit!r}"
-                )
-            dependencies = self.__metric_dependencies[item.metric_id]
-            references = tuple(
-                sorted(
-                    {
-                        reference
-                        for fact_id in dependencies
-                        for reference in facts.evidence_refs(fact_id)
-                    },
-                    key=lambda reference: (
-                        reference.evidence_id,
-                        reference.revision,
-                        reference.content_fingerprint,
-                    ),
-                )
-            )
-            missing_lineage = item.status == "valid" and (
-                not references
-                or any(
-                    facts.get(fact_id) is not None
-                    and not facts.evidence_refs(fact_id)
-                    for fact_id in dependencies
-                )
-            )
-            results.append(
-                ContractMetricResult(
-                    metric_id=item.metric_id,
-                    value=None if missing_lineage else item.value,
-                    unit=item.unit,
-                    status="missing" if missing_lineage else item.status,
-                    formula_version=item.formula_version,
-                    reporting_period=period,
-                    accounting_scope=scope,
-                    evidence_refs=references,
-                    reason_code=(
-                        "MISSING_EVIDENCE" if missing_lineage else item.reason_code
-                    ),
-                    annualized=item.annualized,
-                )
-            )
+                raise ValueError(f"undefined metric: {metric_id}")
+            results.append(self.__calculator.calculate(facts, definition, policy))
         return tuple(results)
 
 

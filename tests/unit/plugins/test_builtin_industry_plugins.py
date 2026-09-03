@@ -50,7 +50,9 @@ def _profile(primary):
     return BusinessModelProfile(
         company_id="synthetic:builtin",
         primary_model=primary,
-        confidence=0.9,
+        rule_match_score=0.9,
+        usable_evidence_coverage=0.8,
+        confidence_band="HIGH",
         evidence_refs=(),
     )
 

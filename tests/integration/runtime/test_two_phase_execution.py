@@ -116,6 +116,8 @@ def test_two_phase_execution_retains_bootstrap_and_engine_writes_precomputed_str
     assert tuple(result.module_id for result in professional_execution.module_results) == (
         "core:resolved-strategy",
         "core:kpi-provider",
+        "core:thesis-portfolio",
+        "core:portfolio-decision",
     )
     assert professional_execution.snapshot.require(REPOSITORY_PREFLIGHT) == command.context.baseline
     assert professional_execution.snapshot.require(EVIDENCE_PIT) == EvidenceSet()

@@ -33,7 +33,14 @@ from .errors import (
 )
 from .metrics import MetricDefinition, MetricResult, MetricSet
 from .policies import PolicySelection, PolicySnapshot
-from .values import AccountingScope, ReportingPeriod
+from .values import (
+    AccountingScope,
+    FinancialValue,
+    Money,
+    Quantity,
+    Ratio,
+    ReportingPeriod,
+)
 
 __all__ = [
     "ArtifactCatalog",
@@ -56,6 +63,8 @@ __all__ = [
     "EvidenceRef",
     "EvidenceSet",
     "AccountingScope",
+    "FinancialValue",
+    "Money",
     "MetricDefinition",
     "MetricResult",
     "MetricSet",
@@ -66,6 +75,8 @@ __all__ = [
     "PluginVersionUnsupportedError",
     "PolicySelection",
     "PolicySnapshot",
+    "Quantity",
+    "Ratio",
     "ReportingPeriod",
     "ResearchExecutionError",
     "ResearchOSError",

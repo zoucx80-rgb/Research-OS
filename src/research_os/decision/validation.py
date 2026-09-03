@@ -3,7 +3,7 @@ from pydantic import TypeAdapter, ValidationError
 from .models import ResearchDecisionState
 
 
-_ADAPTER = TypeAdapter(ResearchDecisionState)
+_ADAPTER: TypeAdapter[ResearchDecisionState] = TypeAdapter(ResearchDecisionState)
 
 
 def validate_decision_state(value: str) -> ResearchDecisionState:

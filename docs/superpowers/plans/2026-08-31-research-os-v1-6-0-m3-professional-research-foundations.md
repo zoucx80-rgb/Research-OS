@@ -30,10 +30,10 @@
 - Create: `tests/unit/contracts/test_financial_values.py`
 - Create: `tests/property/contracts/test_money_ratio_properties.py`
 
-- [ ] 写 RED：Money 币种/尺度、Ratio 表示、Quantity 单位和 UTC 时间规则。
-- [ ] 写 RED：Accounting Standard、Consolidation、Segment、Geography、Continuing Operations 可区分。
-- [ ] 写 RED：不同币种或 Scope 不得直接相加/比较。
-- [ ] 将所有当前财务 Artifact 替换为类型化值；不实现裸 scalar LegacyValue Adapter 或双读取表面。
+- [x] 写 RED：Money 币种/尺度、Ratio 表示、Quantity 单位和 UTC 时间规则。
+- [x] 写 RED：Accounting Standard、Consolidation、Segment、Geography、Continuing Operations 可区分。
+- [x] 写 RED：不同币种或 Scope 不得直接相加/比较。
+- [x] 将所有当前财务 Artifact 替换为类型化值；不实现裸 scalar LegacyValue Adapter 或双读取表面。
 
 ### Task 2：MetricDefinitionRegistry
 
@@ -48,12 +48,12 @@
 - Create: `tests/unit/metrics/test_registry.py`
 - Create: `tests/integration/metrics/test_existing_kpi_migration.py`
 
-- [ ] 使用 M1 Task 0 的参考证据理解历史缺陷；当前 KPI contract tests 只验证 v2 公式、类型、missingness 和 lineage。
-- [ ] 写 RED：同 ID 不同公式/单位/Kind/Scope 定义冲突。
-- [ ] 写 RED：期间敏感 Metric 缺 ReportingPeriod 时返回 reason code。
-- [ ] 注册 safe ratio、average、turnover、ROE/ROIC、working-capital 等通用定义。
-- [ ] KPI Pack 改为选择 definition + 提供事实，不复制公共公式。
-- [ ] 当前 v2 MetricResult 保留类型化 missingness 和 revision-bound lineage；不以 v1.5.12 API 或输出等同性作为兼容门禁。
+- [x] 使用 M1 Task 0 的参考证据理解历史缺陷；当前 KPI contract tests 只验证 v2 公式、类型、missingness 和 lineage。
+- [x] 写 RED：同 ID 不同公式/单位/Kind/Scope 定义冲突。
+- [x] 写 RED：期间敏感 Metric 缺 ReportingPeriod 时返回 reason code。
+- [x] 注册 safe ratio、average、turnover、ROE/ROIC、working-capital 等通用定义。
+- [x] KPI Pack 改为选择 definition + 提供事实，不复制公共公式。
+- [x] 当前 v2 MetricResult 保留类型化 missingness 和 revision-bound lineage；不以 v1.5.12 API 或输出等同性作为兼容门禁。
 
 ### Task 3：PolicyRegistry
 
@@ -65,11 +65,11 @@
 - Create: `tests/unit/policies/test_registry.py`
 - Create: `tests/property/policies/test_policy_fingerprint.py`
 
-- [ ] 写 RED：Policy ID/Version 唯一，参数有类型/单位/范围。
-- [ ] 写 RED：Override 必须有操作者、理由、时间和 base policy。
-- [ ] 写 RED：Policy Fingerprint 与登记顺序无关。
-- [ ] 迁移 Router、Expectation、Funding、Thesis、Valuation、Decision、Forecast Promotion 阈值。
-- [ ] Snapshot 记录实际 Policy Fingerprint。
+- [x] 写 RED：Policy ID/Version 唯一，参数有类型/单位/范围。
+- [x] 写 RED：Override 必须有操作者、理由、时间和 base policy。
+- [x] 写 RED：Policy Fingerprint 与登记顺序无关。
+- [x] 迁移 Router、Expectation、Funding、Thesis、Valuation、Decision、Forecast Promotion 阈值。
+- [x] Snapshot 记录实际 Policy Fingerprint。
 
 ### Task 4：Business Model Router 2.0
 
@@ -80,12 +80,12 @@
 - Create: `tests/unit/router/test_classifier_v2.py`
 - Create: `tests/integration/router/test_segment_routing.py`
 
-- [ ] 固定当前支持类型的 characterization results。
-- [ ] 写 RED：rule score、evidence coverage、counter evidence、ambiguity、confidence band 分开。
-- [ ] 写 RED：候选差距不足时 `UNRESOLVED`，不是任意选第一名。
-- [ ] 写 RED：没有校准模型时不得输出 probability 字段。
-- [ ] 写 RED：Segment Profiles 不得让 secondary plugin 覆盖 primary Exclusive Artifact。
-- [ ] 规则、阈值和理由由 `BusinessModelRoutingPolicy` 提供。
+- [x] 固定当前支持类型的 characterization results。
+- [x] 写 RED：rule score、evidence coverage、counter evidence、ambiguity、confidence band 分开。
+- [x] 写 RED：候选差距不足时 `UNRESOLVED`，不是任意选第一名。
+- [x] 写 RED：没有校准模型时不得输出 probability 字段。
+- [x] 写 RED：Segment Profiles 不得让 secondary plugin 覆盖 primary Exclusive Artifact。
+- [x] 规则、阈值和理由由 `BusinessModelRoutingPolicy` 提供。
 
 ### Task 5：ThesisPortfolio
 
@@ -96,11 +96,11 @@
 - Create: `tests/unit/thesis/test_portfolio.py`
 - Create: `tests/integration/runtime/test_thesis_portfolio_module.py`
 
-- [ ] 写 RED：primary/supporting/conflicting/unresolved/falsified 分类。
-- [ ] 写 RED：相同输入顺序变化不改变 primary selection。
-- [ ] 写 RED：无足够证据时 primary 为 None。
-- [ ] 复用 Claim Strength 和 Prior Thesis 生命周期，不新造第二套状态机。
-- [ ] 输出 `thesis.portfolio`，旧 `thesis.items` 不再是 Core API 2.0 公共合同。
+- [x] 写 RED：primary/supporting/conflicting/unresolved/falsified 分类。
+- [x] 写 RED：相同输入顺序变化不改变 primary selection。
+- [x] 写 RED：无足够证据时 primary 为 None。
+- [x] 复用 Claim Strength 和 Prior Thesis 生命周期，不新造第二套状态机。
+- [x] 输出 `thesis.portfolio`，旧 `thesis.items` 不再是 Core API 2.0 公共合同。
 
 ### Task 6：DecisionAggregationPolicy
 
@@ -111,11 +111,11 @@
 - Create: `tests/unit/decision/test_aggregation.py`
 - Create: `tests/integration/runtime/test_portfolio_decision.py`
 
-- [ ] 写 RED：Falsified Thesis 和 material funding risk 可否决高置信状态。
-- [ ] 写 RED：冲突/未决 Thesis 降级到确认等待，不被取第一项覆盖。
-- [ ] 写 RED：Decision Record 保存所有 used thesis/claim/evidence IDs。
-- [ ] 删除 `theses[0]` 依赖。
-- [ ] 时间只来自 `decision_ts`/Clock Port。
+- [x] 写 RED：Falsified Thesis 和 material funding risk 可否决高置信状态。
+- [x] 写 RED：冲突/未决 Thesis 降级到确认等待，不被取第一项覆盖。
+- [x] 写 RED：Decision Record 保存所有 used thesis/claim/evidence IDs。
+- [x] 删除 `theses[0]` 依赖。
+- [x] 时间只来自 `decision_ts`/Clock Port。
 
 ### Task 7：解释型 Valuation Method 与 Fitness
 
@@ -128,12 +128,12 @@
 - Create: `tests/unit/valuation/test_method_fitness_v2.py`
 - Create: `tests/integration/runtime/test_valuation_pipeline_v2.py`
 
-- [ ] 为 v2 reconciliation 的统一估值状态和经济理由建立不可回归测试；历史结果仅由历史 replay 验证。
-- [ ] 写 RED：`SUPPORTED`/`CONDITIONALLY_SUPPORTED`/`SANITY_CHECK_ONLY`/`CONTRAINDICATED`/`INSUFFICIENT_EVIDENCE` 状态。
-- [ ] 写 RED：每个状态必须有经济 reason codes；版本号不得进入 analytical rationale。
-- [ ] 写 RED：不同 basis/role 继续由 Reconciler 返回 disagreement/not comparable。
-- [ ] 首批方法仅实现输入合同充分的 PE/PB/DCF/SOTP Adapter；缺输入时不生成数值。
-- [ ] 保留 Bear/Base/Bull、Assumption、Sensitivity、Lineage 和 Limitation。
+- [x] 为 v2 reconciliation 的统一估值状态和经济理由建立不可回归测试；历史结果仅由历史 replay 验证。
+- [x] 写 RED：`SUPPORTED`/`CONDITIONALLY_SUPPORTED`/`SANITY_CHECK_ONLY`/`CONTRAINDICATED`/`INSUFFICIENT_EVIDENCE` 状态。
+- [x] 写 RED：每个状态必须有经济 reason codes；版本号不得进入 analytical rationale。
+- [x] 写 RED：不同 basis/role 继续由 Reconciler 返回 disagreement/not comparable。
+- [x] 首批方法仅实现输入合同充分的 PE/PB/DCF/SOTP Adapter；缺输入时不生成数值。
+- [x] 保留 Bear/Base/Bull、Assumption、Sensitivity、Lineage 和 Limitation。
 
 ### Task 8：Forecast Evaluation 与 Benchmark Registry
 
@@ -145,13 +145,13 @@
 - Create: `tests/unit/forecasting/test_benchmarks.py`
 - Create: `tests/integration/forecasting/test_time_series_backtest.py`
 
-- [ ] 写 RED：记录 `train_cutoff`、每个 fold 的 feature availability、label maturity 和 `evaluation_ts`；post-cutoff observation 进入训练失败。
-- [ ] 写 RED：realized outcome 仅在 label maturity 后进入历史 evaluation，不能成为当时 feature。
-- [ ] 写 RED：没有登记 Benchmark 或样本外结果不能晋级。
-- [ ] 写 RED：time-series split 保持时间顺序，禁止随机 shuffle。
-- [ ] 写 RED：MAE/RMSE/方向准确率、interval coverage 和稳定性窗口有 evidence lineage。
-- [ ] 复用 sklearn split/metrics 与 statsmodels，不自行实现统计模型。
-- [ ] Model Card 保存 features、target、train cutoff、fold availability、label maturity、evaluation timestamp、environment、limitations。
+- [x] 写 RED：记录 `train_cutoff`、每个 fold 的 feature availability、label maturity 和 `evaluation_ts`；post-cutoff observation 进入训练失败。
+- [x] 写 RED：realized outcome 仅在 label maturity 后进入历史 evaluation，不能成为当时 feature。
+- [x] 写 RED：没有登记 Benchmark 或样本外结果不能晋级。
+- [x] 写 RED：time-series split 保持时间顺序，禁止随机 shuffle。
+- [x] 写 RED：MAE/RMSE/方向准确率、interval coverage 和稳定性窗口有 evidence lineage。
+- [x] 复用 sklearn split/metrics 与 statsmodels，不自行实现统计模型。
+- [x] Model Card 保存 features、target、train cutoff、fold availability、label maturity、evaluation timestamp、environment、limitations。
 
 ### Task 9：Peer Comparability
 
@@ -162,10 +162,10 @@
 - Create: `tests/unit/peers/test_comparability.py`
 - Create: `tests/integration/peers/test_peer_normalization.py`
 
-- [ ] 写 RED：币种、财年、准则、Scope、租赁、一次性项目、股本、估值日期不一致。
-- [ ] 区分 `COMPARABLE`、`ADJUSTMENT_REQUIRED`、`NOT_COMPARABLE`、`INSUFFICIENT_EVIDENCE`。
-- [ ] 只有显式调整输入才能生成 Normalized Comparable；不能猜汇率或租赁调整。
-- [ ] 保存选择理由和排除理由，避免生存偏差被隐藏。
+- [x] 写 RED：币种、财年、准则、Scope、租赁、一次性项目、股本、估值日期不一致。
+- [x] 区分 `COMPARABLE`、`ADJUSTMENT_REQUIRED`、`NOT_COMPARABLE`、`INSUFFICIENT_EVIDENCE`。
+- [x] 只有显式调整输入才能生成 Normalized Comparable；不能猜汇率或租赁调整。
+- [x] 保存选择理由和排除理由，避免生存偏差被隐藏。
 
 ### Task 10：Postmortem Attribution
 
@@ -175,16 +175,16 @@
 - Create: `tests/unit/monitoring/test_attribution.py`
 - Create: `tests/integration/monitoring/test_prior_run_postmortem.py`
 
-- [ ] 写 RED：DATA/BASIS/FORMULA/MODEL/ASSUMPTION/DRIVER/TIMING/EXOGENOUS/PRESENTATION 分类。
-- [ ] 每个归因引用 prior statement、realized evidence 和分析方法。
-- [ ] 外生事件与模型误差分离；证据不足时 UNKNOWN。
-- [ ] Process Change Candidate 必须指向具体 Policy/Metric/Procedure。
+- [x] 写 RED：DATA/BASIS/FORMULA/MODEL/ASSUMPTION/DRIVER/TIMING/EXOGENOUS/PRESENTATION 分类。
+- [x] 每个归因引用 prior statement、realized evidence 和分析方法。
+- [x] 外生事件与模型误差分离；证据不足时 UNKNOWN。
+- [x] Process Change Candidate 必须指向具体 Policy/Metric/Procedure。
 
 ### Task 11：M3 出口门禁
 
-- [ ] 现有 Manufacturing/Distributor golden 数值无意外漂移。
-- [ ] v2 语义保持和估值对账测试全绿；历史 1.5.12 行为由 isolated replay 验证。
-- [ ] 新值对象/Metric/Policy/Router/Thesis/Decision/Valuation/Forecast/Peer/Postmortem 测试全绿。
-- [ ] 运行 Hypothesis 属性测试。
-- [ ] 确认任何缺失、不可比或无 Benchmark 场景都不产生伪专业结论。
-- [ ] 不创建 release commit。
+- [x] v2 Registry 路径下 Manufacturing/Distributor golden 数值无意外漂移。
+- [x] v2 语义保持和估值对账测试全绿；按新工程边界不纳入历史 1.5.x replay。
+- [x] 新值对象/Metric/Policy/Router/Thesis/Decision/Valuation/Forecast/Peer/Postmortem 测试全绿。
+- [x] 运行 Hypothesis 属性测试。
+- [x] 确认任何缺失、不可比或无 Benchmark 场景都不产生伪专业结论。
+- [x] 不创建 release commit。

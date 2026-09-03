@@ -3,10 +3,10 @@ from __future__ import annotations
 from datetime import datetime, timezone
 
 from research_os.application import ResearchRunOptions
-from research_os.contracts.metrics import MetricDefinition
 from research_os.contracts.policies import PolicySnapshot
 from research_os.contracts.values import AccountingScope
 from research_os.domain.evidence import Evidence
+from research_os.metrics import builtin_metric_registry
 from research_os.plugins.builtins import BuiltinPluginProvider
 from research_os.plugins.registry import PluginRegistry
 from research_os.plugins.resolver import StrategyResolver
@@ -23,22 +23,6 @@ from research_os.runtime import (
 
 DECISION_TS = datetime(2026, 9, 2, tzinfo=timezone.utc)
 COMPANY_ID = "synthetic:plugin-services"
-
-
-class _Definitions:
-    def __init__(self, metric_ids: frozenset[str]) -> None:
-        self._definitions = {
-            metric_id: MetricDefinition(
-                metric_id=metric_id,
-                definition_version="2.0.0",
-                output_kind="ratio",
-                output_unit="provider-defined",
-            )
-            for metric_id in metric_ids
-        }
-
-    def get(self, metric_id: str) -> MetricDefinition | None:
-        return self._definitions.get(metric_id)
 
 
 def _context() -> ResearchContext:
@@ -107,8 +91,10 @@ def test_resolved_plugin_exposes_domain_service_without_nested_module_execution(
         BusinessModelProfile(
             company_id=COMPANY_ID,
             primary_model="manufacturing",
-            confidence=1.0,
-            classification_status="classified",
+            rule_match_score=1.0,
+            usable_evidence_coverage=1.0,
+            confidence_band="HIGH",
+            classification_status="CLASSIFIED",
         ),
         context,
         registry,
@@ -122,7 +108,7 @@ def test_resolved_plugin_exposes_domain_service_without_nested_module_execution(
     assert not hasattr(provider, "run")
     metrics = provider.calculate(
         context.facts,
-        _Definitions(provider.metric_ids()),
+        builtin_metric_registry().select(provider.metric_ids()),
         PolicySnapshot(),
     )
     assert any(metric.status == "valid" for metric in metrics)

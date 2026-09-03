@@ -33,6 +33,7 @@ from research_os.plugins.discovery import discover_plugins
 from research_os.plugins.registry import PluginRegistry
 from research_os.plugins.resolver import StrategyResolution, StrategyResolver
 from research_os.plugins.protocols import ResearchPlugin
+from research_os.policies import builtin_policy_registry
 from research_os.readiness import ResearchReadinessEvaluator
 from research_os.release.manifest import CURRENT_RELEASE
 from research_os.runtime.core_artifacts import (
@@ -252,6 +253,16 @@ class ResearchApplication:
             )
             for metric in execution.snapshot.require(KPI_METRICS).metrics
         )
+        policy_versions = tuple(
+            VersionIdentity(
+                component_id=selection.policy_id,
+                version=(
+                    f"{selection.policy_version}@"
+                    f"{selection.parameters_fingerprint}"
+                ),
+            )
+            for selection in builtin_policy_registry().snapshot().policies
+        )
         versions = RunVersionSet(
             research_os_version=CURRENT_RELEASE.version,
             core_api_version=CURRENT_RELEASE.core_api_version,
@@ -261,6 +272,7 @@ class ResearchApplication:
             modules=module_versions,
             plugins=plugin_versions,
             metrics=metric_versions,
+            policies=policy_versions,
             external=external,
         )
         components = tuple(

@@ -1,29 +1,34 @@
-from typing import Any, Literal
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from research_os.contracts.evidence import EvidenceRef
+from research_os.contracts.values import FinancialValue
+
 
 class CalculationLineage(BaseModel):
-    model_config = ConfigDict(frozen=True)
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    lineage_type: Literal["CALCULATION"] = "CALCULATION"
     formula: str
-    input_evidence_ids: list[str] = Field(min_length=1)
-    output: Any
-    unit: str | None = None
+    input_evidence_refs: tuple[EvidenceRef, ...] = Field(min_length=1)
+    output: FinancialValue
     calculation_version: str
 
 
 class AssumptionLineage(BaseModel):
-    model_config = ConfigDict(frozen=True)
-    label: Literal["ASSUMPTION"] = "ASSUMPTION"
-    value: Any
-    unit: str | None = None
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    lineage_type: Literal["ANALYST_ASSUMPTION"] = "ANALYST_ASSUMPTION"
+    value: FinancialValue
     rationale: str
-    source_evidence_ids: list[str] = Field(default_factory=list)
+    source_evidence_refs: tuple[EvidenceRef, ...] = Field(default_factory=tuple)
 
 
 class InferenceLineage(BaseModel):
-    model_config = ConfigDict(frozen=True)
-    label: Literal["INFERENCE"] = "INFERENCE"
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    lineage_type: Literal["INFERENCE"] = "INFERENCE"
     statement: str
-    evidence_ids: list[str] = Field(min_length=1)
+    evidence_refs: tuple[EvidenceRef, ...] = Field(min_length=1)
     confidence_grade: str

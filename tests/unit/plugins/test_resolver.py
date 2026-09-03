@@ -64,7 +64,9 @@ def _profile(primary="manufacturing", secondary=None):
         company_id="synthetic:resolver",
         primary_model=primary,
         secondary_models=secondary or [],
-        confidence=0.9,
+        rule_match_score=0.9,
+        usable_evidence_coverage=0.8,
+        confidence_band="HIGH",
         evidence_refs=(_reference(),),
         router_version="router@test",
     )

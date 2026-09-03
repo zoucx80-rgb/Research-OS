@@ -5,6 +5,7 @@ from typing import Any
 from pydantic import BaseModel
 
 from research_os.expectations.models import ExpectationGapResult
+from research_os.policies import PolicyRegistry, builtin_policy_registry
 
 
 class SurpriseResult(BaseModel):
@@ -82,6 +83,7 @@ def build_expectation_gap(
     os_evidence_ids: list[str] | None = None,
     unit: str | None = None,
     comparison_basis: str | None = None,
+    policy_registry: PolicyRegistry | None = None,
 ) -> ExpectationGapResult | None:
     """Build an expectation gap only when market expectation evidence exists."""
 
@@ -102,12 +104,19 @@ def build_expectation_gap(
     )
 
     limitations: list[str] = []
+    policy = policy_registry or builtin_policy_registry()
+    minimum_source_count = int(
+        policy.value("expectation_quality", "minimum_gap_source_count")
+    )
+    high_quality_source = float(
+        policy.value("expectation_quality", "high_quality_source")
+    )
     source_count = market.get("source_count")
     source_quality = market.get("source_quality")
     post_event_consensus = market.get("post_event_consensus")
-    if source_count is not None and source_count < 2:
+    if source_count is not None and source_count < minimum_source_count:
         limitations.append("市场预期来源数量较少。")
-    if source_quality is not None and source_quality < 0.7:
+    if source_quality is not None and source_quality < high_quality_source:
         limitations.append("市场预期来源质量有限。")
     if post_event_consensus is False:
         limitations.append("市场预期尚未吸收最近重大事件。")

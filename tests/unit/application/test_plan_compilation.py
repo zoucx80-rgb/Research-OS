@@ -99,8 +99,8 @@ def test_research_plan_uses_bootstrap_snapshot_and_adds_only_resolved_strategy_m
             value=BusinessModelProfile(
                 company_id=command.context.company.company_id,
                 primary_model="unknown",
-                confidence=0.5,
-                classification_status="insufficient_evidence",
+                    confidence_band="UNKNOWN",
+                    classification_status="INSUFFICIENT_EVIDENCE",
             ),
             producer_id="core:business-model",
         )
@@ -110,7 +110,12 @@ def test_research_plan_uses_bootstrap_snapshot_and_adds_only_resolved_strategy_m
 
     plan = ResearchPlanCompiler(catalog).compile(command, snapshot, strategy)
 
-    assert plan.module_ids == ("core:resolved-strategy", "core:kpi-provider")
+    assert plan.module_ids == (
+        "core:resolved-strategy",
+        "core:kpi-provider",
+        "core:thesis-portfolio",
+        "core:portfolio-decision",
+    )
     assert plan.initial_snapshot is snapshot
     assert plan.modules[0].spec.requires == frozenset((BUSINESS_MODEL_PROFILE,))
     assert plan.modules[0].spec.provides == frozenset((STRATEGY_RESOLUTION,))
@@ -128,8 +133,10 @@ def test_research_plan_rejects_a_resolved_plugin_missing_from_the_registry():
             value=BusinessModelProfile(
                 company_id=command.context.company.company_id,
                 primary_model="manufacturing",
-                confidence=1.0,
-                classification_status="classified",
+                    rule_match_score=1.0,
+                    usable_evidence_coverage=1.0,
+                    confidence_band="HIGH",
+                    classification_status="CLASSIFIED",
             ),
             producer_id="core:business-model",
         )

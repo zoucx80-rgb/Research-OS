@@ -131,6 +131,16 @@ def test_application_returns_auditable_incomplete_result_without_evidence_or_plu
     assert result.artifacts.require(STRATEGY_RESOLUTION).coverage_gaps
     assert result.artifacts.require(KPI_METRICS).metrics == ()
     assert "core:kpi-provider" in result.execution_completion.blocking_capabilities
+    assert {item.component_id for item in result.versions.policies} == {
+        "business_model_routing",
+        "expectation_quality",
+        "funding_loop",
+        "thesis_formation",
+        "valuation_fitness",
+        "decision_aggregation",
+        "forecast_promotion",
+    }
+    assert all("@" in item.version for item in result.versions.policies)
 
 
 def test_application_fails_closed_when_snapshot_persistence_is_unconfigured():
