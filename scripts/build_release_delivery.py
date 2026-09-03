@@ -4,7 +4,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 from pathlib import Path
 import subprocess
 import zipfile
@@ -151,16 +150,7 @@ def build_delivery(output_dir: Path, *, parent_sha: str) -> None:
         )
     )
     subprocess.run(
-        (
-            "git",
-            "-C",
-            str(ROOT),
-            "bundle",
-            "create",
-            str(bundle),
-            head_sha,
-            parent_sha,
-        ),
+        ("git", "-C", str(ROOT), "bundle", "create", str(bundle), "HEAD"),
         check=True,
     )
     subprocess.run(("git", "bundle", "verify", str(bundle)), cwd=ROOT, check=True)
