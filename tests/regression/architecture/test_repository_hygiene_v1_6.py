@@ -8,9 +8,7 @@ ROOT = Path(__file__).resolve().parents[3]
 
 
 def _tracked_files() -> tuple[str, ...]:
-    output = subprocess.check_output(
-        ("git", "-C", str(ROOT), "ls-files"), text=True
-    )
+    output = subprocess.check_output(("git", "-C", str(ROOT), "ls-files"), text=True)
     return tuple(line for line in output.splitlines() if line)
 
 
@@ -26,8 +24,7 @@ def test_tracked_tree_has_no_cache_build_or_distribution_artifacts() -> None:
     offenders = [
         path
         for path in _tracked_files()
-        if any(part in f"/{path}" for part in forbidden_parts)
-        or path.endswith((".pyc", ".pyo"))
+        if any(part in f"/{path}" for part in forbidden_parts) or path.endswith((".pyc", ".pyo"))
     ]
     assert offenders == []
 
