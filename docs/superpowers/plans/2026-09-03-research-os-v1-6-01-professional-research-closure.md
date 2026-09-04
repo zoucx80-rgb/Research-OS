@@ -10,6 +10,12 @@
 
 **Spec:** `docs/superpowers/specs/2026-09-03-research-os-v1-6-01-professional-research-closure-design.md`
 
+**Execution status (2026-09-04): Complete.** The implementation and release work below was
+integrated through the user-requested consolidated `main` delivery instead of the original
+per-task commit sequence. The unchecked boxes are retained as the historical execution
+checklist; current completion evidence is the v1.6.01 release gate, exact-artifact field
+acceptance, three inspected company reports, and the clean installed-wheel verification.
+
 ## Global Constraints
 
 - Frozen implementation baseline: `1cb163b38ac971dfc045e6adfe31e67efdd87af7`.

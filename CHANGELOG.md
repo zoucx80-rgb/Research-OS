@@ -3,16 +3,16 @@
 ## 1.6.01 — 2026-09-04
 
 ### Added
-Canonical professional research modules for financial and capital analysis, thesis semantics, expectations, forecasting, peers, valuation, sensitivity, monitoring, and methodology disclosure; typed reporting projectors with stable section identities; and fixed-cutoff three-company field acceptance driven only by the final `ResearchRunResult`.
+Canonical professional research modules for financial and capital analysis, thesis semantics, expectations, forecasting, peers, valuation, sensitivity, monitoring, and methodology disclosure; typed reporting projectors with stable section identities; and fixed-cutoff three-company field acceptance driven only by the final `ResearchRunResult`. Sensitivity artifacts retain probability, material assumptions, model boundary, applicability and caveats, while monitoring artifacts retain standalone next-verification events.
 
 ### Changed
 The Core API 2.0 plan now wires professional inputs into the shared artifact graph before Decision and Readiness evaluation. Reporting and presentation project those canonical artifacts through a stable investor-facing section order without renderer-side research calculations. The current release gate selects the v1.6.01 professional closure pack while retaining isolated v1.5.08–v1.5.12 historical replay.
 
 ### Fixed
-Prevents rich typed inputs from being ignored, fixture-only valuation reconciliation from passing research-depth acceptance, internal identifiers from leaking into the investor body, and evidenced distributor funding stress from being accepted without an explicit lineage-bound thesis.
+Prevents rich typed inputs from being ignored, fixture-only valuation reconciliation from passing research-depth acceptance, field-acceptance sensitivity inputs and standalone verification events from being dropped before canonical execution, internal identifiers from leaking into the investor body, and evidenced distributor funding stress from being accepted without an explicit lineage-bound thesis.
 
 ### Validation
-Stable validation covers Ruff format/lint, mypy, import boundaries, 605 tests, manifest-selected release packs, current three-company Markdown/HTML/PDF acceptance, five historical replays, dependency audit, sdist/wheel build, Twine checks, and clean-environment installed-wheel Core/HTTP smoke.
+Stable validation covers Ruff format/lint, mypy, import boundaries, the full test suite, exact final artifact/status assertions, manifest-selected release packs, current three-company Markdown/HTML/PDF acceptance with real PDF first-page semantic checks, five historical replays, dependency audit, sdist/wheel build, Twine checks, and clean-environment installed-wheel Core/HTTP smoke.
 
 ### Compatibility
 Core API, Plugin API, Snapshot Schema, and HTTP API remain at `2.0`, `2.0`, `2.0`, and `v1`. No legacy compatibility shim is restored; missing or unsupported evidence continues to fail closed.

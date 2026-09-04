@@ -74,13 +74,15 @@ def _present(value: Any) -> bool:
 def _artifact_is_substantive(key: ArtifactKey[Any], value: Any) -> bool:
     """Apply domain-specific presence rules instead of counting model defaults."""
 
+    if key.artifact_id == "monitoring.plan":
+        return bool(getattr(value, "items", ()) or getattr(value, "next_verification_event", None))
+
     collection_fields = {
         "financial.time_series": "series",
         "research.operating_evidence": "observations",
         "expectation.consensus_distribution": "observations",
         "peers.normalized": "peers",
         "scenario.sensitivities": "cases",
-        "monitoring.plan": "items",
         "monitoring.prior_run_review": "items",
     }
     collection_field = collection_fields.get(key.artifact_id)

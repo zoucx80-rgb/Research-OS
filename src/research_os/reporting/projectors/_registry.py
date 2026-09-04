@@ -112,7 +112,7 @@ def _substantive(artifact_id: str, data: dict[str, Any]) -> bool:
         "valuation.result": ("value",),
         "valuation.reconciliation": ("low", "high", "included_range_keys"),
         "scenario.sensitivities": ("cases",),
-        "monitoring.plan": ("items",),
+        "monitoring.plan": ("items", "next_verification_event"),
         "monitoring.prior_run_review": ("items", "scored_count"),
     }
     return any(

@@ -153,7 +153,17 @@ def _sensitivities(data: dict[str, Any]) -> JsonValue:
                     "受影响指标": _metric(item.get("affected_metric")),
                     "基准值": _number(item.get("base_value")),
                     "情景结果": _number(item.get("result")),
+                    "发生概率": _number(item.get("probability"), unit="ratio"),
+                    "关键假设": [
+                        {
+                            "假设": assumption.get("label"),
+                            "取值": assumption.get("value"),
+                        }
+                        for assumption in item.get("material_assumptions", [])
+                    ],
                     "模型边界": item.get("model_boundary"),
+                    "适用范围": item.get("applicability"),
+                    "限制": item.get("caveats", []),
                 }
                 for item in data.get("cases", [])
             ]

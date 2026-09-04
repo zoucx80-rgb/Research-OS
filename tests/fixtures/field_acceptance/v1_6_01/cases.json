@@ -9,7 +9,7 @@
       "supplement_fixture": "tests/fixtures/field_acceptance/v1_5_12/300034.SZ.json",
       "expected_primary_model": "manufacturing",
       "expected_research_depth": "PASS",
-      "required_body_terms": ["制造业", "估值方法与适用性", "模型分歧"],
+      "required_body_terms": ["制造业", "估值方法与适用性", "模型分歧", "敏感性与情景", "售价不变", "机械敏感性，不是公司盈利预测", "销量与产品结构不变的单一报告期", "未模拟存货计价和价格传导时滞", "监控规则与下一验证事件"],
       "forbidden_body_terms": ["ev:300034.SZ", "Schema:", "http://", "https://"],
       "forbidden_anywhere_terms": ["经济护城河已实现", "周期底部已确认"]
     },
@@ -20,7 +20,7 @@
       "expected_primary_model": "distributor",
       "expected_research_depth": "LIMITED",
       "expected_decision_state": "RISK_REVIEW",
-      "required_body_terms": ["分销业务", "融资循环", "风险审查"],
+      "required_body_terms": ["分销业务", "融资循环", "风险审查", "下一次定期报告中的营运资金、融资成本与现金流验证"],
       "forbidden_body_terms": ["ev:001287.SZ", "Schema:", "http://", "https://"],
       "forbidden_anywhere_terms": ["新增外部股权融资：0", "主估值区间下限：0"]
     },
@@ -29,7 +29,7 @@
       "source_fixture": "tests/fixtures/field_acceptance/v1_5_09/301073.SZ.json",
       "expected_primary_model": "hospitality",
       "expected_research_depth": "LIMITED",
-      "required_body_terms": ["酒店与住宿服务", "租赁特征显著"],
+      "required_body_terms": ["酒店与住宿服务", "租赁特征显著", "财务趋势", "经营证据", "当前没有与主要业务模式兼容的行业策略插件", "下一次定期报告与专业酒店能力补齐后的验证"],
       "forbidden_body_terms": ["ev:301073.SZ", "Schema:", "http://", "https://", "plugin_id"],
       "forbidden_anywhere_terms": ["RevPAR", "ADR", "OCC", "同店增长", "lease-adjusted ROIC", "lease-adjusted valuation"]
     }

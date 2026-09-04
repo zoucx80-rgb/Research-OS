@@ -60,8 +60,13 @@ class MonitoringResearchModule:
             self._input.next_verification_event,
         )
         plan = MonitoringPlan(
-            domain_status="SUPPORTED" if items else "INSUFFICIENT_EVIDENCE",
+            domain_status=(
+                "SUPPORTED"
+                if items or self._input.next_verification_event is not None
+                else "INSUFFICIENT_EVIDENCE"
+            ),
             items=items,
+            next_verification_event=self._input.next_verification_event,
             evidence_refs=plan_refs,
         )
 
@@ -99,7 +104,11 @@ class MonitoringResearchModule:
         )
         return ModuleResult(
             module_id=self.spec.module_id,
-            status="PASS" if items or reviews else "INSUFFICIENT_EVIDENCE",
+            status=(
+                "PASS"
+                if items or reviews or self._input.next_verification_event is not None
+                else "INSUFFICIENT_EVIDENCE"
+            ),
             writes=(
                 ArtifactWrite(
                     key=MONITORING_PLAN,

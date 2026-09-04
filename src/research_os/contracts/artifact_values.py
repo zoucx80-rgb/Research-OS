@@ -225,8 +225,11 @@ class SensitivityCase(LineageValue):
     base_value: Decimal | float | None = None
     shock_value: Decimal | float | None = None
     result: Decimal | float | None = None
+    probability: float | None = Field(default=None, ge=0, le=1)
     material_assumptions: tuple[ScenarioAssumption, ...] = Field(default_factory=tuple)
     model_boundary: str | None = None
+    applicability: str | None = None
+    caveats: tuple[str, ...] = Field(default_factory=tuple)
 
 
 class SensitivitySet(DomainArtifact):
@@ -438,6 +441,7 @@ class MonitoringPlanItem(LineageValue):
 
 class MonitoringPlan(DomainArtifact):
     items: tuple[MonitoringPlanItem, ...] = Field(default_factory=tuple)
+    next_verification_event: VerificationEvent | None = None
 
 
 class PriorRunReviewInput(LineageValue):

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+from io import BytesIO
 import json
 import re
 import subprocess
@@ -10,6 +11,7 @@ from datetime import date, datetime, timezone
 from hashlib import sha256
 from pathlib import Path
 from typing import Any
+from unicodedata import normalize
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -19,6 +21,7 @@ from research_os.application.bootstrap import RepositoryAttestation  # noqa: E40
 from research_os.application.command import (  # noqa: E402
     FinancialResearchInput,
     MonitoringResearchInput,
+    ResearchReadinessInput,
     ResearchRunOptions,
     ThesisResearchInput,
     ValuationModelInput,
@@ -33,6 +36,8 @@ from research_os.contracts.artifact_values import (  # noqa: E402
     MonitoringRule,
     OperatingObservation,
     ResearchAssertion,
+    ScenarioAssumption,
+    SensitivityCase,
     Thesis,
     ValuationRange,
     ValuationRationale,
@@ -393,16 +398,105 @@ def _monitoring_input(case: dict[str, Any]) -> MonitoringResearchInput:
     event = inputs.get("next_verification_event")
     next_event = None
     if event:
+        event_payload = {
+            "event_key": "next-verification-event",
+            "label": str(event["event_name"]),
+            "due_ts": str(event["event_time"]),
+            "source_type": "analyst_assumption",
+        }
+        event_assumption = AssumptionRef(
+            assumption_key="field-monitoring-event:next-verification-event",
+            assumption_version="1",
+            content_fingerprint=sha256(
+                json.dumps(
+                    event_payload,
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    separators=(",", ":"),
+                ).encode("utf-8")
+            ).hexdigest(),
+        )
         next_event = VerificationEvent(
             event_key="next-verification-event",
             label=str(event["event_name"]),
             event_type="periodic_report",
             due_ts=_dt(str(event["event_time"])),
             status="scheduled",
+            assumption_refs=(event_assumption,),
         )
     return MonitoringResearchInput(
         monitoring_rules=tuple(rules), next_verification_event=next_event
     )
+
+
+def _sensitivity_assumption(item: dict[str, Any]) -> ScenarioAssumption:
+    payload = {
+        "assumption_key": str(item["assumption_id"]),
+        "label": str(item["label"]),
+        "value": item.get("value"),
+        "source_type": str(item.get("source_type") or "analyst_assumption"),
+    }
+    reference = AssumptionRef(
+        assumption_key=payload["assumption_key"],
+        assumption_version="1",
+        content_fingerprint=sha256(
+            json.dumps(
+                payload,
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        ).hexdigest(),
+    )
+    return ScenarioAssumption(
+        reference=reference,
+        label=payload["label"],
+        value=payload["value"],
+    )
+
+
+def _readiness_input(
+    case: dict[str, Any], refs_by_fact: dict[str, tuple[Any, ...]]
+) -> ResearchReadinessInput:
+    inputs = case.get("inputs", {})
+    refs_by_id = {ref.evidence_id: ref for fact_refs in refs_by_fact.values() for ref in fact_refs}
+    sensitivities = []
+    for item in inputs.get("sensitivities", []):
+        evidence_ids = tuple(str(value) for value in item.get("evidence_ids", []))
+        missing_ids = tuple(value for value in evidence_ids if value not in refs_by_id)
+        if missing_ids:
+            raise FieldAcceptanceError(
+                f"sensitivity {item['case_id']} has unknown evidence: {', '.join(missing_ids)}"
+            )
+        affected_metric = str(item["affected_metric"])
+        evidence_refs = (
+            tuple(refs_by_id[value] for value in evidence_ids)
+            if evidence_ids
+            else refs_by_fact.get(affected_metric, ())
+        )
+        assumptions = tuple(
+            _sensitivity_assumption(value) for value in item.get("material_assumptions", [])
+        )
+        sensitivities.append(
+            SensitivityCase(
+                case_key=str(item["case_id"]),
+                driver_key=str(item["driver_id"]),
+                shock_label=str(item["shock_label"]),
+                affected_metric=affected_metric,
+                formula_version=str(item["formula_version"]),
+                base_value=item.get("base_value"),
+                shock_value=item.get("shock_value"),
+                result=item.get("result"),
+                probability=item.get("probability"),
+                material_assumptions=assumptions,
+                model_boundary=item.get("model_boundary"),
+                applicability=item.get("applicability"),
+                caveats=tuple(str(value) for value in item.get("caveats", [])),
+                evidence_refs=evidence_refs,
+                assumption_refs=tuple(value.reference for value in assumptions),
+            )
+        )
+    return ResearchReadinessInput(sensitivities=tuple(sensitivities))
 
 
 def _command(case: dict[str, Any], *, commit_sha: str) -> ResearchRunCommand:
@@ -438,6 +532,7 @@ def _command(case: dict[str, Any], *, commit_sha: str) -> ResearchRunCommand:
         thesis=_thesis_input(case, refs_by_fact),
         valuation=_valuation_input(case),
         monitoring=_monitoring_input(case),
+        readiness=_readiness_input(case, refs_by_fact),
         options=ResearchRunOptions(persist_snapshot=False),
     )
 
@@ -488,6 +583,31 @@ def _research_depth(result: Any) -> str:
     return "LIMITED"
 
 
+def _first_page_errors(text: str) -> tuple[str, ...]:
+    text = normalize("NFKC", text)
+    errors = []
+    if "投资决策快照" not in text:
+        errors.append("PDF first page is missing the decision snapshot")
+    if "研究决策" not in text:
+        errors.append("PDF first page is missing the research decision")
+    if not any(term in text for term in ("核心原因", "证据不足", "研究限制")):
+        errors.append("PDF first page is missing a key risk or limitation")
+    return tuple(errors)
+
+
+def _pdf_first_page_text(content: bytes) -> str:
+    try:
+        from pypdf import PdfReader
+    except ImportError as exc:
+        raise FieldAcceptanceError(
+            "pypdf is required to validate field-acceptance PDF content"
+        ) from exc
+    reader = PdfReader(BytesIO(content))
+    if not reader.pages:
+        raise FieldAcceptanceError("field-acceptance PDF has no pages")
+    return reader.pages[0].extract_text() or ""
+
+
 def _presentation(
     bundle: Any, spec: dict[str, Any], body_max_lines: int
 ) -> tuple[str, tuple[str, ...]]:
@@ -516,6 +636,8 @@ def _presentation(
         errors.append("stable section-id presentation contract not satisfied")
     if not bundle.pdf.content.startswith(b"%PDF"):
         errors.append("invalid PDF header")
+    else:
+        errors.extend(_first_page_errors(_pdf_first_page_text(bundle.pdf.content)))
     if not all((bundle.markdown.content_hash, bundle.html.content_hash, bundle.pdf.content_hash)):
         errors.append("presentation hash missing")
     return ("PASS" if not errors else "FAIL"), tuple(errors)

@@ -71,6 +71,10 @@ _STATUS_LABELS = {
     "STRESSED": "融资压力较高",
     "MEDIUM": "中等",
     "HIGH": "较高",
+    "scheduled": "已计划",
+    "pending_date": "日期待定",
+    "completed": "已完成",
+    "periodic_report": "定期报告",
 }
 
 _REASON_LABELS = {

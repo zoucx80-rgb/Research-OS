@@ -31,6 +31,7 @@ def _monitoring_condition(metric_id: str, condition: Any) -> str:
 
 
 def _monitoring(data: dict[str, Any]) -> JsonValue:
+    next_event = data.get("next_verification_event") or {}
     return _json(
         {
             "监控项": [
@@ -42,7 +43,17 @@ def _monitoring(data: dict[str, Any]) -> JsonValue:
                     "下一检查时点": _date_text(item.get("next_check_ts")),
                 }
                 for item in data.get("items", [])
-            ]
+            ],
+            "下一验证事件": (
+                {
+                    "事件": next_event.get("label"),
+                    "类型": _status(next_event.get("event_type")),
+                    "计划时点": _date_text(next_event.get("due_ts")),
+                    "状态": _status(next_event.get("status")),
+                }
+                if next_event
+                else None
+            ),
         }
     )
 
