@@ -110,16 +110,40 @@ def test_research_plan_uses_bootstrap_snapshot_and_adds_only_resolved_strategy_m
 
     plan = ResearchPlanCompiler(catalog).compile(command, snapshot, strategy)
 
-    assert plan.module_ids == (
+    assert set(plan.module_ids) == {
         "core:resolved-strategy",
         "core:kpi-provider",
+        "core:professional-financial",
+        "core:professional-capital",
         "core:thesis-portfolio",
+        "core:professional-thesis-semantics",
+        "core:professional-expectation",
+        "core:professional-forecast",
+        "core:professional-peers",
+        "core:professional-valuation",
+        "core:professional-sensitivity",
+        "core:professional-monitoring",
+        "core:professional-methodology",
         "core:portfolio-decision",
+    }
+    assert plan.module_ids.index("core:professional-capital") < plan.module_ids.index(
+        "core:professional-valuation"
+    )
+    assert plan.module_ids.index("core:thesis-portfolio") < plan.module_ids.index(
+        "core:professional-thesis-semantics"
+    )
+    assert plan.module_ids.index("core:professional-valuation") < plan.module_ids.index(
+        "core:portfolio-decision"
     )
     assert plan.initial_snapshot is snapshot
-    assert plan.modules[0].spec.requires == frozenset((BUSINESS_MODEL_PROFILE,))
-    assert plan.modules[0].spec.provides == frozenset((STRATEGY_RESOLUTION,))
-    assert plan.modules[1].spec.provides == frozenset((KPI_METRICS,))
+    modules_by_id = {module.spec.module_id: module for module in plan.modules}
+    assert modules_by_id["core:resolved-strategy"].spec.requires == frozenset(
+        (BUSINESS_MODEL_PROFILE,)
+    )
+    assert modules_by_id["core:resolved-strategy"].spec.provides == frozenset(
+        (STRATEGY_RESOLUTION,)
+    )
+    assert modules_by_id["core:kpi-provider"].spec.provides == frozenset((KPI_METRICS,))
     assert bootstrap.module_ids != plan.module_ids
 
 

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Mapping
-import re
 
 from research_os.version import (
     CORE_API_VERSION,
@@ -77,15 +77,15 @@ CURRENT_RELEASE = ReleaseManifest(
         "resolved_strategy": "2.0.0",
         "kpi_provider": "2.0.0",
         "completion_evaluator": "2.0.0",
-        "readiness_evaluator": "2.0.0",
+        "readiness_evaluator": "2.0.1",
         "snapshot_codec": "2.0.0",
         "sql_persistence": "2.0.0",
         "research_query": "1.0.0",
         "http_api": "1.0.0",
-        "research_view": "2.0.0",
-        "report_composer": "2.0.0",
-        "markdown_renderer": "2.0.0",
-        "html_renderer": "1.0.0",
+        "research_view": "2.1.0",
+        "report_composer": "2.1.0",
+        "markdown_renderer": "2.1.0",
+        "html_renderer": "1.1.0",
         "pdf_adapter": "1.0.0",
         "historical_replay": "1.0.0",
     },
@@ -95,6 +95,7 @@ CURRENT_RELEASE = ReleaseManifest(
         "m3-professional-foundations",
         "m4-reporting-replay",
         "m5-quality-release",
+        "v1-6-01-professional-closure",
         "release-governance",
     ),
     field_replay_profiles=(

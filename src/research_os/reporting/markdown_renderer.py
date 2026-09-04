@@ -4,6 +4,7 @@ import json
 from typing import Any
 
 from .models import MarkdownRenderResult, ResearchReportDocument
+from .projectors import status_label
 
 
 _LINEAGE_KEYS = frozenset(
@@ -46,6 +47,28 @@ def _label(value: object) -> str:
     return str(value)
 
 
+def _table_cell(value: Any) -> str:
+    return _label(value).replace("|", "\\|").replace("\n", "<br>")
+
+
+def _scalar_table(value: list[Any]) -> list[str] | None:
+    if not value or not all(isinstance(item, dict) for item in value):
+        return None
+    rows = [item for item in value if isinstance(item, dict)]
+    keys: list[str] = []
+    for row in rows:
+        for key in row:
+            if key not in keys:
+                keys.append(str(key))
+    if not keys or any(any(isinstance(row.get(key), (dict, list)) for key in keys) for row in rows):
+        return None
+    return [
+        "| " + " | ".join(keys) + " |",
+        "| " + " | ".join("---" for _ in keys) + " |",
+        *("| " + " | ".join(_table_cell(row.get(key, "—")) for key in keys) + " |" for row in rows),
+    ]
+
+
 def _render_payload(value: Any, *, indent: int = 0) -> list[str]:
     value = _visible(value)
     if value in (None, "", [], {}, ()):
@@ -64,6 +87,9 @@ def _render_payload(value: Any, *, indent: int = 0) -> list[str]:
                 lines.append(f"{prefix}- **{key}**：{_label(projected)}")
         return lines
     if isinstance(value, list):
+        table = _scalar_table(value)
+        if table is not None:
+            return [f"{prefix}{line}" for line in table]
         lines = []
         for item in value:
             projected = _visible(item)
@@ -81,7 +107,7 @@ def _render_payload(value: Any, *, indent: int = 0) -> list[str]:
 class ResearchReportMarkdownRenderer:
     """Pure presentation renderer for the frozen v2 report document."""
 
-    version = "research-report-markdown@2.0.0"
+    version = "research-report-markdown@2.1.0"
 
     def render(self, document: ResearchReportDocument) -> str:
         if not isinstance(document, ResearchReportDocument):
@@ -89,21 +115,15 @@ class ResearchReportMarkdownRenderer:
         lines = [
             f"# Research OS 专业研究报告｜{document.company_id}",
             "",
-            f"- 决策时点：{document.decision_ts.isoformat()}",
-            f"- 执行完成度：{document.execution_completion}",
-            f"- 研究就绪度：{document.research_readiness}",
+            f"- 决策时点：{document.decision_ts.date().isoformat()}",
+            f"- 执行完成度：{status_label(document.execution_completion)}",
+            f"- 研究就绪度：{status_label(document.research_readiness)}",
             "",
         ]
         for section in document.sections:
-            lines.extend((f"## {section.title}", ""))
+            lines.extend((f"<!-- section-id:{section.section_id} -->", f"## {section.title}", ""))
             for artifact in section.artifacts:
-                lines.extend(
-                    (
-                        f"### {artifact.title}",
-                        f"Schema: `{artifact.schema_version}`",
-                        "",
-                    )
-                )
+                lines.extend((f"### {artifact.title}", ""))
                 rendered = _render_payload(artifact.payload)
                 lines.extend(rendered or ["- 当前类型化产物未提供可展示值。"])
                 lines.append("")

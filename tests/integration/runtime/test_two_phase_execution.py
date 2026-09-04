@@ -9,6 +9,7 @@ from research_os.application.plan import ResearchPlanCompiler
 from research_os.contracts.evidence import EvidenceRef, EvidenceSet
 from research_os.contracts.values import AccountingScope
 from research_os.period.models import ReportingPeriod
+from research_os.version import RESEARCH_OS_VERSION
 from research_os.plugins.resolver import StrategyResolution
 from research_os.runtime.context import (
     BaselineFingerprint,
@@ -43,7 +44,7 @@ def _command() -> ResearchRunCommand:
                 repository_id=1350382205,
                 branch="main",
                 commit_sha=subprocess.check_output(("git", "rev-parse", "HEAD"), text=True).strip(),
-                research_os_version="1.6.0",
+                research_os_version=RESEARCH_OS_VERSION,
                 core_api_version="2.0",
             ),
             evidence=evidence,
@@ -111,12 +112,40 @@ def test_two_phase_execution_retains_bootstrap_and_engine_writes_precomputed_str
         "core:financial-fact-snapshot",
         "core:business-model",
     )
-    assert tuple(result.module_id for result in professional_execution.module_results) == (
+    professional_module_ids = tuple(
+        result.module_id for result in professional_execution.module_results
+    )
+    assert set(professional_module_ids) == {
         "core:resolved-strategy",
         "core:kpi-provider",
+        "core:professional-financial",
+        "core:professional-capital",
         "core:thesis-portfolio",
+        "core:professional-thesis-semantics",
+        "core:professional-expectation",
+        "core:professional-forecast",
+        "core:professional-peers",
+        "core:professional-valuation",
+        "core:professional-sensitivity",
+        "core:professional-monitoring",
+        "core:professional-methodology",
         "core:portfolio-decision",
+    }
+    assert professional_module_ids.index("core:resolved-strategy") < professional_module_ids.index(
+        "core:kpi-provider"
     )
+    assert professional_module_ids.index(
+        "core:professional-capital"
+    ) < professional_module_ids.index("core:professional-valuation")
+    assert professional_module_ids.index("core:professional-peers") < professional_module_ids.index(
+        "core:professional-valuation"
+    )
+    assert professional_module_ids.index(
+        "core:professional-thesis-semantics"
+    ) < professional_module_ids.index("core:portfolio-decision")
+    assert professional_module_ids.index(
+        "core:professional-valuation"
+    ) < professional_module_ids.index("core:portfolio-decision")
     assert professional_execution.snapshot.require(REPOSITORY_PREFLIGHT) == command.context.baseline
     assert professional_execution.snapshot.require(EVIDENCE_PIT) == EvidenceSet()
     assert professional_execution.snapshot.require(FINANCIAL_FACT_SNAPSHOT).facts == ()

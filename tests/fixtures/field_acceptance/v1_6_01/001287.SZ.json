@@ -1,0 +1,29 @@
+{
+  "schema_version": "field-acceptance-supplement@1.0.0",
+  "case_id": "001287.SZ",
+  "inputs": {
+    "prior_theses": [
+      {
+        "thesis_key": "distribution-growth-funding-risk",
+        "title": "分销增长依赖营运资金与融资循环稳定",
+        "statement": "收入增长只有在经营现金流与债务融资压力改善后才具备可持续性。",
+        "mechanism": "营运资金占用将收入增长传导为短期债务与融资成本压力。",
+        "anti_thesis": "若经营现金流修复且营运资金不再依赖新增债务，融资风险将下降。",
+        "status": "active",
+        "falsifier_statements": [
+          "经营现金流持续转正",
+          "营运资金增长不再由短期债务融资"
+        ],
+        "next_check_date": "2026-10-31",
+        "confidence": 0.9,
+        "claim_strength": "STRONG",
+        "evidence_ids": [
+          "ev:001287.SZ:operating-cash-flow",
+          "ev:001287.SZ:delta-debt",
+          "ev:001287.SZ:derecognized-receivables",
+          "ev:001287.SZ:financing-cost"
+        ]
+      }
+    ]
+  }
+}

@@ -19,35 +19,35 @@ _CODE = re.compile(r"`([^`]+)`")
 class ProfessionalHtmlRenderer:
     """Deterministic, presentation-only renderer for Research OS Markdown."""
 
-    version = "professional-html-renderer@1.0.0"
+    version = "professional-html-renderer@1.1.0"
 
-    _SECTION_LAYOUT = {
-        "投资决策快照": ("investment-decision-snapshot", "decision-snapshot"),
-        "核心投资判断": ("core-investment-judgment", "core-judgment"),
-        "财务与经营表现": ("financial-operating", "financial-operating"),
-        "资本效率与融资循环": ("capital-funding", "capital-funding"),
-        "关键因果链": ("causal-bridge", "causal-bridge"),
-        "投资逻辑与反证": ("thesis-debate", "thesis-debate"),
-        "市场预期与预测纪律": ("expectation-forecast", "expectation-forecast"),
-        "市场预期差": ("expectation-gap", "expectation-gap"),
-        "估值方法与适用性": ("valuation-methods", "valuation-methods"),
+    _SECTION_LAYOUT_BY_ID = {
+        "decision": "decision-snapshot",
+        "scope": "core-judgment",
+        "financial": "financial-operating",
+        "capital": "capital-funding",
+        "thesis": "thesis-debate",
+        "expectation": "expectation-forecast",
+        "valuation": "valuation",
+        "monitoring": "monitoring",
+        "readiness": "research-gaps",
+        "methodology": "methodology-disclosure",
+        "quality": "evidence-traceability",
+        "other": "standard-section",
+        "audit": "audit-appendix",
+    }
+
+    _LEGACY_SECTION_LAYOUT = {
+        "投资决策快照": ("decision", "decision-snapshot"),
+        "核心投资判断": ("scope", "core-judgment"),
+        "财务与经营表现": ("financial", "financial-operating"),
+        "资本效率与融资循环": ("capital", "capital-funding"),
+        "投资逻辑与反证": ("thesis", "thesis-debate"),
+        "市场预期与预测纪律": ("expectation", "expectation-forecast"),
         "估值与情景": ("valuation", "valuation"),
         "监控与验证": ("monitoring", "monitoring"),
-        "财务趋势": ("financial-trends", "financial-trends"),
-        "经营证据": ("operating-evidence", "operating-evidence"),
-        "现金流质量": ("cash-flow-quality", "cash-flow-quality"),
-        "同行与产品线比较": ("peer-comparison", "peer-comparison"),
-        "一致预期分布": ("consensus-dispersion", "consensus-dispersion"),
-        "敏感性与情景": ("sensitivity-scenarios", "sensitivity-scenarios"),
-        "监控规则与验证日历": ("monitoring-calendar", "monitoring-calendar"),
-        "上期判断回顾": ("prior-run-review", "prior-run-review"),
-        "方法说明": ("methodology-disclosure", "methodology-disclosure"),
-        "主张强度与语义边界": ("semantic-claims", "semantic-claims"),
-        "状态来源": ("state-provenance", "state-provenance"),
-        "研究缺口分类": ("research-gaps", "research-gaps"),
-        "关键研究限制": ("material-limitations", "research-gaps"),
-        "证据追溯": ("evidence-traceability", "evidence-traceability"),
-        "审计附录": ("audit-appendix", "audit-appendix"),
+        "方法说明": ("methodology", "methodology-disclosure"),
+        "审计附录": ("audit", "audit-appendix"),
     }
 
     @staticmethod
@@ -104,8 +104,13 @@ class ProfessionalHtmlRenderer:
         return output, index
 
     @classmethod
-    def _section_attributes(cls, title: str, sequence: int) -> tuple[str, str]:
-        section_id, section_class = cls._SECTION_LAYOUT.get(
+    def _section_attributes(
+        cls, title: str, sequence: int, explicit_section_id: str | None = None
+    ) -> tuple[str, str]:
+        if explicit_section_id is not None:
+            section_class = cls._SECTION_LAYOUT_BY_ID.get(explicit_section_id, "standard-section")
+            return explicit_section_id, f"report-section {section_class}"
+        section_id, section_class = cls._LEGACY_SECTION_LAYOUT.get(
             title,
             (f"report-section-{sequence}", "standard-section"),
         )
@@ -118,6 +123,7 @@ class ProfessionalHtmlRenderer:
         section_open = False
         list_open = False
         section_sequence = 0
+        pending_section_id: str | None = None
         index = 0
 
         def close_list() -> None:
@@ -134,6 +140,12 @@ class ProfessionalHtmlRenderer:
                 index += 1
                 continue
 
+            marker = re.fullmatch(r"<!--\s*section-id:([a-z0-9_-]+)\s*-->", stripped)
+            if marker:
+                pending_section_id = marker.group(1)
+                index += 1
+                continue
+
             heading = re.fullmatch(r"(#{1,4})\s+(.+)", stripped)
             if heading:
                 close_list()
@@ -143,7 +155,10 @@ class ProfessionalHtmlRenderer:
                     if section_open:
                         output.append("</section>")
                     section_sequence += 1
-                    section_id, section_class = cls._section_attributes(title, section_sequence)
+                    section_id, section_class = cls._section_attributes(
+                        title, section_sequence, pending_section_id
+                    )
+                    pending_section_id = None
                     output.append(f'<section id="{section_id}" class="{section_class}">')
                     section_open = True
                 output.append(f"<h{level}>{cls._inline(title)}</h{level}>")

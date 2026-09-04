@@ -15,6 +15,8 @@ from research_os.contracts.artifacts import (
 from research_os.contracts.artifact_values import (
     AssumptionRef,
     CashFlowQualityBridge,
+    ConsensusDistribution,
+    ConsensusObservation,
     MethodologyDisclosure,
     PriorRunReview,
     SensitivityCase,
@@ -28,6 +30,7 @@ from research_os.readiness import (
 )
 from research_os.runtime.core_artifacts import (
     CASH_FLOW_QUALITY_BRIDGE,
+    EXPECTATION_CONSENSUS_DISTRIBUTION,
     MONITORING_PRIOR_RUN_REVIEW,
     build_core_artifact_catalog,
 )
@@ -175,6 +178,48 @@ def test_value_embedded_evidence_ref_does_not_replace_envelope_lineage():
     assessment = evaluator.evaluate(_completion(), store.freeze())
 
     assert assessment.final_status == "NOT_READY"
+
+
+def test_insufficient_domain_status_cannot_pass_readiness_even_with_content_and_lineage():
+    from datetime import datetime, timezone
+
+    catalog = build_core_artifact_catalog()
+    store = ArtifactStore(catalog)
+    observation = ConsensusObservation(
+        source_key="consensus:single",
+        publish_ts=datetime(2026, 8, 30, tzinfo=timezone.utc),
+        forecast_period="2026FY",
+        metric_id="net_profit",
+        value=100.0,
+        evidence_refs=(_evidence_ref(),),
+    )
+    store.write(
+        ArtifactWrite(
+            EXPECTATION_CONSENSUS_DISTRIBUTION,
+            ConsensusDistribution(
+                domain_status="INSUFFICIENT_EVIDENCE",
+                metric_id="net_profit",
+                forecast_period="2026FY",
+                observations=(observation,),
+                source_count=1,
+            ),
+            "core:expectation",
+            evidence_refs=(_evidence_ref(),),
+        )
+    )
+    evaluator = ResearchReadinessEvaluator(
+        requirements=(
+            ReadinessRequirement(
+                "consensus",
+                (EXPECTATION_CONSENSUS_DISTRIBUTION,),
+            ),
+        )
+    )
+
+    assessment = evaluator.evaluate(_completion(), store.freeze())
+
+    assert assessment.final_status == "NOT_READY"
+    assert assessment.dimensions[0].status == "INCOMPLETE"
 
 
 def test_explicit_not_applicable_domain_status_needs_no_lineage():

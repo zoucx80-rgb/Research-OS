@@ -19,6 +19,7 @@ from research_os.runtime import (
     ResearchEngine,
 )
 from research_os.runtime.core_artifacts import RESEARCH_READINESS, build_core_artifact_catalog
+from research_os.version import CORE_API_VERSION, RESEARCH_OS_VERSION
 
 
 def _command() -> ResearchRunCommand:
@@ -34,8 +35,8 @@ def _command() -> ResearchRunCommand:
                 repository_id=1350382205,
                 branch="main",
                 commit_sha=subprocess.check_output(("git", "rev-parse", "HEAD"), text=True).strip(),
-                research_os_version="1.6.0",
-                core_api_version="2.0",
+                research_os_version=RESEARCH_OS_VERSION,
+                core_api_version=CORE_API_VERSION,
             ),
             evidence=EvidenceView([], company_id=company_id, decision_ts=decision_ts),
             facts=FactView(

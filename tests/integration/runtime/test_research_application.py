@@ -33,6 +33,7 @@ from research_os.runtime.core_artifacts import (
     STRATEGY_RESOLUTION,
 )
 from research_os.period.models import ReportingPeriod
+from research_os.version import CORE_API_VERSION, RESEARCH_OS_VERSION
 
 
 DECISION_TS = datetime(2026, 9, 2, tzinfo=timezone.utc)
@@ -79,8 +80,8 @@ def _command(
                 repository_id=1350382205,
                 branch="main",
                 commit_sha=subprocess.check_output(("git", "rev-parse", "HEAD"), text=True).strip(),
-                research_os_version="1.6.0",
-                core_api_version="2.0",
+                research_os_version=RESEARCH_OS_VERSION,
+                core_api_version=CORE_API_VERSION,
             ),
             evidence=evidence_view,
             facts=FactView(

@@ -147,7 +147,7 @@ jobs:
       - run: python scripts/verify_release_pipeline.py --stage release-gate
       - run: git diff --check
       - name: Build M5 single-commit delivery bundle
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.sha == '1cb163b38ac971dfc045e6adfe31e67efdd87af7'
         shell: bash
         run: |
           set -euo pipefail
@@ -155,7 +155,7 @@ jobs:
             --delivery-parent-sha abd19bbc7e22d7958df853333e0ba8cedff39f6f \
             --output-dir build/Research-OS-v1.6.0-delivery
       - name: Upload M5 delivery bundle
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.sha == '1cb163b38ac971dfc045e6adfe31e67efdd87af7'
         uses: actions/upload-artifact@v4
         with:
           name: Research-OS-v1.6.0-delivery

@@ -129,8 +129,11 @@ def _artifact_readiness_status(
     envelope = artifacts.envelope(key)
     if envelope is None:
         return "INCOMPLETE"
-    if getattr(envelope.value, "domain_status", None) == "NOT_APPLICABLE":
+    domain_status = getattr(envelope.value, "domain_status", None)
+    if domain_status == "NOT_APPLICABLE":
         return "NOT_APPLICABLE"
+    if domain_status == "INSUFFICIENT_EVIDENCE":
+        return "INCOMPLETE"
     if not _artifact_is_substantive(key, envelope.value):
         return "INCOMPLETE"
     if envelope.evidence_refs or _has_assumption_lineage(envelope.value):

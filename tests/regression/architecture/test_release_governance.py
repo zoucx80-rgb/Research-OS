@@ -15,7 +15,8 @@ from research_os.version import CORE_API_VERSION, RESEARCH_OS_VERSION
 
 def test_build_safe_version_leaf_is_the_single_product_identity_source():
     assert research_os.__version__ == RESEARCH_OS_VERSION == CURRENT_RELEASE.version
-    assert CORE_API_VERSION == CURRENT_RELEASE.core_api_version
+    assert RESEARCH_OS_VERSION == "1.6.01"
+    assert CORE_API_VERSION == CURRENT_RELEASE.core_api_version == "2.0"
 
     version_source = Path("src/research_os/version.py").read_text(encoding="utf-8")
     tree = ast.parse(version_source)
@@ -42,6 +43,7 @@ def test_release_gate_derives_required_checks_from_manifest_packs():
         "m3-professional-foundations",
         "m4-reporting-replay",
         "m5-quality-release",
+        "v1-6-01-professional-closure",
         "release-governance",
     )
     assert resolved["snapshot_schema_v2"] == "tests/unit/snapshots"
@@ -68,6 +70,15 @@ def test_release_gate_derives_required_checks_from_manifest_packs():
     )
     assert resolved["m5_release_contract"] == (
         "tests/regression/architecture/test_release_contract_v1_6_0.py"
+    )
+    assert resolved["v1_6_01_professional_wiring"] == (
+        "tests/regression/professional/test_v1_6_01_professional_wiring.py"
+    )
+    assert resolved["v1_6_01_investor_body"] == (
+        "tests/regression/presentation/test_v1_6_01_investor_body.py"
+    )
+    assert resolved["v1_6_01_field_acceptance_contract"] == (
+        "tests/integration/presentation/test_field_acceptance_v1_6_01.py"
     )
     assert resolved["release_governance"] == (
         "tests/regression/architecture/test_release_governance.py"
@@ -116,6 +127,16 @@ def test_ci_uses_stable_release_pipeline_instead_of_patch_specific_blocks():
     assert "build/field-acceptance-*" in workflow
     assert "build/historical-replay" in workflow
     assert "fetch-depth: 0" in workflow
+
+
+def test_v1_6_0_delivery_bundle_is_frozen_to_the_final_release_commit():
+    workflow = Path(".github/workflows/ci.yml").read_text(encoding="utf-8")
+    release_sha = "1cb163b38ac971dfc045e6adfe31e67efdd87af7"
+    guard = (
+        "github.event_name == 'push' && github.ref == 'refs/heads/main' && "
+        f"github.sha == '{release_sha}'"
+    )
+    assert workflow.count(f"if: {guard}") == 2
 
 
 def test_release_governance_keeps_acceptance_company_identity_out_of_production():

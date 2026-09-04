@@ -10,6 +10,8 @@ import sys
 import tempfile
 import zipfile
 
+from packaging.version import InvalidVersion, Version
+
 ROOT = Path(__file__).resolve().parents[1]
 
 FORBIDDEN_WHEEL_PARTS = (
@@ -23,6 +25,15 @@ FORBIDDEN_WHEEL_PARTS = (
     "/tests/",
     "/build/",
 )
+
+
+def distribution_version_matches(distribution_version: str, release_version: str) -> bool:
+    """Compare package metadata using PEP 440 while preserving the public release string."""
+
+    try:
+        return Version(distribution_version) == Version(release_version)
+    except InvalidVersion:
+        return False
 
 
 def wheel_inventory(wheel: Path) -> tuple[str, ...]:
@@ -68,6 +79,7 @@ def verify_installed_wheel(wheel: Path) -> None:
         metadata_probe = """
 import json
 from importlib.metadata import version
+from packaging.version import Version
 import research_os
 from research_os.api.app import create_app
 from research_os.version import (
@@ -77,8 +89,8 @@ from research_os.version import (
     RESEARCH_OS_VERSION,
     SNAPSHOT_SCHEMA_VERSION,
 )
-assert version('research-os') == RESEARCH_OS_VERSION == '1.6.0'
-assert research_os.__version__ == '1.6.0'
+assert Version(version('research-os')) == Version(RESEARCH_OS_VERSION) == Version('1.6.01')
+assert research_os.__version__ == RESEARCH_OS_VERSION == '1.6.01'
 assert CORE_API_VERSION == '2.0'
 assert PLUGIN_API_VERSION == '2.0'
 assert SNAPSHOT_SCHEMA_VERSION == '2.0'

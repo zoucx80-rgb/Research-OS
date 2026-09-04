@@ -21,6 +21,9 @@ class PresentedArtifact(_FrozenReportModel):
     producer_ids: tuple[str, ...] = Field(default_factory=tuple)
     evidence_refs: tuple[EvidenceRef, ...] = Field(default_factory=tuple)
     value_fingerprint: str
+    section_id: str = "other"
+    title: str = ""
+    audit_only: bool = False
     payload: JsonValue
 
 

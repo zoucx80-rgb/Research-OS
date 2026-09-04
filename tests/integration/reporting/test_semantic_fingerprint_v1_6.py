@@ -29,6 +29,7 @@ from research_os.semantics.fingerprint import semantic_fingerprint
 from research_os.semantics.preservation import SemanticPreservationValidator
 from research_os.snapshots.codec import SnapshotCodecV2
 from research_os.snapshots.service import SnapshotService
+from research_os.version import CORE_API_VERSION, RESEARCH_OS_VERSION
 
 
 DECISION_TS = datetime(2026, 9, 3, 8, 0, tzinfo=timezone.utc)
@@ -75,8 +76,8 @@ def _run(run_id: str):
                 repository_id=1350382205,
                 branch="main",
                 commit_sha=_head(),
-                research_os_version="1.6.0",
-                core_api_version="2.0",
+                research_os_version=RESEARCH_OS_VERSION,
+                core_api_version=CORE_API_VERSION,
             ),
             evidence=evidence,
             facts=FactView(

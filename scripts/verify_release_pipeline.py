@@ -49,14 +49,14 @@ def _run_current_field_acceptance() -> None:
         or subprocess.check_output(("git", "-C", str(ROOT), "rev-parse", "HEAD"), text=True).strip()
     )
     _run(
-        "current v1.6.0 field acceptance",
+        "current v1.6.01 real-company field acceptance",
         [
             sys.executable,
-            "scripts/render_field_acceptance_v1_6_0.py",
-            "--input-dir",
-            "tests/fixtures/field_acceptance/v1_6_0",
+            "scripts/render_field_acceptance_v1_6_01.py",
+            "--case-manifest",
+            "tests/fixtures/field_acceptance/v1_6_01/cases.json",
             "--output-dir",
-            "build/field-acceptance-v1.6.0",
+            "build/field-acceptance-v1.6.01",
             "--repository-root",
             ".",
             "--commit-sha",

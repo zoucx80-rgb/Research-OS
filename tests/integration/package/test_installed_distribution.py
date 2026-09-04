@@ -5,7 +5,7 @@ import zipfile
 
 import pytest
 
-from scripts.verify_distribution import wheel_inventory
+from scripts.verify_distribution import distribution_version_matches, wheel_inventory
 
 
 def _write_wheel(path: Path, names: tuple[str, ...]) -> Path:
@@ -13,6 +13,11 @@ def _write_wheel(path: Path, names: tuple[str, ...]) -> Path:
         for name in names:
             archive.writestr(name, "fixture")
     return path
+
+
+def test_distribution_version_accepts_pep440_normalization() -> None:
+    assert distribution_version_matches("1.6.1", "1.6.01") is True
+    assert distribution_version_matches("1.6.2", "1.6.01") is False
 
 
 def test_wheel_inventory_requires_research_os_package(tmp_path: Path) -> None:

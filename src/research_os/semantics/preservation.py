@@ -336,7 +336,16 @@ class SemanticPreservationValidator:
                         field="audit_appendix",
                     )
                 )
-            if document_payloads.get(identity) != presented.payload:
+            if presented.audit_only:
+                if identity in document_payloads:
+                    violations.append(
+                        SemanticViolation(
+                            code="AUDIT_ONLY_ARTIFACT_LEAKED_TO_BODY",
+                            item_id=envelope.key.artifact_id,
+                            field="payload",
+                        )
+                    )
+            elif document_payloads.get(identity) != presented.payload:
                 violations.append(
                     SemanticViolation(
                         code="DOCUMENT_ARTIFACT_PAYLOAD_MISMATCH",

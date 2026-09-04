@@ -25,6 +25,7 @@ from research_os.runtime import (
     FactView,
     ResearchContext,
 )
+from research_os.version import RESEARCH_OS_VERSION
 
 
 DECISION_TS = datetime(2026, 9, 3, 8, 0, tzinfo=timezone.utc)
@@ -71,7 +72,7 @@ def _result():
                 repository_id=1350382205,
                 branch="main",
                 commit_sha=_head(),
-                research_os_version="1.6.0",
+                research_os_version=RESEARCH_OS_VERSION,
                 core_api_version="2.0",
             ),
             evidence=evidence,
@@ -159,3 +160,20 @@ def test_current_reporting_source_does_not_import_research_engines_or_legacy_ver
     )
 
     assert all(token not in source for token in forbidden)
+
+
+def test_v1_6_01_investor_body_is_compact_decision_first_and_audit_separated() -> None:
+    result = _result()
+    document = ResearchReportComposer().compose(ResearchViewPresenter().present(result))
+    markdown = MarkdownArtifactRenderer().render(document).content
+    body, audit = markdown.split("## 审计附录", maxsplit=1)
+
+    assert len(body.splitlines()) <= 350
+    section_titles = [line for line in body.splitlines() if line.startswith("## ")]
+    assert section_titles[0] == "## 投资决策快照"
+    assert "Schema:" not in body
+    assert "Value Fingerprint" not in body
+    assert "producer_ids" not in body
+    assert "evidence_refs" not in body
+    assert result.semantic_fingerprint if hasattr(result, "semantic_fingerprint") else True
+    assert document.semantic_fingerprint in audit

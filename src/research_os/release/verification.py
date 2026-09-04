@@ -56,6 +56,16 @@ _M5_QUALITY_RELEASE_CHECKS: dict[str, str] = {
     "m5_release_contract": "tests/regression/architecture/test_release_contract_v1_6_0.py",
     "m5_installed_distribution": "tests/integration/package/test_installed_distribution.py",
 }
+_V1_6_01_PROFESSIONAL_CLOSURE_CHECKS: dict[str, str] = {
+    "v1_6_01_professional_wiring": (
+        "tests/regression/professional/test_v1_6_01_professional_wiring.py"
+    ),
+    "v1_6_01_investor_body": ("tests/regression/presentation/test_v1_6_01_investor_body.py"),
+    "v1_6_01_section_ids": "tests/integration/presentation/test_v1_6_01_section_ids.py",
+    "v1_6_01_field_acceptance_contract": (
+        "tests/integration/presentation/test_field_acceptance_v1_6_01.py"
+    ),
+}
 
 CHECK_REGISTRY: Mapping[str, str] = {
     **_BASELINE_CHECKS,
@@ -63,6 +73,7 @@ CHECK_REGISTRY: Mapping[str, str] = {
     **_M3_PROFESSIONAL_FOUNDATIONS_CHECKS,
     **_M4_REPORTING_REPLAY_CHECKS,
     **_M5_QUALITY_RELEASE_CHECKS,
+    **_V1_6_01_PROFESSIONAL_CLOSURE_CHECKS,
     **_RELEASE_GOVERNANCE_CHECKS,
 }
 
@@ -86,6 +97,10 @@ PACK_REGISTRY: Mapping[str, VerificationPack] = {
     "m5-quality-release": VerificationPack(
         pack_id="m5-quality-release",
         check_ids=tuple(_M5_QUALITY_RELEASE_CHECKS),
+    ),
+    "v1-6-01-professional-closure": VerificationPack(
+        pack_id="v1-6-01-professional-closure",
+        check_ids=tuple(_V1_6_01_PROFESSIONAL_CLOSURE_CHECKS),
     ),
     "release-governance": VerificationPack(
         pack_id="release-governance",

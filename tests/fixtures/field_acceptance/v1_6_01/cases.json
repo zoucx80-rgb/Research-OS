@@ -1,0 +1,37 @@
+{
+  "schema_version": "field-acceptance-v1.6.01@1",
+  "decision_ts": "2026-08-30T00:00:00Z",
+  "body_max_lines": 350,
+  "cases": [
+    {
+      "case_id": "300034.SZ",
+      "source_fixture": "tests/fixtures/field_acceptance/v1_5_09/300034.SZ.json",
+      "supplement_fixture": "tests/fixtures/field_acceptance/v1_5_12/300034.SZ.json",
+      "expected_primary_model": "manufacturing",
+      "expected_research_depth": "PASS",
+      "required_body_terms": ["制造业", "估值方法与适用性", "模型分歧"],
+      "forbidden_body_terms": ["ev:300034.SZ", "Schema:", "http://", "https://"],
+      "forbidden_anywhere_terms": ["经济护城河已实现", "周期底部已确认"]
+    },
+    {
+      "case_id": "001287.SZ",
+      "source_fixture": "tests/fixtures/field_acceptance/v1_5_09/001287.SZ.json",
+      "supplement_fixture": "tests/fixtures/field_acceptance/v1_6_01/001287.SZ.json",
+      "expected_primary_model": "distributor",
+      "expected_research_depth": "LIMITED",
+      "expected_decision_state": "RISK_REVIEW",
+      "required_body_terms": ["分销业务", "融资循环", "风险审查"],
+      "forbidden_body_terms": ["ev:001287.SZ", "Schema:", "http://", "https://"],
+      "forbidden_anywhere_terms": ["新增外部股权融资：0", "主估值区间下限：0"]
+    },
+    {
+      "case_id": "301073.SZ",
+      "source_fixture": "tests/fixtures/field_acceptance/v1_5_09/301073.SZ.json",
+      "expected_primary_model": "hospitality",
+      "expected_research_depth": "LIMITED",
+      "required_body_terms": ["酒店与住宿服务", "租赁特征显著"],
+      "forbidden_body_terms": ["ev:301073.SZ", "Schema:", "http://", "https://", "plugin_id"],
+      "forbidden_anywhere_terms": ["RevPAR", "ADR", "OCC", "同店增长", "lease-adjusted ROIC", "lease-adjusted valuation"]
+    }
+  ]
+}
