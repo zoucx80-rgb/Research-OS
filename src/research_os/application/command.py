@@ -30,6 +30,7 @@ from research_os.contracts.artifact_values import (
     ModelFitnessInputs,
 )
 from research_os.runtime.context import ResearchContext
+from research_os.temporal.models import FinancialPeriodObservation
 
 
 class _FrozenInput(BaseModel):
@@ -55,7 +56,49 @@ class FinancialResearchInput(_FrozenInput):
     observations: tuple[FinancialObservation, ...] = Field(default_factory=tuple)
     operating_observations: tuple[OperatingObservation, ...] = Field(default_factory=tuple)
     time_series: tuple[FinancialTimeSeries, ...] = Field(default_factory=tuple)
+    period_observations: tuple[FinancialPeriodObservation, ...] = Field(default_factory=tuple)
     cash_flow_quality: CashFlowQualityInput | None = None
+
+    @field_validator("period_observations")
+    @classmethod
+    def _canonical_period_observations(
+        cls,
+        value: tuple[FinancialPeriodObservation, ...],
+    ) -> tuple[FinancialPeriodObservation, ...]:
+        def identity(item: FinancialPeriodObservation) -> tuple[object, ...]:
+            period = item.reporting_period
+            return (
+                item.metric_id,
+                item.unit,
+                item.accounting_scope.model_dump_json(),
+                item.period_kind,
+                period.period_type,
+                period.period_start,
+                period.period_end,
+                period.period_days,
+                period.is_cumulative,
+            )
+
+        identities = tuple(identity(item) for item in value)
+        if len(identities) != len(set(identities)):
+            raise ValueError("period observation identities must be unique")
+
+        def sort_key(item: FinancialPeriodObservation) -> tuple[object, ...]:
+            period = item.reporting_period
+            return (
+                item.metric_id,
+                item.unit,
+                item.accounting_scope.model_dump_json(),
+                item.period_kind,
+                period.period_type,
+                period.period_end.isoformat() if period.period_end is not None else "",
+                period.period_start.isoformat() if period.period_start is not None else "",
+                period.period_days if period.period_days is not None else 0,
+                period.is_cumulative,
+                item.available_ts,
+            )
+
+        return tuple(sorted(value, key=sort_key))
 
 
 class ThesisResearchInput(_FrozenInput):

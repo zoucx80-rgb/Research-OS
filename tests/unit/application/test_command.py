@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import inspect
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
+from decimal import Decimal
 from typing import get_args, get_origin
 
 import pytest
@@ -31,6 +32,7 @@ from research_os.runtime.context import (
     FactView,
     ResearchContext,
 )
+from research_os.temporal.models import FinancialPeriodObservation
 
 
 def _evidence_ref() -> EvidenceRef:
@@ -65,6 +67,33 @@ def _context() -> ResearchContext:
             reporting_period=ReportingPeriod(period_type="FY"),
             accounting_scope=AccountingScope(),
         ),
+    )
+
+
+def _period_observation(
+    metric_id: str,
+    *,
+    period_end: date,
+    value: Decimal,
+    include_period_start: bool = True,
+) -> FinancialPeriodObservation:
+    return FinancialPeriodObservation(
+        metric_id=metric_id,
+        reporting_period=ReportingPeriod(
+            period_type="FY",
+            period_start=date(period_end.year, 1, 1) if include_period_start else None,
+            period_end=period_end,
+            period_days=366 if period_end.year % 4 == 0 else 365,
+            is_cumulative=True,
+        ),
+        period_kind="FLOW",
+        value=value,
+        unit="CNY",
+        accounting_scope=AccountingScope(consolidation="consolidated"),
+        value_kind="reported",
+        comparison_basis="YOY_PERIOD",
+        available_ts=datetime(period_end.year + 1, 3, 31, tzinfo=timezone.utc),
+        evidence_refs=(_evidence_ref(),),
     )
 
 
@@ -131,6 +160,60 @@ def test_command_nested_fields_are_observably_immutable():
     unchanged = command.financial.observations[0]
     assert unchanged.value == 100.0
     assert unchanged.evidence_refs == (_evidence_ref(),)
+
+
+def test_financial_command_accepts_and_orders_period_observations() -> None:
+    current = _period_observation(
+        "revenue",
+        period_end=date(2024, 12, 31),
+        value=Decimal("110"),
+    )
+    prior = _period_observation(
+        "revenue",
+        period_end=date(2023, 12, 31),
+        value=Decimal("100"),
+    )
+
+    command = ResearchRunCommand(
+        context=_context(),
+        financial=FinancialResearchInput(period_observations=(current, prior)),
+    )
+
+    assert tuple(
+        item.reporting_period.period_end for item in command.financial.period_observations
+    ) == (date(2023, 12, 31), date(2024, 12, 31))
+
+
+def test_financial_command_rejects_duplicate_period_observation_identity() -> None:
+    observation = _period_observation(
+        "revenue",
+        period_end=date(2024, 12, 31),
+        value=Decimal("110"),
+    )
+
+    with pytest.raises(ValidationError, match="period observation identities must be unique"):
+        FinancialResearchInput(period_observations=(observation, observation))
+
+
+def test_financial_command_orders_periods_when_optional_start_is_missing() -> None:
+    current = _period_observation(
+        "revenue",
+        period_end=date(2024, 12, 31),
+        value=Decimal("110"),
+    )
+    prior = _period_observation(
+        "revenue",
+        period_end=date(2023, 12, 31),
+        value=Decimal("100"),
+        include_period_start=False,
+    )
+
+    financial = FinancialResearchInput(period_observations=(current, prior))
+
+    assert tuple(item.reporting_period.period_end for item in financial.period_observations) == (
+        date(2023, 12, 31),
+        date(2024, 12, 31),
+    )
 
 
 @pytest.mark.parametrize(

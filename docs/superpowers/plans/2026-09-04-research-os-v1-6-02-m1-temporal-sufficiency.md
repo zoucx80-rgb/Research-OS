@@ -48,7 +48,7 @@
 - Consumes: `ReportingPeriod`, `AccountingScope`, `LineageValue`, `DomainArtifact`.
 - Produces: `FinancialPeriodObservation`, `MetricTemporalAssessment`, `FinancialTemporalAnalysis`, `FinancialResearchInput.period_observations`.
 
-- [ ] **Step 1: Write contract RED tests**
+- [x] **Step 1: Write contract RED tests**
 
 ```python
 def test_period_observation_requires_utc_availability_and_lineage() -> None:
@@ -72,7 +72,7 @@ def test_financial_command_accepts_period_observations() -> None:
     assert command.financial.period_observations[0].metric_id == "revenue"
 ```
 
-- [ ] **Step 2: Run RED**
+- [x] **Step 2: Run RED**
 
 ```bash
 pytest -q tests/unit/temporal/test_models.py tests/unit/application/test_command.py
@@ -80,7 +80,7 @@ pytest -q tests/unit/temporal/test_models.py tests/unit/application/test_command
 
 Expected: FAIL because the temporal types and command field do not exist.
 
-- [ ] **Step 3: Implement the contract types**
+- [x] **Step 3: Implement the contract types**
 
 ```python
 TemporalComparisonBasis = Literal["YOY_PERIOD", "QOQ_PERIOD", "TTM", "SAME_PERIOD"]
@@ -126,7 +126,7 @@ class FinancialTemporalAnalysis(DomainArtifact):
 
 Normalize timestamps to UTC, require evidence for reported values, reject duplicate identities, and canonicalize order by metric/scope/unit/period end.
 
-- [ ] **Step 4: Add the command field**
+- [x] **Step 4: Add the command field**
 
 ```python
 class FinancialResearchInput(_FrozenInput):
@@ -138,7 +138,7 @@ class FinancialResearchInput(_FrozenInput):
     cash_flow_quality: CashFlowQualityInput | None = None
 ```
 
-- [ ] **Step 5: Run GREEN and commit**
+- [x] **Step 5: Run GREEN and commit**
 
 ```bash
 pytest -q tests/unit/temporal/test_models.py tests/unit/application/test_command.py
