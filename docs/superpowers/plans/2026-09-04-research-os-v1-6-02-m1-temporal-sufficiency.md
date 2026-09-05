@@ -219,7 +219,7 @@ git commit -m "feat: derive comparable financial trends"
 - Consumes: `FinancialResearchInput.period_observations`, `ResearchContext.decision_ts`.
 - Produces: `FINANCIAL_TEMPORAL_ANALYSIS: ArtifactKey[FinancialTemporalAnalysis]`.
 
-- [ ] **Step 1: Write module RED**
+- [x] **Step 1: Write module RED**
 
 ```python
 def test_financial_module_publishes_temporal_analysis() -> None:
@@ -230,7 +230,7 @@ def test_financial_module_publishes_temporal_analysis() -> None:
     assert temporal.evidence_refs
 ```
 
-- [ ] **Step 2: Register the key and implement the write**
+- [x] **Step 2: Register the key and implement the write**
 
 ```python
 FINANCIAL_TEMPORAL_ANALYSIS = ArtifactKey(
@@ -242,7 +242,7 @@ FINANCIAL_TEMPORAL_ANALYSIS = ArtifactKey(
 
 Add it to `CORE_ARTIFACT_KEYS` and `FinancialResearchModule.spec.provides`; call `TemporalAnalysisService.analyze` and write with producer `core:professional-financial`. Do not derive from the legacy presentation-oriented string period.
 
-- [ ] **Step 3: Run GREEN and commit**
+- [x] **Step 3: Run GREEN and commit**
 
 ```bash
 pytest -q tests/unit/contracts/test_core_artifacts.py tests/integration/runtime/test_temporal_sufficiency.py tests/unit/snapshots tests/property/snapshots

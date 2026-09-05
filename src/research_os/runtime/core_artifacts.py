@@ -46,6 +46,7 @@ from research_os.readiness.models import ResearchReadinessAssessment
 from research_os.router.models import BusinessModelProfile
 from research_os.runtime.context import BaselineFingerprint
 from research_os.runtime.financial_snapshot import EVIDENCE_PIT, FINANCIAL_FACT_SNAPSHOT
+from research_os.temporal.models import FinancialTemporalAnalysis
 
 
 _SCHEMA_VERSION = "2.0"
@@ -74,6 +75,11 @@ FINANCIAL_TIME_SERIES = ArtifactKey(
     artifact_id="financial.time_series",
     schema_version=_SCHEMA_VERSION,
     value_type=FinancialTimeSeriesSet,
+)
+FINANCIAL_TEMPORAL_ANALYSIS = ArtifactKey(
+    artifact_id="financial.temporal_analysis",
+    schema_version=_SCHEMA_VERSION,
+    value_type=FinancialTemporalAnalysis,
 )
 RESEARCH_OPERATING_EVIDENCE = ArtifactKey(
     artifact_id="research.operating_evidence",
@@ -230,6 +236,7 @@ CORE_ARTIFACT_KEYS = (
     STRATEGY_RESOLUTION,
     KPI_METRICS,
     FINANCIAL_TIME_SERIES,
+    FINANCIAL_TEMPORAL_ANALYSIS,
     RESEARCH_OPERATING_EVIDENCE,
     EXPECTATION_CONSENSUS_DISTRIBUTION,
     SCENARIO_SENSITIVITIES,

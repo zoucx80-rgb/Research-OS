@@ -17,6 +17,7 @@ from research_os.runtime.context import ResearchContext
 from research_os.runtime.core_artifacts import CAPITAL_EFFICIENCY
 from research_os.runtime.core_artifacts import CAPITAL_FUNDING_LOOP
 from research_os.runtime.core_artifacts import CASH_FLOW_QUALITY_BRIDGE
+from research_os.runtime.core_artifacts import FINANCIAL_TEMPORAL_ANALYSIS
 from research_os.runtime.core_artifacts import FINANCIAL_TIME_SERIES
 from research_os.runtime.core_artifacts import RESEARCH_OPERATING_EVIDENCE
 from research_os.runtime.core_artifacts import VALIDATION_FINANCIAL
@@ -25,6 +26,7 @@ from research_os.runtime.modules import ModuleSpec
 from research_os.runtime.modules import ModuleStatus
 from research_os.runtime.state import ResearchStateView
 from research_os.application.professional_modules._common import _fact_refs, _lineage_refs
+from research_os.temporal.service import TemporalAnalysisService
 
 
 class FinancialResearchModule:
@@ -35,6 +37,7 @@ class FinancialResearchModule:
         provides=frozenset(
             (
                 FINANCIAL_TIME_SERIES,
+                FINANCIAL_TEMPORAL_ANALYSIS,
                 RESEARCH_OPERATING_EVIDENCE,
                 CASH_FLOW_QUALITY_BRIDGE,
                 VALIDATION_FINANCIAL,
@@ -48,15 +51,20 @@ class FinancialResearchModule:
 
     def run(self, context: ResearchContext, state: ResearchStateView) -> ModuleResult:
         time_refs = _lineage_refs(self._input.time_series)
+        period_refs = _lineage_refs(self._input.period_observations)
         operating_refs = _lineage_refs(self._input.operating_observations)
         cash_input = self._input.cash_flow_quality
         cash_refs = _lineage_refs(cash_input) if cash_input is not None else ()
-        all_refs = _lineage_refs(time_refs, operating_refs, cash_refs)
+        all_refs = _lineage_refs(time_refs, period_refs, operating_refs, cash_refs)
 
         time_series = FinancialTimeSeriesSet(
             domain_status="SUPPORTED" if self._input.time_series else "INSUFFICIENT_EVIDENCE",
             series=self._input.time_series,
             evidence_refs=time_refs,
+        )
+        temporal_analysis = TemporalAnalysisService().analyze(
+            self._input.period_observations,
+            decision_ts=context.decision_ts,
         )
         operating = OperatingEvidenceSet(
             domain_status=(
@@ -111,6 +119,12 @@ class FinancialResearchModule:
                 value=time_series,
                 producer_id=self.spec.module_id,
                 evidence_refs=time_refs,
+            ),
+            ArtifactWrite(
+                key=FINANCIAL_TEMPORAL_ANALYSIS,
+                value=temporal_analysis,
+                producer_id=self.spec.module_id,
+                evidence_refs=period_refs,
             ),
             ArtifactWrite(
                 key=RESEARCH_OPERATING_EVIDENCE,

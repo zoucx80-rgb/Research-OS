@@ -41,6 +41,7 @@ EXPECTED_ARTIFACT_IDS = {
     "expectation.quality",
     "expectation.snapshot",
     "financial.fact_snapshot",
+    "financial.temporal_analysis",
     "financial.time_series",
     "forecast.evaluation",
     "kpi.metrics",
