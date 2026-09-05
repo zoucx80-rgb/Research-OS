@@ -20,6 +20,9 @@ from research_os.application.professional_modules.monitoring_methodology import 
     MonitoringResearchModule,
     MethodologyDisclosureModule,
 )
+from research_os.application.professional_modules.sufficiency import (
+    ResearchSufficiencyModule,
+)
 
 __all__ = (
     "FinancialResearchModule",
@@ -32,4 +35,5 @@ __all__ = (
     "SensitivityResearchModule",
     "MonitoringResearchModule",
     "MethodologyDisclosureModule",
+    "ResearchSufficiencyModule",
 )

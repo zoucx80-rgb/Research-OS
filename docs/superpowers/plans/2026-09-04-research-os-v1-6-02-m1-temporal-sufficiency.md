@@ -267,7 +267,7 @@ git commit -m "feat: publish financial temporal analysis"
 - Consumes: `ResearchStateView` and known professional artifact keys.
 - Produces: `ResearchSufficiencyEvaluator.evaluate(state) -> ResearchSufficiencyAssessment`, artifact `RESEARCH_SUFFICIENCY`.
 
-- [ ] **Step 1: Write RED**
+- [x] **Step 1: Write RED**
 
 ```python
 def test_sufficiency_explains_upgrade_evidence() -> None:
@@ -278,7 +278,7 @@ def test_sufficiency_explains_upgrade_evidence() -> None:
     assert temporal.why_unknown and temporal.upgrade_evidence_requirements
 ```
 
-- [ ] **Step 2: Implement values and evaluator**
+- [x] **Step 2: Implement values and evaluator**
 
 ```python
 CoverageLevel = Literal["COMPLETE", "PARTIAL", "MISSING", "NOT_APPLICABLE"]
@@ -315,7 +315,7 @@ class ResearchSufficiencyAssessment(DomainArtifact):
 
 Implement deterministic ordering, unique domain/gap identities, and `require_domain`. The evaluator uses artifact status plus domain-specific substance; it does not emit a pseudo-probability score.
 
-- [ ] **Step 3: Register/module-wire and commit**
+- [x] **Step 3: Register/module-wire and commit**
 
 ```python
 RESEARCH_SUFFICIENCY = ArtifactKey(

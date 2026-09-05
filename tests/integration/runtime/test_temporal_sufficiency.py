@@ -4,10 +4,18 @@ from datetime import date, datetime, timezone
 from decimal import Decimal
 
 from research_os.application.command import FinancialResearchInput, ResearchRunCommand
-from research_os.application.professional_modules import FinancialResearchModule
+from research_os.application.plan import ResolvedStrategyModule
+from research_os.application.professional_modules import (
+    FinancialResearchModule,
+    MethodologyDisclosureModule,
+    ResearchSufficiencyModule,
+)
+from research_os.contracts.artifacts import ArtifactStore, ArtifactWrite
 from research_os.contracts.evidence import EvidenceRef
 from research_os.contracts.values import AccountingScope
 from research_os.period.models import ReportingPeriod
+from research_os.plugins.resolver import StrategyResolution
+from research_os.router.models import BusinessModelProfile
 from research_os.runtime import (
     BaselineFingerprint,
     CompanyRef,
@@ -18,7 +26,9 @@ from research_os.runtime import (
     ResearchEngine,
 )
 from research_os.runtime.core_artifacts import (
+    BUSINESS_MODEL_PROFILE,
     FINANCIAL_TEMPORAL_ANALYSIS,
+    RESEARCH_SUFFICIENCY,
     build_core_artifact_catalog,
 )
 from research_os.temporal.models import FinancialPeriodObservation
@@ -107,3 +117,49 @@ def test_financial_module_publishes_temporal_analysis_through_engine() -> None:
         "core:professional-financial",
     )
     assert execution.module_results[0].status == "PASS"
+
+
+def test_sufficiency_module_runs_after_methodology_and_publishes_through_engine() -> None:
+    command = _command()
+    catalog = build_core_artifact_catalog()
+    initial = ArtifactStore(catalog)
+    initial.write(
+        ArtifactWrite(
+            key=BUSINESS_MODEL_PROFILE,
+            value=BusinessModelProfile(
+                company_id=COMPANY_ID,
+                primary_model="unknown",
+                classification_status="INSUFFICIENT_EVIDENCE",
+            ),
+            producer_id="test:business-model",
+        )
+    )
+    plan = ModulePlanCompiler(catalog).compile(
+        (
+            ResearchSufficiencyModule(),
+            FinancialResearchModule(command),
+            MethodologyDisclosureModule(),
+            ResolvedStrategyModule(StrategyResolution()),
+        ),
+        initial_snapshot=initial.freeze(),
+    )
+
+    execution = ResearchEngine().execute(
+        plan,
+        command.context,
+        catalog,
+        initial_snapshot=initial.freeze(),
+    )
+
+    assert plan.module_ids == (
+        "core:professional-financial",
+        "core:resolved-strategy",
+        "core:professional-methodology",
+        "core:research-sufficiency",
+    )
+    sufficiency = execution.snapshot.require(RESEARCH_SUFFICIENCY)
+    assert sufficiency.overall_status == "SUFFICIENT"
+    assert sufficiency.require_domain("financial_temporal").temporal_coverage == "COMPLETE"
+    assert execution.snapshot.envelope(RESEARCH_SUFFICIENCY).producer_ids == (
+        "core:research-sufficiency",
+    )

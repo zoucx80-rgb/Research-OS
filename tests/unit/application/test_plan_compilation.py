@@ -124,6 +124,7 @@ def test_research_plan_uses_bootstrap_snapshot_and_adds_only_resolved_strategy_m
         "core:professional-sensitivity",
         "core:professional-monitoring",
         "core:professional-methodology",
+        "core:research-sufficiency",
         "core:portfolio-decision",
     }
     assert plan.module_ids.index("core:professional-capital") < plan.module_ids.index(
@@ -133,6 +134,12 @@ def test_research_plan_uses_bootstrap_snapshot_and_adds_only_resolved_strategy_m
         "core:professional-thesis-semantics"
     )
     assert plan.module_ids.index("core:professional-valuation") < plan.module_ids.index(
+        "core:portfolio-decision"
+    )
+    assert plan.module_ids.index("core:professional-methodology") < plan.module_ids.index(
+        "core:research-sufficiency"
+    )
+    assert plan.module_ids.index("core:research-sufficiency") < plan.module_ids.index(
         "core:portfolio-decision"
     )
     assert plan.initial_snapshot is snapshot

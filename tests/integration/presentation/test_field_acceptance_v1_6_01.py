@@ -51,6 +51,7 @@ EXPECTED_ARTIFACT_IDS = {
     "peers.normalized",
     "research.operating_evidence",
     "research.readiness",
+    "research.sufficiency",
     "scenario.sensitivities",
     "semantic.claims",
     "strategy.resolution",

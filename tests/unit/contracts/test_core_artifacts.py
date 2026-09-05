@@ -51,6 +51,7 @@ from research_os.runtime.financial_snapshot import FinancialFactSnapshot
 from research_os.plugins.resolver import StrategyResolution
 from research_os.router.models import BusinessModelProfile
 from research_os.runtime.context import BaselineFingerprint
+from research_os.sufficiency.models import ResearchSufficiencyAssessment
 from research_os.temporal.models import FinancialTemporalAnalysis
 
 
@@ -67,6 +68,7 @@ def test_core_catalog_registers_every_strictly_typed_durable_artifact() -> None:
         "financial.time_series": FinancialTimeSeriesSet,
         "financial.temporal_analysis": FinancialTemporalAnalysis,
         "research.operating_evidence": OperatingEvidenceSet,
+        "research.sufficiency": ResearchSufficiencyAssessment,
         "expectation.consensus_distribution": ConsensusDistribution,
         "scenario.sensitivities": SensitivitySet,
         "methodology.disclosure": MethodologyDisclosure,

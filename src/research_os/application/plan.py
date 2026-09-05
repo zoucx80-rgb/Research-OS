@@ -14,6 +14,7 @@ from research_os.application.professional_modules import (
     MethodologyDisclosureModule,
     MonitoringResearchModule,
     PeerResearchModule,
+    ResearchSufficiencyModule,
     SensitivityResearchModule,
     ValuationResearchModule,
 )
@@ -51,6 +52,7 @@ from research_os.runtime.core_artifacts import (
     DECISION_STATE_PROVENANCE,
     EXPECTATION_GAP,
     KPI_METRICS,
+    RESEARCH_SUFFICIENCY,
     SEMANTIC_CLAIMS,
     STRATEGY_RESOLUTION,
     THESIS_PORTFOLIO,
@@ -226,6 +228,7 @@ class PortfolioDecisionModule:
                 VALUATION_RECONCILIATION,
                 THESIS_SEMANTIC_SIGNAL_ASSESSMENT,
                 SEMANTIC_CLAIMS,
+                RESEARCH_SUFFICIENCY,
             )
         ),
         provides=frozenset((DECISION_RECORD, DECISION_STATE_PROVENANCE)),
@@ -474,6 +477,7 @@ class ResearchPlanCompiler:
             SensitivityResearchModule(command),
             MonitoringResearchModule(command),
             MethodologyDisclosureModule(),
+            ResearchSufficiencyModule(),
             PortfolioDecisionModule(),
             *self._downstream_modules,
         )

@@ -46,6 +46,7 @@ from research_os.readiness.models import ResearchReadinessAssessment
 from research_os.router.models import BusinessModelProfile
 from research_os.runtime.context import BaselineFingerprint
 from research_os.runtime.financial_snapshot import EVIDENCE_PIT, FINANCIAL_FACT_SNAPSHOT
+from research_os.sufficiency.models import ResearchSufficiencyAssessment
 from research_os.temporal.models import FinancialTemporalAnalysis
 
 
@@ -85,6 +86,11 @@ RESEARCH_OPERATING_EVIDENCE = ArtifactKey(
     artifact_id="research.operating_evidence",
     schema_version=_SCHEMA_VERSION,
     value_type=OperatingEvidenceSet,
+)
+RESEARCH_SUFFICIENCY = ArtifactKey(
+    artifact_id="research.sufficiency",
+    schema_version=_SCHEMA_VERSION,
+    value_type=ResearchSufficiencyAssessment,
 )
 EXPECTATION_CONSENSUS_DISTRIBUTION = ArtifactKey(
     artifact_id="expectation.consensus_distribution",
@@ -238,6 +244,7 @@ CORE_ARTIFACT_KEYS = (
     FINANCIAL_TIME_SERIES,
     FINANCIAL_TEMPORAL_ANALYSIS,
     RESEARCH_OPERATING_EVIDENCE,
+    RESEARCH_SUFFICIENCY,
     EXPECTATION_CONSENSUS_DISTRIBUTION,
     SCENARIO_SENSITIVITIES,
     METHODOLOGY_DISCLOSURE,

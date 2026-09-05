@@ -24,6 +24,7 @@ from research_os.runtime.core_artifacts import (
     FINANCIAL_FACT_SNAPSHOT,
     KPI_METRICS,
     REPOSITORY_PREFLIGHT,
+    RESEARCH_SUFFICIENCY,
     STRATEGY_RESOLUTION,
     build_core_artifact_catalog,
 )
@@ -129,6 +130,7 @@ def test_two_phase_execution_retains_bootstrap_and_engine_writes_precomputed_str
         "core:professional-sensitivity",
         "core:professional-monitoring",
         "core:professional-methodology",
+        "core:research-sufficiency",
         "core:portfolio-decision",
     }
     assert professional_module_ids.index("core:resolved-strategy") < professional_module_ids.index(
@@ -146,6 +148,12 @@ def test_two_phase_execution_retains_bootstrap_and_engine_writes_precomputed_str
     assert professional_module_ids.index(
         "core:professional-valuation"
     ) < professional_module_ids.index("core:portfolio-decision")
+    assert professional_module_ids.index(
+        "core:professional-methodology"
+    ) < professional_module_ids.index("core:research-sufficiency")
+    assert professional_module_ids.index(
+        "core:research-sufficiency"
+    ) < professional_module_ids.index("core:portfolio-decision")
     assert professional_execution.snapshot.require(REPOSITORY_PREFLIGHT) == command.context.baseline
     assert professional_execution.snapshot.require(EVIDENCE_PIT) == EvidenceSet()
     assert professional_execution.snapshot.require(FINANCIAL_FACT_SNAPSHOT).facts == ()
@@ -157,3 +165,7 @@ def test_two_phase_execution_retains_bootstrap_and_engine_writes_precomputed_str
         applicability_ref,
     )
     assert professional_execution.snapshot.require(KPI_METRICS).metrics == ()
+    assert (
+        professional_execution.snapshot.require(RESEARCH_SUFFICIENCY).overall_status
+        == "INSUFFICIENT_EVIDENCE"
+    )
