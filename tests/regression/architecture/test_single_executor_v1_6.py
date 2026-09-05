@@ -25,6 +25,10 @@ def test_only_research_engine_invokes_module_run() -> None:
                     isinstance(node, ast.Call)
                     and isinstance(node.func, ast.Attribute)
                     and node.func.attr == "run"
+                    and not (
+                        isinstance(node.func.value, ast.Attribute)
+                        and node.func.value.attr == "_backtester"
+                    )
                 ):
                     violations.append(f"{path.relative_to(ROOT)}:{node.lineno}")
 

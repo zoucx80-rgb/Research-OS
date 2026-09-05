@@ -44,6 +44,7 @@ EXPECTED_ARTIFACT_IDS = {
     "financial.temporal_analysis",
     "financial.time_series",
     "forecast.evaluation",
+    "forecast.benchmark_evidence",
     "kpi.metrics",
     "methodology.disclosure",
     "monitoring.plan",

@@ -141,7 +141,13 @@ def test_single_period_case_is_not_temporally_sufficient(company_id: str) -> Non
         f"{metric_id}:INSUFFICIENT_COMPARABLE_POINTS" for metric_id in expected_metrics
     }
     assert len(domain.upgrade_evidence_requirements) == len(expected_metrics)
-    assert sufficiency.blocking_gap_keys == tuple(
+    temporal_gap_keys = tuple(
+        key for key in sufficiency.blocking_gap_keys if key.startswith("financial_temporal:")
+    )
+    assert temporal_gap_keys == tuple(
         f"financial_temporal:{metric_id}:INSUFFICIENT_COMPARABLE_POINTS"
         for metric_id in sorted(expected_metrics)
     )
+    forecast = sufficiency.require_domain("forecast")
+    assert forecast.model_executability == "BLOCKED"
+    assert "EXPERIMENT_NOT_PROVIDED" in forecast.why_unknown

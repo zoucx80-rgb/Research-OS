@@ -1,0 +1,102 @@
+{
+  "schema_version": "forecast-benchmark-case@1.0.0",
+  "company": {
+    "company_id": "300034.SZ",
+    "display_name": "钢研高纳",
+    "exchange": "SZSE"
+  },
+  "decision_ts": "2025-04-24T00:00:00Z",
+  "hypothesis": {
+    "hypothesis_key": "hyp:300034:annual-revenue",
+    "statement": "Prior-year revenue contains explanatory signal for next annual revenue.",
+    "target_metric": "revenue",
+    "horizon": "FY+1"
+  },
+  "experiment": {
+    "model_key": "ols:300034:annual-revenue",
+    "feature_names": ["prior_revenue"],
+    "benchmark_id": "naive:last_value",
+    "n_splits": 3,
+    "current_model_stage": "experimental",
+    "applicability": "300034.SZ consolidated annual revenue, 2019FY-2024FY",
+    "model_boundary": "Single-feature explanatory OLS; not a management-guidance or trading model.",
+    "caveats": [
+      "Six annual observations do not cover a full industrial cycle.",
+      "Historical accounting relationships may not persist."
+    ]
+  },
+  "observations": [
+    {
+      "observation_id": "forecast:300034.SZ:2019FY",
+      "evidence_id": "ev:300034.SZ:forecast:2019",
+      "reporting_period": "2019FY",
+      "period_end": "2019-12-31",
+      "publish_ts": "2020-04-15T00:00:00Z",
+      "source_document_id": "300034.SZ-2019-annual-report-summary",
+      "source_url": "https://static.cninfo.com.cn/finalpage/2020-04-15/1207496788.PDF",
+      "prior_revenue": 892587882.11,
+      "realized_revenue": 1446458606.03,
+      "content_fingerprint": "877137033951ad4f5f61f0889c7ac9f692fe4f71f77710a18a24abb680756dbb"
+    },
+    {
+      "observation_id": "forecast:300034.SZ:2020FY",
+      "evidence_id": "ev:300034.SZ:forecast:2020",
+      "reporting_period": "2020FY",
+      "period_end": "2020-12-31",
+      "publish_ts": "2021-04-23T00:00:00Z",
+      "source_document_id": "300034.SZ-2020-annual-report-full",
+      "source_url": "https://static.cninfo.com.cn/finalpage/2021-04-23/1209769852.PDF",
+      "prior_revenue": 1446458606.03,
+      "realized_revenue": 1584951960.28,
+      "content_fingerprint": "3734d04556cf1bc52bf61ed0e4f9b1c35a624c77f4ef38e0ecbc65d9f26cd833"
+    },
+    {
+      "observation_id": "forecast:300034.SZ:2021FY",
+      "evidence_id": "ev:300034.SZ:forecast:2021",
+      "reporting_period": "2021FY",
+      "period_end": "2021-12-31",
+      "publish_ts": "2022-04-27T00:00:00Z",
+      "source_document_id": "300034.SZ-2021-annual-report-summary",
+      "source_url": "https://static.cninfo.com.cn/finalpage/2022-04-27/1213134046.PDF",
+      "prior_revenue": 1584951960.28,
+      "realized_revenue": 2002632277.80,
+      "content_fingerprint": "f051b163a6300297c8ea83a08d366ccf4596219131b42f5e44ed05440861209d"
+    },
+    {
+      "observation_id": "forecast:300034.SZ:2022FY",
+      "evidence_id": "ev:300034.SZ:forecast:2022",
+      "reporting_period": "2022FY",
+      "period_end": "2022-12-31",
+      "publish_ts": "2023-04-27T00:00:00Z",
+      "source_document_id": "300034.SZ-2022-annual-report-summary",
+      "source_url": "https://static.cninfo.com.cn/finalpage/2023-04-27/1216620849.PDF",
+      "prior_revenue": 2002632277.80,
+      "realized_revenue": 2879281731.66,
+      "content_fingerprint": "184b3faa3aaddb71e77d6c9bce1212647d1740fc13ef91e9aa98845480110ebb"
+    },
+    {
+      "observation_id": "forecast:300034.SZ:2023FY",
+      "evidence_id": "ev:300034.SZ:forecast:2023",
+      "reporting_period": "2023FY",
+      "period_end": "2023-12-31",
+      "publish_ts": "2024-04-23T00:00:00Z",
+      "source_document_id": "300034.SZ-2023-annual-report-full",
+      "source_url": "https://static.cninfo.com.cn/finalpage/2024-04-23/1219739749.PDF",
+      "prior_revenue": 2879281731.66,
+      "realized_revenue": 3408090034.18,
+      "content_fingerprint": "a0f23dfba231fd0eb421736939e4634eb454562d2cb89b6bb147989ace4d2313"
+    },
+    {
+      "observation_id": "forecast:300034.SZ:2024FY",
+      "evidence_id": "ev:300034.SZ:forecast:2024",
+      "reporting_period": "2024FY",
+      "period_end": "2024-12-31",
+      "publish_ts": "2025-04-24T00:00:00Z",
+      "source_document_id": "300034.SZ-2024-annual-report-full",
+      "source_url": "https://static.cninfo.com.cn/finalpage/2025-04-24/1223243343.PDF",
+      "prior_revenue": 3408090034.18,
+      "realized_revenue": 3523917418.25,
+      "content_fingerprint": "0974e8960fd0fc6b6abdc8f3ef316b5cb942e6730cb3d933df65193f628d936a"
+    }
+  ]
+}

@@ -211,7 +211,7 @@ git commit -m "feat: validate forecast experiment readiness"
 - Consumes: `ForecastResearchInput`, built-in benchmark registry, `TimeSeriesBacktester`, `decide_promotion`.
 - Produces: existing `FORECAST_EVALUATION` plus `FORECAST_BENCHMARK_EVIDENCE`.
 
-- [ ] **Step 1: Write RED execution test**
+- [x] **Step 1: Write RED execution test**
 
 ```python
 def test_professional_module_executes_registered_oos_benchmark() -> None:
@@ -225,7 +225,7 @@ def test_professional_module_executes_registered_oos_benchmark() -> None:
     assert evidence.benchmark_key == "naive:last_value"
 ```
 
-- [ ] **Step 2: Register the artifact**
+- [x] **Step 2: Register the artifact**
 
 ```python
 FORECAST_BENCHMARK_EVIDENCE = ArtifactKey(
@@ -235,7 +235,7 @@ FORECAST_BENCHMARK_EVIDENCE = ArtifactKey(
 )
 ```
 
-- [ ] **Step 3: Replace the placeholder module path**
+- [x] **Step 3: Replace the placeholder module path**
 
 When no experiment is present, write both forecast artifacts as `INSUFFICIENT_EVIDENCE` with `EXPERIMENT_NOT_PROVIDED`. When validation is insufficient, write exact reason codes without calling the backtester. When ready:
 
@@ -245,7 +245,7 @@ When no experiment is present, write both forecast artifacts as `INSUFFICIENT_EV
 4. map each backtest fold into existing `ForecastFoldEvaluation` using maximum feature availability, maximum label maturity, fold evaluation time, fold model MAE, and fold benchmark MAE;
 5. never recompute the aggregate metrics in the application module.
 
-- [ ] **Step 4: Run GREEN and commit**
+- [x] **Step 4: Run GREEN and commit**
 
 ```bash
 pytest -q tests/unit/forecasting tests/integration/forecasting tests/integration/runtime/test_professional_forecast_benchmark.py tests/regression/professional/test_v1_6_02_forecast_benchmark.py
@@ -267,7 +267,7 @@ git commit -m "feat: execute professional forecast benchmarks"
 - Consumes: `ForecastBenchmarkEvidence`.
 - Produces: forecast benchmark coverage/executability and investor-readable canonical metrics.
 
-- [ ] **Step 1: Write RED**
+- [x] **Step 1: Write RED**
 
 ```python
 def test_forecast_sufficiency_requires_oos_benchmark() -> None:
@@ -283,11 +283,11 @@ def test_forecast_projector_exposes_metrics_and_promotion_reason() -> None:
     assert payload["晋级结论"]
 ```
 
-- [ ] **Step 2: Implement projection and sufficiency mapping**
+- [x] **Step 2: Implement projection and sufficiency mapping**
 
 Use `_number` and `_model`; map known benchmark IDs through the existing human-label mapping. Show sample/fold count, all four metrics, benchmark MAE, improvement, stability, stage transition, applicability, boundary, caveats, and reasons.
 
-- [ ] **Step 3: Run and commit**
+- [x] **Step 3: Run and commit**
 
 ```bash
 pytest -q tests/unit/sufficiency/test_service.py tests/unit/reporting/test_v1_6_02_forecast.py tests/integration/reporting/test_semantic_fingerprint_v1_6.py
@@ -307,11 +307,11 @@ git commit -m "feat: report forecast benchmark evidence"
 - Consumes: PIT historical observations from original/versioned company evidence.
 - Produces: at least one real-company OOS benchmark result and pack `v1-6-02-forecast-benchmark`.
 
-- [ ] **Step 1: Build the evidence-backed fixture supplement**
+- [x] **Step 1: Build the evidence-backed fixture supplement**
 
 Add only observations whose source identity, publication/availability timestamps, reporting periods, values, and fingerprints can be verified. The fixture must contain enough chronologically ordered mature observations for the configured split. If 300034 cannot meet the policy from approved evidence, use 001287; do not lower the gate or synthesize realized outcomes.
 
-- [ ] **Step 2: Write acceptance RED**
+- [x] **Step 2: Write acceptance RED**
 
 ```python
 def test_at_least_one_real_company_executes_oos_benchmark() -> None:
@@ -321,7 +321,7 @@ def test_at_least_one_real_company_executes_oos_benchmark() -> None:
     assert all(item.reason_codes or item.metrics for item in evidence)
 ```
 
-- [ ] **Step 3: Register the M2 pack**
+- [x] **Step 3: Register the M2 pack**
 
 ```python
 _V1_6_02_FORECAST_CHECKS = {
@@ -334,7 +334,7 @@ _V1_6_02_FORECAST_CHECKS = {
 
 Register, but do not select, the pack until M6.
 
-- [ ] **Step 4: Run M2 exit gate and commit**
+- [x] **Step 4: Run M2 exit gate and commit**
 
 ```bash
 pytest -q tests/unit/forecasting tests/integration/forecasting tests/integration/runtime/test_professional_forecast_benchmark.py tests/regression/professional/test_v1_6_02_forecast_benchmark.py tests/unit/sufficiency/test_service.py tests/unit/reporting/test_v1_6_02_forecast.py tests/regression/architecture/test_release_governance.py

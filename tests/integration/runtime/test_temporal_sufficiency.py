@@ -7,6 +7,7 @@ from research_os.application.command import FinancialResearchInput, ResearchRunC
 from research_os.application.plan import ResolvedStrategyModule
 from research_os.application.professional_modules import (
     FinancialResearchModule,
+    ForecastResearchModule,
     MethodologyDisclosureModule,
     ResearchSufficiencyModule,
 )
@@ -138,6 +139,7 @@ def test_sufficiency_module_runs_after_methodology_and_publishes_through_engine(
         (
             ResearchSufficiencyModule(),
             FinancialResearchModule(command),
+            ForecastResearchModule(command),
             MethodologyDisclosureModule(),
             ResolvedStrategyModule(StrategyResolution()),
         ),
@@ -153,13 +155,15 @@ def test_sufficiency_module_runs_after_methodology_and_publishes_through_engine(
 
     assert plan.module_ids == (
         "core:professional-financial",
+        "core:professional-forecast",
         "core:resolved-strategy",
         "core:professional-methodology",
         "core:research-sufficiency",
     )
     sufficiency = execution.snapshot.require(RESEARCH_SUFFICIENCY)
-    assert sufficiency.overall_status == "SUFFICIENT"
+    assert sufficiency.overall_status == "INSUFFICIENT_EVIDENCE"
     assert sufficiency.require_domain("financial_temporal").temporal_coverage == "COMPLETE"
+    assert sufficiency.require_domain("forecast").model_executability == "BLOCKED"
     assert execution.snapshot.envelope(RESEARCH_SUFFICIENCY).producer_ids == (
         "core:research-sufficiency",
     )

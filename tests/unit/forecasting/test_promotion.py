@@ -3,6 +3,8 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from decimal import Decimal
 
+import pytest
+
 from research_os.contracts.evidence import EvidenceRef
 from research_os.forecasting.backtest import (
     BacktestMetric,
@@ -107,3 +109,10 @@ def test_benchmark_improvement_policy_is_a_relative_ratio() -> None:
 
     assert decision.next_stage == "candidate"
     assert "benchmark" in decision.reason
+
+
+def test_backtest_result_owns_relative_benchmark_improvement() -> None:
+    evaluation = _evaluation(model_mae=8, benchmark_mae=10)
+
+    assert evaluation.benchmark_improvement == pytest.approx(0.2)
+    assert evaluation.model_copy(update={"benchmark_mae": 0}).benchmark_improvement is None

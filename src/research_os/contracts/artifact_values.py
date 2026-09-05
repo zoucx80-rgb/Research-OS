@@ -345,6 +345,17 @@ class ForecastEvaluation(DomainArtifact):
     train_cutoff: datetime | None = None
     evaluation_ts: datetime | None = None
     folds: tuple[ForecastFoldEvaluation, ...] = Field(default_factory=tuple)
+    reason_codes: tuple[str, ...] = Field(default_factory=tuple)
+
+    @field_validator("reason_codes")
+    @classmethod
+    def _canonical_reason_codes(cls, value: tuple[str, ...]) -> tuple[str, ...]:
+        normalized = tuple(item.strip() for item in value)
+        if any(not item for item in normalized):
+            raise ValueError("forecast evaluation reason codes must be non-empty")
+        if len(normalized) != len(set(normalized)):
+            raise ValueError("forecast evaluation reason codes must be unique")
+        return tuple(sorted(normalized))
 
 
 class ModelFitnessInputs(V2Value):

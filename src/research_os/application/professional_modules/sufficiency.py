@@ -6,6 +6,7 @@ from research_os.contracts.artifacts import ArtifactWrite
 from research_os.runtime.context import ResearchContext
 from research_os.runtime.core_artifacts import (
     FINANCIAL_TEMPORAL_ANALYSIS,
+    FORECAST_BENCHMARK_EVIDENCE,
     METHODOLOGY_DISCLOSURE,
     RESEARCH_SUFFICIENCY,
 )
@@ -18,7 +19,13 @@ class ResearchSufficiencyModule:
     spec = ModuleSpec(
         module_id="core:research-sufficiency",
         module_version="2.0.0",
-        requires=frozenset((FINANCIAL_TEMPORAL_ANALYSIS, METHODOLOGY_DISCLOSURE)),
+        requires=frozenset(
+            (
+                FINANCIAL_TEMPORAL_ANALYSIS,
+                FORECAST_BENCHMARK_EVIDENCE,
+                METHODOLOGY_DISCLOSURE,
+            )
+        ),
         provides=frozenset((RESEARCH_SUFFICIENCY,)),
         required_for_completion=False,
     )

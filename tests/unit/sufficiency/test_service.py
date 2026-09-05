@@ -10,9 +10,15 @@ from research_os.contracts.artifact_values import AssumptionRef
 from research_os.contracts.artifacts import ArtifactStore, ArtifactWrite
 from research_os.contracts.evidence import EvidenceRef
 from research_os.contracts.values import AccountingScope
+from research_os.forecasting.contracts import (
+    ForecastBenchmarkEvidence,
+    ForecastMetricEvidence,
+    ForecastStabilityEvidence,
+)
 from research_os.period.models import ReportingPeriod
 from research_os.runtime.core_artifacts import (
     FINANCIAL_TEMPORAL_ANALYSIS,
+    FORECAST_BENCHMARK_EVIDENCE,
     build_core_artifact_catalog,
 )
 from research_os.runtime.state import ResearchStateView
@@ -96,6 +102,105 @@ def _state_from_analysis(analysis: FinancialTemporalAnalysis) -> ResearchStateVi
         )
     )
     return ResearchStateView(store.freeze())
+
+
+def _state_with_forecast(forecast: ForecastBenchmarkEvidence) -> ResearchStateView:
+    catalog = build_core_artifact_catalog()
+    store = ArtifactStore(catalog)
+    store.write(
+        ArtifactWrite(
+            key=FINANCIAL_TEMPORAL_ANALYSIS,
+            value=TemporalAnalysisService().analyze(
+                (_observation(2024, "100"), _observation(2025, "110")),
+                decision_ts=DECISION_TS,
+            ),
+            producer_id="test:temporal",
+        )
+    )
+    store.write(
+        ArtifactWrite(
+            key=FORECAST_BENCHMARK_EVIDENCE,
+            value=forecast,
+            producer_id="test:forecast",
+            evidence_refs=forecast.evidence_refs,
+        )
+    )
+    return ResearchStateView(store.freeze())
+
+
+def test_forecast_sufficiency_requires_oos_benchmark() -> None:
+    reference = _observation(2025, "110").evidence_refs[0]
+    result = ResearchSufficiencyEvaluator().evaluate(
+        _state_with_forecast(
+            ForecastBenchmarkEvidence(
+                domain_status="INSUFFICIENT_EVIDENCE",
+                model_key="ols:revenue",
+                benchmark_key="naive:last_value",
+                out_of_sample=False,
+                pit_compliant=True,
+                reason_codes=("INSUFFICIENT_OBSERVATIONS",),
+                evidence_refs=(reference,),
+            )
+        )
+    )
+
+    domain = result.require_domain("forecast")
+    assert domain.benchmark_coverage == "MISSING"
+    assert domain.model_executability == "BLOCKED"
+    assert "INSUFFICIENT_OBSERVATIONS" in domain.why_unknown
+    assert "forecast:INSUFFICIENT_OBSERVATIONS" in result.blocking_gap_keys
+
+
+def test_complete_forecast_evidence_is_executable_even_when_model_is_not_promoted() -> None:
+    reference = _observation(2025, "110").evidence_refs[0]
+    metrics = tuple(
+        ForecastMetricEvidence(
+            metric_name=name,
+            value=Decimal(value),
+            evidence_refs=(reference,),
+        )
+        for name, value in (
+            ("MAE", "0.2"),
+            ("RMSE", "0.3"),
+            ("DIRECTION_ACCURACY", "0.5"),
+            ("INTERVAL_COVERAGE", "0.9"),
+        )
+    )
+    result = ResearchSufficiencyEvaluator().evaluate(
+        _state_with_forecast(
+            ForecastBenchmarkEvidence(
+                domain_status="SUPPORTED",
+                model_key="ols:revenue",
+                benchmark_key="naive:last_value",
+                benchmark_version="1.0.0",
+                sample_count=6,
+                fold_count=3,
+                out_of_sample=True,
+                pit_compliant=True,
+                metrics=metrics,
+                stability_windows=(
+                    ForecastStabilityEvidence(
+                        window_key="fold:1",
+                        model_mae=Decimal("0.2"),
+                        benchmark_mae=Decimal("0.1"),
+                        evidence_refs=(reference,),
+                    ),
+                ),
+                stable=False,
+                current_stage="experimental",
+                next_stage="experimental",
+                promotion_reason="model did not beat registered benchmark",
+                evidence_refs=(reference,),
+            )
+        )
+    )
+
+    domain = result.require_domain("forecast")
+    assert domain.coverage == "COMPLETE"
+    assert domain.benchmark_coverage == "COMPLETE"
+    assert domain.model_executability == "EXECUTABLE"
+    assert domain.material_gaps == ()
+    assert result.overall_status == "SUFFICIENT"
 
 
 def test_sufficiency_explains_upgrade_evidence_for_single_period() -> None:

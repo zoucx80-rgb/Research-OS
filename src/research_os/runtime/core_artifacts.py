@@ -41,6 +41,7 @@ from research_os.contracts.artifacts import (
     ArtifactMode,
 )
 from research_os.contracts.metrics import MetricSet
+from research_os.forecasting.contracts import ForecastBenchmarkEvidence
 from research_os.plugins.models import StrategyResolution
 from research_os.readiness.models import ResearchReadinessAssessment
 from research_os.router.models import BusinessModelProfile
@@ -146,6 +147,11 @@ FORECAST_EVALUATION = ArtifactKey(
     artifact_id="forecast.evaluation",
     schema_version=_SCHEMA_VERSION,
     value_type=ForecastEvaluation,
+)
+FORECAST_BENCHMARK_EVIDENCE = ArtifactKey(
+    artifact_id="forecast.benchmark_evidence",
+    schema_version=_SCHEMA_VERSION,
+    value_type=ForecastBenchmarkEvidence,
 )
 PEERS_NORMALIZED = ArtifactKey(
     artifact_id="peers.normalized",
@@ -255,6 +261,7 @@ CORE_ARTIFACT_KEYS = (
     EXPECTATION_SNAPSHOT,
     EXPECTATION_GAP,
     FORECAST_EVALUATION,
+    FORECAST_BENCHMARK_EVIDENCE,
     PEERS_NORMALIZED,
     VALUATION_ROUTING,
     VALUATION_EXECUTION,

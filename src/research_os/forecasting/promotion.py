@@ -47,10 +47,9 @@ def decide_promotion(
         return _hold(current_stage, "PIT compliance failed")
     if not hypothesis_registered:
         return _hold(current_stage, "hypothesis was not preregistered")
-    model_mae = evaluation.metric("MAE").value
-    if evaluation.benchmark_mae <= 0:
+    improvement = evaluation.benchmark_improvement
+    if improvement is None:
         return _hold(current_stage, "registered benchmark MAE must be positive")
-    improvement = (evaluation.benchmark_mae - model_mae) / evaluation.benchmark_mae
     if improvement <= minimum_improvement:
         return _hold(current_stage, "model did not beat registered benchmark")
     if require_stability and not evaluation.stable:

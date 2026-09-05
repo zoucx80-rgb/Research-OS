@@ -73,6 +73,49 @@ def _forecast(data: dict[str, Any]) -> JsonValue:
     )
 
 
+def _forecast_benchmark(data: dict[str, Any]) -> JsonValue:
+    metrics = {
+        item.get("metric_name"): item.get("value") for item in data.get("metrics", [])
+    }
+    return _json(
+        {
+            "模型": _model(data.get("model_key")) if data.get("model_key") else None,
+            "目标指标": _metric(data.get("target_metric")),
+            "预测周期": data.get("horizon"),
+            "样本数": data.get("sample_count"),
+            "样本外折数": data.get("fold_count"),
+            "样本外验证": bool(data.get("out_of_sample")),
+            "PIT 合规": bool(data.get("pit_compliant")),
+            "基准模型": _model(data.get("benchmark_key")) if data.get("benchmark_key") else None,
+            "基准版本": data.get("benchmark_version"),
+            "模型 MAE": _number(metrics.get("MAE")),
+            "模型 RMSE": _number(metrics.get("RMSE")),
+            "方向准确率": _number(metrics.get("DIRECTION_ACCURACY"), unit="ratio"),
+            "区间覆盖率": _number(metrics.get("INTERVAL_COVERAGE"), unit="ratio"),
+            "基准 MAE": _number(data.get("benchmark_mae")),
+            "相对基准改善": _number(data.get("improvement"), unit="ratio"),
+            "跨折稳定": data.get("stable"),
+            "稳定性窗口": [
+                {
+                    "窗口": item.get("window_key"),
+                    "模型 MAE": _number(item.get("model_mae")),
+                    "基准 MAE": _number(item.get("benchmark_mae")),
+                }
+                for item in data.get("stability_windows", [])
+            ],
+            "当前阶段": _status(data.get("current_stage")) if data.get("current_stage") else None,
+            "下一阶段": _status(data.get("next_stage")) if data.get("next_stage") else None,
+            "晋级结论": _reason(data.get("promotion_reason"))
+            if data.get("promotion_reason")
+            else None,
+            "适用范围": data.get("applicability"),
+            "模型边界": data.get("model_boundary"),
+            "限制": data.get("caveats", []),
+            "不足原因": [_reason(item) for item in data.get("reason_codes", [])],
+        }
+    )
+
+
 def _peers(data: dict[str, Any]) -> JsonValue:
     return _json(
         {

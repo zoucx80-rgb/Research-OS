@@ -40,6 +40,7 @@ from research_os.decision.models import (
     ValuationState,
 )
 from research_os.metrics import builtin_metric_registry
+from research_os.forecasting.benchmarks import builtin_benchmark_registry
 from research_os.policies import builtin_policy_registry
 from research_os.plugins.registry import PluginRegistry
 from research_os.plugins.resolver import StrategyResolution
@@ -463,6 +464,7 @@ class ResearchPlanCompiler:
         bootstrap: ArtifactSnapshot,
         strategy: StrategyResolution,
     ) -> ModulePlan:
+        benchmark_registry = builtin_benchmark_registry()
         modules: tuple[ResearchModule, ...] = (
             ResolvedStrategyModule(strategy),
             KpiProviderModule(strategy, self._registry),
@@ -471,7 +473,7 @@ class ResearchPlanCompiler:
             ThesisPortfolioModule(command.thesis.prior_theses),
             DriverSemanticResearchModule(command),
             ExpectationResearchModule(command),
-            ForecastResearchModule(command),
+            ForecastResearchModule(command, benchmark_registry=benchmark_registry),
             PeerResearchModule(command),
             ValuationResearchModule(command),
             SensitivityResearchModule(command),

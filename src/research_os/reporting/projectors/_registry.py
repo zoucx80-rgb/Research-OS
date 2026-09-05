@@ -26,6 +26,7 @@ from ._market import (
     _expectation_quality,
     _expectation_snapshot,
     _forecast,
+    _forecast_benchmark,
     _peers,
     _sensitivities,
     _valuation_execution,
@@ -56,6 +57,7 @@ _PROJECTORS: dict[str, Callable[[dict[str, Any]], JsonValue]] = {
     "expectation.gap": _expectation_gap,
     "expectation.consensus_distribution": _consensus_distribution,
     "forecast.evaluation": _forecast,
+    "forecast.benchmark_evidence": _forecast_benchmark,
     "peers.normalized": _peers,
     "valuation.routing": _valuation_routing,
     "valuation.execution": _valuation_execution,
@@ -85,6 +87,13 @@ def _substantive(artifact_id: str, data: dict[str, Any]) -> bool:
         return bool(data.get("reason_codes")) or data.get("quality_status") not in {None, "UNKNOWN"}
     if artifact_id == "forecast.evaluation":
         return bool(data.get("model_key") or data.get("benchmark_key") or data.get("folds"))
+    if artifact_id == "forecast.benchmark_evidence":
+        return bool(
+            data.get("model_key")
+            or data.get("benchmark_key")
+            or data.get("metrics")
+            or data.get("reason_codes")
+        )
     checks = {
         "kpi.metrics": ("metrics",),
         "financial.time_series": ("series",),

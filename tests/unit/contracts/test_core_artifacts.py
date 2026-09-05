@@ -41,6 +41,7 @@ from research_os.contracts.errors import ArtifactTypeMismatchError
 from research_os.contracts.metrics import MetricSet
 from research_os.contracts.evidence import EvidenceRef, EvidenceSet
 from research_os.domain.evidence import Evidence
+from research_os.forecasting.contracts import ForecastBenchmarkEvidence
 from research_os.readiness.models import ResearchReadinessAssessment
 from research_os.runtime.core_artifacts import (
     CORE_ARTIFACT_KEYS,
@@ -82,6 +83,7 @@ def test_core_catalog_registers_every_strictly_typed_durable_artifact() -> None:
         "expectation.quality": ExpectationQualityAssessment,
         "expectation.gap": ExpectationGap,
         "forecast.evaluation": ForecastEvaluation,
+        "forecast.benchmark_evidence": ForecastBenchmarkEvidence,
         "peers.normalized": NormalizedPeerSet,
         "valuation.routing": ValuationRouting,
         "valuation.execution": ValuationExecution,

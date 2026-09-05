@@ -75,6 +75,16 @@ _V1_6_02_TEMPORAL_CHECKS: dict[str, str] = {
         "tests/regression/professional/test_v1_6_02_temporal_sufficiency.py"
     ),
 }
+_V1_6_02_FORECAST_CHECKS: dict[str, str] = {
+    "v1_6_02_forecast_unit": "tests/unit/forecasting",
+    "v1_6_02_forecast_integration": "tests/integration/forecasting",
+    "v1_6_02_forecast_runtime": (
+        "tests/integration/runtime/test_professional_forecast_benchmark.py"
+    ),
+    "v1_6_02_forecast_field": (
+        "tests/regression/professional/test_v1_6_02_forecast_benchmark.py"
+    ),
+}
 
 CHECK_REGISTRY: Mapping[str, str] = {
     **_BASELINE_CHECKS,
@@ -84,6 +94,7 @@ CHECK_REGISTRY: Mapping[str, str] = {
     **_M5_QUALITY_RELEASE_CHECKS,
     **_V1_6_01_PROFESSIONAL_CLOSURE_CHECKS,
     **_V1_6_02_TEMPORAL_CHECKS,
+    **_V1_6_02_FORECAST_CHECKS,
     **_RELEASE_GOVERNANCE_CHECKS,
 }
 
@@ -115,6 +126,10 @@ PACK_REGISTRY: Mapping[str, VerificationPack] = {
     "v1-6-02-temporal-sufficiency": VerificationPack(
         pack_id="v1-6-02-temporal-sufficiency",
         check_ids=tuple(_V1_6_02_TEMPORAL_CHECKS),
+    ),
+    "v1-6-02-forecast-benchmark": VerificationPack(
+        pack_id="v1-6-02-forecast-benchmark",
+        check_ids=tuple(_V1_6_02_FORECAST_CHECKS),
     ),
     "release-governance": VerificationPack(
         pack_id="release-governance",

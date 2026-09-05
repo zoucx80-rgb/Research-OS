@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Literal
 
 from collections import defaultdict
@@ -12,17 +13,29 @@ from research_os.contracts.artifact_values import ExpectationGap as ExpectationG
 from research_os.contracts.artifact_values import ExpectationQualityAssessment
 from research_os.contracts.artifact_values import ExpectationSnapshot
 from research_os.contracts.artifact_values import ForecastEvaluation
+from research_os.contracts.artifact_values import ForecastFoldEvaluation
 from research_os.contracts.artifact_values import NormalizedPeer
 from research_os.contracts.artifact_values import NormalizedPeerSet
 from research_os.contracts.artifacts import ArtifactWrite
+from research_os.contracts.evidence import EvidenceRef
 from research_os.expectations.models import ConsensusVintage as DomainConsensusVintage
 from research_os.expectations.validation import ExpectationEvidenceValidator
+from research_os.forecasting.backtest import BacktestResult
+from research_os.forecasting.benchmarks import BenchmarkRegistry
+from research_os.forecasting.benchmarks import builtin_benchmark_registry
+from research_os.forecasting.contracts import ForecastBenchmarkEvidence
+from research_os.forecasting.contracts import ForecastMetricEvidence
+from research_os.forecasting.contracts import ForecastStabilityEvidence
+from research_os.forecasting.experiment import ForecastExperimentValidator
+from research_os.forecasting.promotion import decide_promotion
+from research_os.forecasting.backtest import TimeSeriesBacktester
 from research_os.runtime.context import ResearchContext
 from research_os.runtime.core_artifacts import EXPECTATION_CONSENSUS_DISTRIBUTION
 from research_os.runtime.core_artifacts import EXPECTATION_GAP
 from research_os.runtime.core_artifacts import EXPECTATION_QUALITY
 from research_os.runtime.core_artifacts import EXPECTATION_SNAPSHOT
 from research_os.runtime.core_artifacts import FORECAST_EVALUATION
+from research_os.runtime.core_artifacts import FORECAST_BENCHMARK_EVIDENCE
 from research_os.runtime.core_artifacts import PEERS_NORMALIZED
 from research_os.runtime.modules import ModuleResult
 from research_os.runtime.modules import ModuleSpec
@@ -144,36 +157,202 @@ class ForecastResearchModule:
         module_id="core:professional-forecast",
         module_version="2.0.1",
         requires=frozenset(),
-        provides=frozenset((FORECAST_EVALUATION,)),
+        provides=frozenset((FORECAST_EVALUATION, FORECAST_BENCHMARK_EVIDENCE)),
         required_for_completion=False,
     )
 
-    def __init__(self, command: ResearchRunCommand) -> None:
+    def __init__(
+        self,
+        command: ResearchRunCommand,
+        *,
+        benchmark_registry: BenchmarkRegistry | None = None,
+    ) -> None:
         self._input = command.forecasting
+        self._benchmarks = benchmark_registry or builtin_benchmark_registry()
+        self._validator = ForecastExperimentValidator(self._benchmarks)
+        self._backtester = TimeSeriesBacktester(self._benchmarks)
 
     def run(self, context: ResearchContext, state: ResearchStateView) -> ModuleResult:
-        del context, state
-        refs = _lineage_refs(self._input.hypotheses)
-        value = ForecastEvaluation(
-            domain_status="INSUFFICIENT_EVIDENCE",
-            model_key=(
-                self._input.hypotheses[0].hypothesis_key if self._input.hypotheses else None
+        del state
+        experiment = self._input.experiment
+        refs = _lineage_refs(self._input.hypotheses, experiment)
+        if experiment is None:
+            return self._insufficient(
+                reason_codes=("EXPERIMENT_NOT_PROVIDED",),
+                evidence_refs=refs,
+            )
+
+        registered_hypotheses = {
+            hypothesis.hypothesis_key for hypothesis in self._input.hypotheses
+        }
+        assessment = self._validator.assess(
+            experiment,
+            registered_hypotheses=registered_hypotheses,
+            decision_ts=context.decision_ts,
+        )
+        if assessment.status == "INSUFFICIENT_EVIDENCE":
+            return self._insufficient(
+                reason_codes=assessment.reason_codes,
+                evidence_refs=refs,
+                model_key=experiment.model_key,
+                benchmark_key=experiment.benchmark_id,
+                evaluation_ts=experiment.evaluation_ts,
+            )
+
+        result = self._backtester.run(
+            observations=experiment.observations,
+            feature_names=experiment.feature_names,
+            target=experiment.target_metric,
+            benchmark_id=experiment.benchmark_id,
+            evaluation_ts=experiment.evaluation_ts,
+            n_splits=experiment.n_splits,
+        )
+        promotion = decide_promotion(
+            current_stage=experiment.current_model_stage,
+            evaluation=result,
+            benchmark_registry=self._benchmarks,
+            hypothesis_registered=experiment.hypothesis_key in registered_hypotheses,
+        )
+        evaluation = ForecastEvaluation(
+            domain_status="SUPPORTED",
+            model_key=experiment.model_key,
+            benchmark_key=result.benchmark_id,
+            evaluation_status=(
+                "PASS" if promotion.reason == "all promotion gates passed" else "FAIL"
             ),
-            evaluation_status="INSUFFICIENT_EVIDENCE",
+            train_cutoff=result.train_cutoff,
+            evaluation_ts=result.evaluation_ts,
+            folds=self._fold_evaluations(result),
+            evidence_refs=refs,
+        )
+        evidence = ForecastBenchmarkEvidence(
+            domain_status="SUPPORTED",
+            model_key=experiment.model_key,
+            target_metric=experiment.target_metric,
+            horizon=experiment.horizon,
+            benchmark_key=result.benchmark_id,
+            benchmark_version=result.benchmark_version,
+            sample_count=len(experiment.observations),
+            fold_count=len(result.folds),
+            out_of_sample=result.out_of_sample,
+            pit_compliant=result.pit_compliant,
+            metrics=tuple(
+                ForecastMetricEvidence(
+                    metric_name=metric.name,
+                    value=Decimal(str(metric.value)),
+                    evidence_refs=metric.evidence_refs,
+                )
+                for metric in result.metrics
+            ),
+            benchmark_mae=Decimal(str(result.benchmark_mae)),
+            improvement=(
+                None
+                if result.benchmark_improvement is None
+                else Decimal(str(result.benchmark_improvement))
+            ),
+            stability_windows=tuple(
+                ForecastStabilityEvidence(
+                    window_key=window.window_id,
+                    model_mae=Decimal(str(window.model_mae)),
+                    benchmark_mae=Decimal(str(window.benchmark_mae)),
+                    evidence_refs=window.evidence_refs,
+                )
+                for window in result.stability_windows
+            ),
+            stable=result.stable,
+            current_stage=promotion.current_stage,
+            next_stage=promotion.next_stage,
+            promotion_reason=promotion.reason,
+            applicability=experiment.applicability,
+            model_boundary=experiment.model_boundary,
+            caveats=experiment.caveats,
             evidence_refs=refs,
         )
         return ModuleResult(
             module_id=self.spec.module_id,
-            status="INSUFFICIENT_EVIDENCE",
-            diagnostics=("out-of-sample benchmark evidence is required",),
+            status="PASS",
+            diagnostics=(promotion.reason,),
             writes=(
                 ArtifactWrite(
                     key=FORECAST_EVALUATION,
-                    value=value,
+                    value=evaluation,
+                    producer_id=self.spec.module_id,
+                    evidence_refs=refs,
+                ),
+                ArtifactWrite(
+                    key=FORECAST_BENCHMARK_EVIDENCE,
+                    value=evidence,
                     producer_id=self.spec.module_id,
                     evidence_refs=refs,
                 ),
             ),
+        )
+
+    def _insufficient(
+        self,
+        *,
+        reason_codes: tuple[str, ...],
+        evidence_refs: tuple[EvidenceRef, ...],
+        model_key: str | None = None,
+        benchmark_key: str | None = None,
+        evaluation_ts: datetime | None = None,
+    ) -> ModuleResult:
+        evaluation = ForecastEvaluation(
+            domain_status="INSUFFICIENT_EVIDENCE",
+            model_key=model_key,
+            benchmark_key=benchmark_key,
+            evaluation_status="INSUFFICIENT_EVIDENCE",
+            evaluation_ts=evaluation_ts,
+            reason_codes=reason_codes,
+            evidence_refs=evidence_refs,
+        )
+        evidence = ForecastBenchmarkEvidence(
+            domain_status="INSUFFICIENT_EVIDENCE",
+            model_key=model_key,
+            benchmark_key=benchmark_key,
+            reason_codes=reason_codes,
+            evidence_refs=evidence_refs,
+        )
+        return ModuleResult(
+            module_id=self.spec.module_id,
+            status="INSUFFICIENT_EVIDENCE",
+            diagnostics=reason_codes,
+            writes=(
+                ArtifactWrite(
+                    key=FORECAST_EVALUATION,
+                    value=evaluation,
+                    producer_id=self.spec.module_id,
+                    evidence_refs=evidence_refs,
+                ),
+                ArtifactWrite(
+                    key=FORECAST_BENCHMARK_EVIDENCE,
+                    value=evidence,
+                    producer_id=self.spec.module_id,
+                    evidence_refs=evidence_refs,
+                ),
+            ),
+        )
+
+    @staticmethod
+    def _fold_evaluations(result: BacktestResult) -> tuple[ForecastFoldEvaluation, ...]:
+        windows = {window.window_id: window for window in result.stability_windows}
+        return tuple(
+            ForecastFoldEvaluation(
+                fold_key=fold.fold_id,
+                feature_available_ts=max(
+                    timestamp
+                    for item in (*fold.train_observations, *fold.test_observations)
+                    for timestamp in item.feature_available_ts.values()
+                ),
+                label_mature_ts=max(
+                    item.label_mature_ts
+                    for item in (*fold.train_observations, *fold.test_observations)
+                ),
+                evaluation_ts=fold.evaluation_ts,
+                model_error=Decimal(str(windows[fold.fold_id].model_mae)),
+                benchmark_error=Decimal(str(windows[fold.fold_id].benchmark_mae)),
+            )
+            for fold in result.folds
         )
 
 

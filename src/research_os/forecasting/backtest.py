@@ -182,6 +182,13 @@ class BacktestResult(BaseModel):
     def stable(self) -> bool:
         return all(window.model_mae < window.benchmark_mae for window in self.stability_windows)
 
+    @property
+    def benchmark_improvement(self) -> float | None:
+        """Return the canonical relative MAE improvement over the benchmark."""
+        if self.benchmark_mae <= 0:
+            return None
+        return (self.benchmark_mae - self.metric("MAE").value) / self.benchmark_mae
+
 
 class TimeSeriesBacktester:
     def __init__(self, benchmarks: BenchmarkRegistry) -> None:
