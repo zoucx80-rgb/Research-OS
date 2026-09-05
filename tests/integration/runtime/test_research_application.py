@@ -131,6 +131,7 @@ def test_application_returns_auditable_incomplete_result_without_evidence_or_plu
         "business_model_routing",
         "expectation_quality",
         "funding_loop",
+        "temporal_analysis",
         "thesis_formation",
         "valuation_fitness",
         "decision_aggregation",

@@ -116,6 +116,16 @@ def builtin_policy_definitions() -> tuple[PolicyDefinition, ...]:
             "Form theses from explicit support and falsification thresholds.",
         ),
         _policy(
+            "temporal_analysis",
+            "comparison",
+            {
+                "minimum_comparable_points": _count(2),
+                "stable_relative_change": _ratio("0.01"),
+                "anomaly_relative_change": _ratio("0.30"),
+            },
+            "Derive descriptive trends only from explicit comparable period evidence.",
+        ),
+        _policy(
             "valuation_fitness",
             "method_support",
             {

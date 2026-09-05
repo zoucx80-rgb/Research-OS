@@ -69,6 +69,10 @@ class FinancialPeriodObservation(LineageValue):
 class MetricTemporalAssessment(LineageValue):
     metric_id: str
     unit: str
+    period_kind: PeriodKind = "FLOW"
+    accounting_scope: AccountingScope = Field(default_factory=AccountingScope)
+    comparison_basis: TemporalComparisonBasis | None = None
+    latest_period: ReportingPeriod | None = None
     point_count: int = Field(ge=0)
     comparable_point_count: int = Field(ge=0)
     temporal_span_days: int | None = Field(default=None, ge=0)
@@ -107,11 +111,53 @@ class MetricTemporalAssessment(LineageValue):
 
 
 class FinancialTemporalAnalysis(DomainArtifact):
+    observations: tuple[FinancialPeriodObservation, ...] = ()
     assessments: tuple[MetricTemporalAssessment, ...] = ()
     temporal_coverage: Literal["SUFFICIENT", "LIMITED", "INSUFFICIENT_EVIDENCE"] = (
         "INSUFFICIENT_EVIDENCE"
     )
     unresolved_gaps: tuple[str, ...] = ()
+
+    @field_validator("observations")
+    @classmethod
+    def _canonical_observations(
+        cls,
+        value: tuple[FinancialPeriodObservation, ...],
+    ) -> tuple[FinancialPeriodObservation, ...]:
+        def identity(item: FinancialPeriodObservation) -> tuple[object, ...]:
+            period = item.reporting_period
+            return (
+                item.metric_id,
+                item.unit,
+                item.accounting_scope.model_dump_json(),
+                item.period_kind,
+                period.period_type,
+                period.period_start,
+                period.period_end,
+                period.period_days,
+                period.is_cumulative,
+            )
+
+        identities = tuple(identity(item) for item in value)
+        if len(identities) != len(set(identities)):
+            raise ValueError("period observation identities must be unique")
+
+        def sort_key(item: FinancialPeriodObservation) -> tuple[object, ...]:
+            period = item.reporting_period
+            return (
+                item.metric_id,
+                item.unit,
+                item.accounting_scope.model_dump_json(),
+                item.period_kind,
+                period.period_type,
+                period.period_end.isoformat() if period.period_end is not None else "",
+                period.period_start.isoformat() if period.period_start is not None else "",
+                period.period_days if period.period_days is not None else 0,
+                period.is_cumulative,
+                item.available_ts,
+            )
+
+        return tuple(sorted(value, key=sort_key))
 
     @field_validator("assessments")
     @classmethod
@@ -119,10 +165,28 @@ class FinancialTemporalAnalysis(DomainArtifact):
         cls,
         value: tuple[MetricTemporalAssessment, ...],
     ) -> tuple[MetricTemporalAssessment, ...]:
-        identities = tuple((item.metric_id, item.unit) for item in value)
+        identities = tuple(
+            (
+                item.metric_id,
+                item.unit,
+                item.period_kind,
+                item.accounting_scope.model_dump_json(),
+            )
+            for item in value
+        )
         if len(identities) != len(set(identities)):
             raise ValueError("assessment identities must be unique")
-        return tuple(sorted(value, key=lambda item: (item.metric_id, item.unit)))
+        return tuple(
+            sorted(
+                value,
+                key=lambda item: (
+                    item.metric_id,
+                    item.unit,
+                    item.period_kind,
+                    item.accounting_scope.model_dump_json(),
+                ),
+            )
+        )
 
     @field_validator("unresolved_gaps")
     @classmethod

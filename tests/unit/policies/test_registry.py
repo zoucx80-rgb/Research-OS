@@ -103,6 +103,7 @@ def test_builtin_registry_contains_every_conclusion_policy_and_builds_snapshot()
         "expectation_quality",
         "funding_loop",
         "thesis_formation",
+        "temporal_analysis",
         "valuation_fitness",
         "decision_aggregation",
         "forecast_promotion",
@@ -113,6 +114,14 @@ def test_builtin_registry_contains_every_conclusion_policy_and_builds_snapshot()
     assert {item.policy_id for item in definitions} == expected
     assert {item.policy_id for item in registry.definitions} == expected
     assert {item.policy_id for item in registry.snapshot().policies} == expected
+
+
+def test_temporal_policy_exposes_typed_comparison_thresholds() -> None:
+    registry = builtin_policy_registry()
+
+    assert registry.integer_value("temporal_analysis", "minimum_comparable_points") == 2
+    assert registry.decimal_value("temporal_analysis", "stable_relative_change") == Decimal("0.01")
+    assert registry.decimal_value("temporal_analysis", "anomaly_relative_change") == Decimal("0.30")
 
 
 def test_expectation_and_funding_thresholds_use_actual_policy_overrides() -> None:

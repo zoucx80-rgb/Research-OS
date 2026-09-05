@@ -158,7 +158,7 @@ git commit -m "feat: add temporal research contracts"
 - Consumes: period observations, UTC `decision_ts`, versioned temporal policies.
 - Produces: `ComparisonBasisValidator.validate(...)` and `TemporalAnalysisService.analyze(observations, *, decision_ts) -> FinancialTemporalAnalysis`.
 
-- [ ] **Step 1: Write comparison/PIT RED tests**
+- [x] **Step 1: Write comparison/PIT RED tests**
 
 ```python
 def test_one_point_is_not_sufficient() -> None:
@@ -178,7 +178,7 @@ def test_future_available_observation_is_rejected() -> None:
         TemporalAnalysisService().analyze((future_observation(),), decision_ts=DECISION_TS)
 ```
 
-- [ ] **Step 2: Write order-invariance RED property**
+- [x] **Step 2: Write order-invariance RED property**
 
 ```python
 @given(st.permutations(comparable_observations()))
@@ -187,19 +187,19 @@ def test_order_does_not_change_analysis(items) -> None:
     assert service.analyze(tuple(items), decision_ts=DECISION_TS) == service.analyze(comparable_observations(), decision_ts=DECISION_TS)
 ```
 
-- [ ] **Step 3: Run RED**
+- [x] **Step 3: Run RED**
 
 ```bash
 pytest -q tests/unit/temporal/test_service.py tests/property/temporal/test_temporal_invariants.py
 ```
 
-- [ ] **Step 4: Implement supported derivations**
+- [x] **Step 4: Implement supported derivations**
 
 Implement `ComparisonBasisValidator` as the single check for period type/kind, cumulative status, dates, scope, unit, annualization, and declared comparison basis. Group by `(metric_id, unit, accounting_scope)`, reject future/duplicate conflicts, and sort chronologically. Calculate YOY only for equal period types/kinds with explicit `YOY_PERIOD`; QOQ only for contiguous non-cumulative `CUSTOM` quarters with `QOQ_PERIOD`; TTM only from four contiguous non-cumulative flow quarters explicitly marked `TTM`. Collect evidence and assumption lineage from every used observation. `turning_point_state` may be `CONFIRMED` only when the configured number of comparable changes reverses direction; one change is at most `POSSIBLE`.
 
 Register typed policy parameters under `temporal_analysis`: `minimum_comparable_points=2`, `stable_relative_change=0.01`, `anomaly_relative_change=0.30`. These thresholds are versioned research policy, not probabilities.
 
-- [ ] **Step 5: Run GREEN and commit**
+- [x] **Step 5: Run GREEN and commit**
 
 ```bash
 pytest -q tests/unit/temporal/test_service.py tests/property/temporal/test_temporal_invariants.py tests/unit/policies
