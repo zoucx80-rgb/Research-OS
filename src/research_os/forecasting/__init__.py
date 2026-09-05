@@ -14,6 +14,12 @@ from .benchmarks import (
 )
 from .model_card import FoldAvailability, ForecastModelCard
 from .promotion import ModelStage, PromotionDecision, decide_promotion
+from .contracts import (
+    ForecastBenchmarkEvidence,
+    ForecastExperimentInput,
+    ForecastMetricEvidence,
+    ForecastStabilityEvidence,
+)
 
 __all__ = [
     "BacktestFold",
@@ -24,7 +30,11 @@ __all__ = [
     "BenchmarkRegistryConflictError",
     "FoldAvailability",
     "ForecastModelCard",
+    "ForecastBenchmarkEvidence",
+    "ForecastExperimentInput",
+    "ForecastMetricEvidence",
     "ForecastObservation",
+    "ForecastStabilityEvidence",
     "ModelStage",
     "PromotionDecision",
     "StabilityWindow",

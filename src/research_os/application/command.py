@@ -30,6 +30,7 @@ from research_os.contracts.artifact_values import (
     ModelFitnessInputs,
 )
 from research_os.runtime.context import ResearchContext
+from research_os.forecasting.contracts import ForecastExperimentInput
 from research_os.temporal.models import FinancialPeriodObservation
 
 
@@ -147,6 +148,7 @@ class MonitoringResearchInput(_FrozenInput):
 
 class ForecastResearchInput(_FrozenInput):
     hypotheses: tuple[ForecastHypothesis, ...] = Field(default_factory=tuple)
+    experiment: ForecastExperimentInput | None = None
 
 
 class PeerResearchInput(_FrozenInput):

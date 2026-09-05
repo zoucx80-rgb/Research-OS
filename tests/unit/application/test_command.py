@@ -24,6 +24,7 @@ from research_os.application.command import (
 from research_os.contracts.artifact_values import AssumptionRef, FinancialObservation
 from research_os.contracts.evidence import EvidenceRef
 from research_os.contracts.values import AccountingScope
+from research_os.forecasting import ForecastExperimentInput, ForecastObservation
 from research_os.period.models import ReportingPeriod
 from research_os.runtime.context import (
     BaselineFingerprint,
@@ -193,6 +194,39 @@ def test_financial_command_rejects_duplicate_period_observation_identity() -> No
 
     with pytest.raises(ValidationError, match="period observation identities must be unique"):
         FinancialResearchInput(period_observations=(observation, observation))
+
+
+def test_command_accepts_one_forecast_experiment() -> None:
+    observed_ts = datetime(2025, 1, 1, tzinfo=timezone.utc)
+    observation = ForecastObservation(
+        observation_id="obs:forecast",
+        observed_ts=observed_ts,
+        feature_available_ts={"orders": observed_ts},
+        label_mature_ts=observed_ts,
+        features={"orders": 1.0},
+        realized_outcome=2.0,
+        evidence_refs=(_evidence_ref(),),
+    )
+    experiment = ForecastExperimentInput(
+        hypothesis_key="hyp:revenue",
+        model_key="ols:revenue",
+        target_metric="revenue_growth",
+        horizon="FY+1",
+        feature_names=("orders",),
+        observations=(observation,),
+        benchmark_id="naive:last_value",
+        evaluation_ts=datetime(2026, 9, 2, tzinfo=timezone.utc),
+        applicability="annual comparable periods",
+        model_boundary="linear explanatory forecast",
+    )
+
+    command = ResearchRunCommand(
+        context=_context(),
+        forecasting=ForecastResearchInput(experiment=experiment),
+    )
+
+    assert command.forecasting.experiment is not None
+    assert command.forecasting.experiment.model_key == "ols:revenue"
 
 
 def test_financial_command_orders_periods_when_optional_start_is_missing() -> None:

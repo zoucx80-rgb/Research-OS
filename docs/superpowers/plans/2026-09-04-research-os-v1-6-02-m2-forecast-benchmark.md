@@ -48,7 +48,7 @@
 - Consumes: `ForecastObservation`, `ForecastHypothesis`, `ModelStage`, `EvidenceRef`.
 - Produces: `ForecastExperimentInput`, `ForecastMetricEvidence`, `ForecastStabilityEvidence`, `ForecastBenchmarkEvidence`, `ForecastResearchInput.experiment`.
 
-- [ ] **Step 1: Write RED contract tests**
+- [x] **Step 1: Write RED contract tests**
 
 ```python
 def test_experiment_requires_unique_features_and_utc_evaluation() -> None:
@@ -74,13 +74,13 @@ def test_command_accepts_one_forecast_experiment() -> None:
     assert command.forecasting.experiment.model_key == "ols:revenue"
 ```
 
-- [ ] **Step 2: Run RED**
+- [x] **Step 2: Run RED**
 
 ```bash
 pytest -q tests/unit/forecasting/test_contracts.py tests/unit/application/test_command.py
 ```
 
-- [ ] **Step 3: Implement contracts**
+- [x] **Step 3: Implement contracts**
 
 ```python
 class ForecastExperimentInput(BaseModel):
@@ -137,7 +137,7 @@ class ForecastBenchmarkEvidence(DomainArtifact):
 
 Require UTC evaluation time, non-empty identities/boundaries, unique features, `target_metric` absent from features, and deterministic observation ordering.
 
-- [ ] **Step 4: Add the command field and run GREEN**
+- [x] **Step 4: Add the command field and run GREEN**
 
 ```python
 class ForecastResearchInput(_FrozenInput):
