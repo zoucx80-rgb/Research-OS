@@ -20,6 +20,7 @@ from .contracts import (
     ForecastMetricEvidence,
     ForecastStabilityEvidence,
 )
+from .experiment import ForecastExperimentAssessment, ForecastExperimentValidator
 
 __all__ = [
     "BacktestFold",
@@ -32,6 +33,8 @@ __all__ = [
     "ForecastModelCard",
     "ForecastBenchmarkEvidence",
     "ForecastExperimentInput",
+    "ForecastExperimentAssessment",
+    "ForecastExperimentValidator",
     "ForecastMetricEvidence",
     "ForecastObservation",
     "ForecastStabilityEvidence",

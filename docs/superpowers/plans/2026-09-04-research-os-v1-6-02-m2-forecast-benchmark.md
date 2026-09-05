@@ -161,7 +161,7 @@ git commit -m "feat: add forecast benchmark contracts"
 - Consumes: `ForecastExperimentInput`, `BenchmarkRegistry`, registered hypothesis keys.
 - Produces: `ForecastExperimentAssessment(status, reason_codes)`.
 
-- [ ] **Step 1: Write RED**
+- [x] **Step 1: Write RED**
 
 ```python
 def test_insufficient_sample_is_typed_not_exception() -> None:
@@ -179,7 +179,7 @@ def test_unregistered_benchmark_is_typed_insufficient() -> None:
     assert "UNREGISTERED_BENCHMARK" in assessment.reason_codes
 ```
 
-- [ ] **Step 2: Implement validator**
+- [x] **Step 2: Implement validator**
 
 ```python
 class ForecastExperimentAssessment(BaseModel):
@@ -190,7 +190,7 @@ class ForecastExperimentAssessment(BaseModel):
 
 Require at least `n_splits + 2` observations, registered benchmark, matching preregistered hypothesis, chronological order, and all evaluation timestamps at or before run decision time. Do not catch backtester leakage/identity exceptions as insufficiency.
 
-- [ ] **Step 3: Run and commit**
+- [x] **Step 3: Run and commit**
 
 ```bash
 pytest -q tests/unit/forecasting/test_experiment.py tests/unit/forecasting/test_benchmarks.py tests/unit/forecasting/test_promotion.py
