@@ -9,7 +9,7 @@ import research_os
 from research_os.release.gate import REQUIRED
 from research_os.release.manifest import CURRENT_RELEASE
 from research_os.release.replays import REPLAY_REGISTRY, resolve_replay_profiles
-from research_os.release.verification import resolve_release_checks
+from research_os.release.verification import CHECK_REGISTRY, PACK_REGISTRY, resolve_release_checks
 from research_os.version import CORE_API_VERSION, RESEARCH_OS_VERSION
 
 
@@ -95,6 +95,23 @@ def test_release_runtime_has_no_patch_version_specific_module():
     assert "resolve_release_checks(CURRENT_RELEASE)" in source
     assert "runtime_v" not in source
     assert "release_gate_v1_" not in source
+
+
+def test_v1_6_02_temporal_sufficiency_pack_is_registered_but_not_selected() -> None:
+    expected = {
+        "v1_6_02_temporal_unit": "tests/unit/temporal",
+        "v1_6_02_temporal_property": "tests/property/temporal",
+        "v1_6_02_sufficiency_unit": "tests/unit/sufficiency",
+        "v1_6_02_temporal_runtime": ("tests/integration/runtime/test_temporal_sufficiency.py"),
+        "v1_6_02_temporal_field": (
+            "tests/regression/professional/test_v1_6_02_temporal_sufficiency.py"
+        ),
+    }
+
+    pack = PACK_REGISTRY["v1-6-02-temporal-sufficiency"]
+    assert pack.check_ids == tuple(expected)
+    assert {check_id: CHECK_REGISTRY[check_id] for check_id in pack.check_ids} == expected
+    assert "v1-6-02-temporal-sufficiency" not in CURRENT_RELEASE.verification_packs
 
 
 def test_field_replay_profiles_are_unique_and_historical_profiles_are_frozen():

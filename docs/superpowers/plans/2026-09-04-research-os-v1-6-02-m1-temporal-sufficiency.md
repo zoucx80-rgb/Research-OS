@@ -384,7 +384,7 @@ git commit -m "fix: require substantive temporal readiness"
 - Consumes: the three v1.6.01 field commands and M1 artifacts.
 - Produces: verification pack `v1-6-02-temporal-sufficiency`.
 
-- [ ] **Step 1: Write three-company regression**
+- [x] **Step 1: Write three-company regression**
 
 ```python
 @pytest.mark.parametrize("company_id", ("300034.SZ", "001287.SZ", "301073.SZ"))
@@ -396,7 +396,7 @@ def test_single_period_case_is_not_temporally_sufficient(company_id: str) -> Non
 
 Add case-specific assertions: 300034 evaluates revenue/gross margin/OCF; 001287 evaluates revenue/AR/inventory/NWC/OCF/debt with auditable bases; 301073 evaluates revenue/cash flow/lease evidence independently. Every absent series names its exact required periods/evidence instead of being dropped.
 
-- [ ] **Step 2: Register the pack without selecting it in the current release**
+- [x] **Step 2: Register the pack without selecting it in the current release**
 
 ```python
 _V1_6_02_TEMPORAL_CHECKS = {
@@ -408,7 +408,7 @@ _V1_6_02_TEMPORAL_CHECKS = {
 }
 ```
 
-- [ ] **Step 3: Run M1 exit gate**
+- [x] **Step 3: Run M1 exit gate**
 
 ```bash
 pytest -q tests/unit/temporal tests/property/temporal tests/unit/sufficiency tests/unit/readiness/test_readiness.py tests/integration/runtime/test_temporal_sufficiency.py tests/regression/professional/test_v1_6_02_temporal_sufficiency.py tests/unit/snapshots tests/property/snapshots tests/regression/architecture/test_release_governance.py
@@ -416,7 +416,7 @@ python -m ruff check src/research_os/temporal src/research_os/sufficiency tests/
 git diff --check
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/research_os/release/verification.py tests/regression

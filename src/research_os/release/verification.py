@@ -66,6 +66,15 @@ _V1_6_01_PROFESSIONAL_CLOSURE_CHECKS: dict[str, str] = {
         "tests/integration/presentation/test_field_acceptance_v1_6_01.py"
     ),
 }
+_V1_6_02_TEMPORAL_CHECKS: dict[str, str] = {
+    "v1_6_02_temporal_unit": "tests/unit/temporal",
+    "v1_6_02_temporal_property": "tests/property/temporal",
+    "v1_6_02_sufficiency_unit": "tests/unit/sufficiency",
+    "v1_6_02_temporal_runtime": "tests/integration/runtime/test_temporal_sufficiency.py",
+    "v1_6_02_temporal_field": (
+        "tests/regression/professional/test_v1_6_02_temporal_sufficiency.py"
+    ),
+}
 
 CHECK_REGISTRY: Mapping[str, str] = {
     **_BASELINE_CHECKS,
@@ -74,6 +83,7 @@ CHECK_REGISTRY: Mapping[str, str] = {
     **_M4_REPORTING_REPLAY_CHECKS,
     **_M5_QUALITY_RELEASE_CHECKS,
     **_V1_6_01_PROFESSIONAL_CLOSURE_CHECKS,
+    **_V1_6_02_TEMPORAL_CHECKS,
     **_RELEASE_GOVERNANCE_CHECKS,
 }
 
@@ -101,6 +111,10 @@ PACK_REGISTRY: Mapping[str, VerificationPack] = {
     "v1-6-01-professional-closure": VerificationPack(
         pack_id="v1-6-01-professional-closure",
         check_ids=tuple(_V1_6_01_PROFESSIONAL_CLOSURE_CHECKS),
+    ),
+    "v1-6-02-temporal-sufficiency": VerificationPack(
+        pack_id="v1-6-02-temporal-sufficiency",
+        check_ids=tuple(_V1_6_02_TEMPORAL_CHECKS),
     ),
     "release-governance": VerificationPack(
         pack_id="release-governance",
