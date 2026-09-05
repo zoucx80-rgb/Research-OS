@@ -32,6 +32,7 @@ def _standard_requirements() -> tuple[ReadinessRequirement, ...]:
     from research_os.runtime.core_artifacts import (
         CASH_FLOW_QUALITY_BRIDGE,
         EXPECTATION_CONSENSUS_DISTRIBUTION,
+        FINANCIAL_TEMPORAL_ANALYSIS,
         FINANCIAL_TIME_SERIES,
         METHODOLOGY_DISCLOSURE,
         MONITORING_PLAN,
@@ -41,21 +42,21 @@ def _standard_requirements() -> tuple[ReadinessRequirement, ...]:
         SCENARIO_SENSITIVITIES,
     )
 
-    keys: dict[str, ArtifactKey[Any]] = {
-        "time_series": FINANCIAL_TIME_SERIES,
-        "operating_evidence": RESEARCH_OPERATING_EVIDENCE,
-        "cash_flow": CASH_FLOW_QUALITY_BRIDGE,
-        "consensus": EXPECTATION_CONSENSUS_DISTRIBUTION,
-        "peers": PEERS_NORMALIZED,
-        "sensitivity": SCENARIO_SENSITIVITIES,
-        "monitoring_events": MONITORING_PLAN,
-        "prior_run_validation": MONITORING_PRIOR_RUN_REVIEW,
-        "methodology": METHODOLOGY_DISCLOSURE,
+    keys: dict[str, tuple[ArtifactKey[Any], ...]] = {
+        "time_series": (FINANCIAL_TIME_SERIES, FINANCIAL_TEMPORAL_ANALYSIS),
+        "operating_evidence": (RESEARCH_OPERATING_EVIDENCE,),
+        "cash_flow": (CASH_FLOW_QUALITY_BRIDGE,),
+        "consensus": (EXPECTATION_CONSENSUS_DISTRIBUTION,),
+        "peers": (PEERS_NORMALIZED,),
+        "sensitivity": (SCENARIO_SENSITIVITIES,),
+        "monitoring_events": (MONITORING_PLAN,),
+        "prior_run_validation": (MONITORING_PRIOR_RUN_REVIEW,),
+        "methodology": (METHODOLOGY_DISCLOSURE,),
     }
     return tuple(
         ReadinessRequirement(
             dimension_id=dimension_id,
-            artifact_keys=(keys[dimension_id],),
+            artifact_keys=keys[dimension_id],
         )
         for dimension_id in STANDARD_READINESS_DIMENSIONS
     )
@@ -76,6 +77,11 @@ def _artifact_is_substantive(key: ArtifactKey[Any], value: Any) -> bool:
 
     if key.artifact_id == "monitoring.plan":
         return bool(getattr(value, "items", ()) or getattr(value, "next_verification_event", None))
+
+    if key.artifact_id == "financial.temporal_analysis":
+        return getattr(value, "temporal_coverage", None) == "SUFFICIENT" and bool(
+            getattr(value, "assessments", ())
+        )
 
     collection_fields = {
         "financial.time_series": "series",

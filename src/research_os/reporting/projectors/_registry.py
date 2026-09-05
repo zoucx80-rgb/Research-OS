@@ -17,6 +17,7 @@ from ._core import (
     _metrics,
     _operating,
     _semantic_signals,
+    _temporal,
     _thesis,
 )
 from ._market import (
@@ -32,7 +33,7 @@ from ._market import (
     _valuation_result,
     _valuation_routing,
 )
-from ._monitoring import _methodology, _monitoring, _prior_run, _readiness
+from ._monitoring import _methodology, _monitoring, _prior_run, _readiness, _sufficiency
 from ._shared import ArtifactProjection, _ARTIFACT_META, _AUDIT_IDS, _AUDIT_PREFIXES, _python
 
 _PROJECTORS: dict[str, Callable[[dict[str, Any]], JsonValue]] = {
@@ -41,6 +42,7 @@ _PROJECTORS: dict[str, Callable[[dict[str, Any]], JsonValue]] = {
     "business_model.profile": _business_model,
     "kpi.metrics": _metrics,
     "financial.time_series": _financial_series,
+    "financial.temporal_analysis": _temporal,
     "research.operating_evidence": _operating,
     "cash_flow.quality_bridge": _cash_flow,
     "capital.efficiency": _capital,
@@ -63,6 +65,7 @@ _PROJECTORS: dict[str, Callable[[dict[str, Any]], JsonValue]] = {
     "monitoring.plan": _monitoring,
     "monitoring.prior_run_review": _prior_run,
     "research.readiness": _readiness,
+    "research.sufficiency": _sufficiency,
     "methodology.disclosure": _methodology,
 }
 
@@ -73,6 +76,7 @@ def _substantive(artifact_id: str, data: dict[str, Any]) -> bool:
         "decision.state_provenance",
         "business_model.profile",
         "research.readiness",
+        "research.sufficiency",
     }:
         return True
     if artifact_id == "methodology.disclosure":
@@ -84,6 +88,7 @@ def _substantive(artifact_id: str, data: dict[str, Any]) -> bool:
     checks = {
         "kpi.metrics": ("metrics",),
         "financial.time_series": ("series",),
+        "financial.temporal_analysis": ("assessments",),
         "research.operating_evidence": ("observations",),
         "cash_flow.quality_bridge": (
             "net_profit",

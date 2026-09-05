@@ -348,7 +348,7 @@ git commit -m "feat: add domain research sufficiency"
 - Consumes: M1 artifacts.
 - Produces: correct time-series Readiness and presentation-safe payloads.
 
-- [ ] **Step 1: Write RED**
+- [x] **Step 1: Write RED**
 
 ```python
 def test_one_point_series_does_not_pass_time_series_readiness() -> None:
@@ -361,11 +361,11 @@ def test_projector_displays_canonical_yoy() -> None:
     assert projected.payload["指标趋势"][0]["同比变化"] == "10.00%"
 ```
 
-- [ ] **Step 2: Implement the Readiness rule and projectors**
+- [x] **Step 2: Implement the Readiness rule and projectors**
 
 Use `(FINANCIAL_TIME_SERIES, FINANCIAL_TEMPORAL_ANALYSIS)` for the `time_series` requirement and require `temporal_coverage == "SUFFICIENT"`. Project canonical values only; include known/unknown/upgrade evidence in the sufficiency projection.
 
-- [ ] **Step 3: Run GREEN and commit**
+- [x] **Step 3: Run GREEN and commit**
 
 ```bash
 pytest -q tests/unit/readiness/test_readiness.py tests/unit/reporting/test_v1_6_02_temporal_sufficiency.py tests/integration/runtime/test_completion_readiness_separation.py

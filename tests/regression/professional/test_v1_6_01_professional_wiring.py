@@ -402,8 +402,8 @@ def test_substantive_professional_inputs_produce_canonical_artifacts() -> None:
     assert {"valuation", "expectation", "semantic_signals"} <= provenance_dimensions
 
     dimensions = {item.dimension_id: item.status for item in result.research_readiness.dimensions}
+    assert dimensions["time_series"] == "INCOMPLETE"
     for dimension_id in (
-        "time_series",
         "cash_flow",
         "consensus",
         "peers",

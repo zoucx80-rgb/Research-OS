@@ -97,6 +97,55 @@ def _financial_series(data: dict[str, Any]) -> JsonValue:
     return _json({"趋势": rows})
 
 
+def _temporal(data: dict[str, Any]) -> JsonValue:
+    basis_labels = {
+        "YOY_PERIOD": "同比同口径",
+        "QOQ_PERIOD": "环比同口径",
+        "TTM": "滚动十二个月",
+        "SAME_PERIOD": "相同报告期",
+    }
+    period_kind_labels = {
+        "FLOW": "流量",
+        "STOCK": "时点存量",
+        "FLOW_RATIO": "流量比率",
+        "STOCK_RATIO": "时点比率",
+    }
+    rows = []
+    for item in data.get("assessments", []):
+        latest_period = item.get("latest_period") or {}
+        comparison_basis = item.get("comparison_basis")
+        rows.append(
+            {
+                "指标": _metric(item.get("metric_id")),
+                "报告期": _date_text(latest_period.get("period_end")) or "—",
+                "期间口径": period_kind_labels.get(
+                    str(item.get("period_kind")), _status(item.get("period_kind", "UNKNOWN"))
+                ),
+                "比较口径": (
+                    basis_labels.get(str(comparison_basis), _status(comparison_basis))
+                    if comparison_basis is not None
+                    else "—"
+                ),
+                "可比数据点": item.get("comparable_point_count", 0),
+                "同比变化": _number(item.get("yoy_change"), unit="ratio"),
+                "环比变化": _number(item.get("qoq_change"), unit="ratio"),
+                "滚动十二个月": _number(item.get("ttm_value"), unit=item.get("unit")),
+                "趋势": _status(item.get("trend_state", "UNKNOWN")),
+                "拐点": _status(item.get("turning_point_state", "UNKNOWN")),
+                "比较状态": _status(item.get("comparison_status", "INSUFFICIENT_EVIDENCE")),
+                "异常": [_reason(value) for value in item.get("anomaly_flags", [])],
+                "不足原因": [_reason(value) for value in item.get("reason_codes", [])],
+            }
+        )
+    return _json(
+        {
+            "时序覆盖": _status(data.get("temporal_coverage", "INSUFFICIENT_EVIDENCE")),
+            "指标趋势": rows,
+            "未解决缺口": [_reason(item) for item in data.get("unresolved_gaps", [])],
+        }
+    )
+
+
 def _operating(data: dict[str, Any]) -> JsonValue:
     rows = []
     for item in data.get("observations", []):
