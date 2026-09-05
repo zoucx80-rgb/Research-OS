@@ -32,9 +32,9 @@ from research_os.contracts.artifact_values import (
 from research_os.contracts.artifacts import ArtifactCatalog, ArtifactSnapshot, ArtifactWrite
 from research_os.contracts.errors import PluginError
 from research_os.contracts.metrics import MetricSet
+from research_os.decision.context import DecisionContextBuilder
 from research_os.decision.engine import DecisionEngine
 from research_os.decision.models import (
-    DecisionContext,
     ExpectationState,
     FundamentalState,
     ValuationState,
@@ -50,16 +50,23 @@ from research_os.runtime.context import ResearchContext
 from research_os.runtime.core_artifacts import (
     BUSINESS_MODEL_PROFILE,
     CAPITAL_FUNDING_LOOP,
+    CAPITAL_EFFICIENCY,
+    DECISION_DERIVATION,
+    DECISION_INPUT_ASSESSMENT,
     DECISION_RECORD,
     DECISION_STATE_PROVENANCE,
     EXPECTATION_GAP,
+    FINANCIAL_TEMPORAL_ANALYSIS,
+    FORECAST_BENCHMARK_EVIDENCE,
     KPI_METRICS,
     RESEARCH_SUFFICIENCY,
+    SCENARIO_SENSITIVITIES,
     SEMANTIC_CLAIMS,
     STRATEGY_RESOLUTION,
     THESIS_PORTFOLIO,
     THESIS_SEMANTIC_SIGNAL_ASSESSMENT,
     VALUATION_RECONCILIATION,
+    VALUATION_MARKET_GAP,
     build_core_artifact_catalog,
 )
 from research_os.runtime.module_plan import (
@@ -225,15 +232,27 @@ class PortfolioDecisionModule:
         requires=frozenset(
             (
                 THESIS_PORTFOLIO,
+                FINANCIAL_TEMPORAL_ANALYSIS,
+                CAPITAL_EFFICIENCY,
                 CAPITAL_FUNDING_LOOP,
                 EXPECTATION_GAP,
                 VALUATION_RECONCILIATION,
+                VALUATION_MARKET_GAP,
+                FORECAST_BENCHMARK_EVIDENCE,
+                SCENARIO_SENSITIVITIES,
                 THESIS_SEMANTIC_SIGNAL_ASSESSMENT,
                 SEMANTIC_CLAIMS,
                 RESEARCH_SUFFICIENCY,
             )
         ),
-        provides=frozenset((DECISION_RECORD, DECISION_STATE_PROVENANCE)),
+        provides=frozenset(
+            (
+                DECISION_RECORD,
+                DECISION_STATE_PROVENANCE,
+                DECISION_INPUT_ASSESSMENT,
+                DECISION_DERIVATION,
+            )
+        ),
         required_for_completion=False,
     )
 
@@ -256,6 +275,7 @@ class PortfolioDecisionModule:
         self._claim_ids_override = claim_ids
         self._funding_override = material_funding_risk
         self._engine = DecisionEngine()
+        self._context_builder = DecisionContextBuilder()
 
     @staticmethod
     def _fundamental_state(
@@ -302,63 +322,26 @@ class PortfolioDecisionModule:
         )
 
     def run(self, context: ResearchContext, state: ResearchStateView) -> ModuleResult:
-        portfolio = state.require(THESIS_PORTFOLIO)
-        funding = state.get(CAPITAL_FUNDING_LOOP)
-        gap = state.get(EXPECTATION_GAP)
-        reconciliation = state.get(VALUATION_RECONCILIATION)
-        semantic = state.get(THESIS_SEMANTIC_SIGNAL_ASSESSMENT)
-        claims = state.get(SEMANTIC_CLAIMS)
-
-        fundamental_state = self._fundamental_override or (
-            self._fundamental_state(funding, semantic)
-            if funding is not None and semantic is not None
-            else "UNCERTAIN"
-        )
-        valuation_state = self._valuation_override or (
-            self._valuation_state(reconciliation) if reconciliation is not None else "UNRELIABLE"
-        )
-        expectation_state = self._expectation_override or (
-            self._expectation_state(gap) if gap is not None else "UNKNOWN"
-        )
-        claim_ids = self._claim_ids_override or (
-            tuple(item.claim_key for item in claims.claims) if claims is not None else ()
-        )
-        material_funding_risk = (
-            self._funding_override
-            if self._funding_override is not None
-            else self._material_funding_risk(funding)
-            if funding is not None
-            else False
-        )
-        evidence_confidence = (
-            self._evidence_confidence_override
-            if self._evidence_confidence_override is not None
-            else (portfolio.primary.confidence or 0)
-            if portfolio.primary is not None
-            else 0
-        )
-
-        decision = self._engine.evaluate(
-            DecisionContext(
-                company_id=context.company.company_id,
-                fundamental_state=fundamental_state,
-                valuation_state=valuation_state,
-                expectation_state=expectation_state,
-                thesis_portfolio=portfolio,
-                evidence_confidence=evidence_confidence,
-                claim_ids=claim_ids,
-                decision_ts=context.decision_ts,
-                material_funding_risk=material_funding_risk,
+        decision_context, assessment = self._context_builder.build(context, state)
+        updates = {
+            key: value
+            for key, value in (
+                ("fundamental_state", self._fundamental_override),
+                ("valuation_state", self._valuation_override),
+                ("expectation_state", self._expectation_override),
+                ("evidence_confidence", self._evidence_confidence_override),
+                ("claim_ids", self._claim_ids_override),
+                ("material_funding_risk", self._funding_override),
             )
-        )
-
-        decision_refs = {
-            (ref.evidence_id, ref.revision, ref.content_fingerprint): ref
-            for value in (portfolio, funding, gap, reconciliation, semantic, claims)
             if value is not None
-            for ref in getattr(value, "evidence_refs", ())
         }
-        evidence_refs = tuple(decision_refs[key] for key in sorted(decision_refs))
+        if updates:
+            decision_context = decision_context.model_copy(update=updates)
+        decision, derivation = self._engine.evaluate_with_derivation(
+            decision_context,
+            assessment,
+        )
+        evidence_refs = assessment.evidence_refs
         record = DecisionArtifactRecord(
             domain_status=(
                 "INSUFFICIENT_EVIDENCE"
@@ -373,51 +356,26 @@ class PortfolioDecisionModule:
             reason_codes=decision.reason_codes,
             evidence_refs=evidence_refs,
         )
-        provenance_inputs = [
+        provenance_inputs = tuple(
             DecisionStateInput(
-                dimension="thesis_portfolio",
-                state=decision.thesis_state or "UNRESOLVED",
-                thesis_keys=decision.used_thesis_ids,
-                claim_keys=decision.used_claim_ids,
-                evidence_refs=portfolio.evidence_refs,
+                dimension={
+                    "expectation_gap": "expectation",
+                    "valuation_market_gap": "valuation",
+                }.get(item.dimension, item.dimension),
+                state=item.state,
+                thesis_keys=(
+                    decision.used_thesis_ids if item.dimension == "thesis_portfolio" else ()
+                ),
+                claim_keys=(
+                    decision.used_claim_ids if item.dimension == "semantic_signals" else ()
+                ),
+                evidence_refs=item.evidence_refs,
             )
-        ]
-        if funding is not None:
-            provenance_inputs.append(
-                DecisionStateInput(
-                    dimension="funding_loop",
-                    state=funding.funding_state,
-                    evidence_refs=funding.evidence_refs,
-                )
-            )
-        if reconciliation is not None:
-            provenance_inputs.append(
-                DecisionStateInput(
-                    dimension="valuation",
-                    state=reconciliation.reconciliation_status,
-                    evidence_refs=reconciliation.evidence_refs,
-                )
-            )
-        if gap is not None:
-            provenance_inputs.append(
-                DecisionStateInput(
-                    dimension="expectation",
-                    state=gap.direction,
-                    evidence_refs=gap.evidence_refs,
-                )
-            )
-        if semantic is not None:
-            provenance_inputs.append(
-                DecisionStateInput(
-                    dimension="semantic_signals",
-                    state=semantic.assessment_status,
-                    claim_keys=claim_ids,
-                    evidence_refs=semantic.evidence_refs,
-                )
-            )
+            for item in assessment.dimensions
+        )
         provenance = DecisionStateProvenance(
             domain_status=record.domain_status,
-            inputs=tuple(provenance_inputs),
+            inputs=provenance_inputs,
             evidence_refs=evidence_refs,
         )
         return ModuleResult(
@@ -437,6 +395,18 @@ class PortfolioDecisionModule:
                     value=provenance,
                     producer_id=self.spec.module_id,
                     evidence_refs=evidence_refs,
+                ),
+                ArtifactWrite(
+                    key=DECISION_INPUT_ASSESSMENT,
+                    value=assessment,
+                    producer_id=self.spec.module_id,
+                    evidence_refs=assessment.evidence_refs,
+                ),
+                ArtifactWrite(
+                    key=DECISION_DERIVATION,
+                    value=derivation,
+                    producer_id=self.spec.module_id,
+                    evidence_refs=derivation.evidence_refs,
                 ),
             ),
         )

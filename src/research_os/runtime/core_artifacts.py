@@ -41,6 +41,7 @@ from research_os.contracts.artifacts import (
     ArtifactMode,
 )
 from research_os.contracts.metrics import MetricSet
+from research_os.decision.models import DecisionDerivation, DecisionInputAssessment
 from research_os.forecasting.contracts import ForecastBenchmarkEvidence
 from research_os.valuation.market import PitMarketAnchor, ValuationMarketGap
 from research_os.plugins.models import StrategyResolution
@@ -199,6 +200,16 @@ DECISION_STATE_PROVENANCE = ArtifactKey(
     schema_version=_SCHEMA_VERSION,
     value_type=DecisionStateProvenance,
 )
+DECISION_INPUT_ASSESSMENT = ArtifactKey(
+    artifact_id="decision.input_assessment",
+    schema_version=_SCHEMA_VERSION,
+    value_type=DecisionInputAssessment,
+)
+DECISION_DERIVATION = ArtifactKey(
+    artifact_id="decision.derivation",
+    schema_version=_SCHEMA_VERSION,
+    value_type=DecisionDerivation,
+)
 MONITORING_PLAN = ArtifactKey(
     artifact_id="monitoring.plan",
     schema_version=_SCHEMA_VERSION,
@@ -282,6 +293,8 @@ CORE_ARTIFACT_KEYS = (
     VALUATION_MARKET_GAP,
     DECISION_RECORD,
     DECISION_STATE_PROVENANCE,
+    DECISION_INPUT_ASSESSMENT,
+    DECISION_DERIVATION,
     MONITORING_PLAN,
     RESEARCH_READINESS,
     VALIDATION_FINANCIAL,

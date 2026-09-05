@@ -16,6 +16,10 @@ class DecisionAggregationPolicy:
         )
 
     @property
+    def rule_version(self) -> str:
+        return self._policy.require("decision_aggregation").policy_version
+
+    @property
     def material_funding_risk_veto(self) -> bool:
         return self._policy.boolean_value("decision_aggregation", "material_funding_risk_veto")
 

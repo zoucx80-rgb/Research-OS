@@ -98,6 +98,19 @@ _V1_6_02_VALUATION_CHECKS: dict[str, str] = {
         "tests/unit/reporting/test_v1_6_02_valuation.py"
     ),
 }
+_V1_6_02_DECISION_CHECKS: dict[str, str] = {
+    "v1_6_02_decision_unit": "tests/unit/decision",
+    "v1_6_02_decision_property": "tests/property/decision",
+    "v1_6_02_decision_runtime": (
+        "tests/integration/runtime/test_decision_context_v1_6_02.py"
+    ),
+    "v1_6_02_decision_field": (
+        "tests/regression/professional/test_v1_6_02_decision_context.py"
+    ),
+    "v1_6_02_decision_reporting": (
+        "tests/unit/reporting/test_v1_6_02_decision.py"
+    ),
+}
 
 CHECK_REGISTRY: Mapping[str, str] = {
     **_BASELINE_CHECKS,
@@ -109,6 +122,7 @@ CHECK_REGISTRY: Mapping[str, str] = {
     **_V1_6_02_TEMPORAL_CHECKS,
     **_V1_6_02_FORECAST_CHECKS,
     **_V1_6_02_VALUATION_CHECKS,
+    **_V1_6_02_DECISION_CHECKS,
     **_RELEASE_GOVERNANCE_CHECKS,
 }
 
@@ -148,6 +162,10 @@ PACK_REGISTRY: Mapping[str, VerificationPack] = {
     "v1-6-02-valuation-market-gap": VerificationPack(
         pack_id="v1-6-02-valuation-market-gap",
         check_ids=tuple(_V1_6_02_VALUATION_CHECKS),
+    ),
+    "v1-6-02-decision-context": VerificationPack(
+        pack_id="v1-6-02-decision-context",
+        check_ids=tuple(_V1_6_02_DECISION_CHECKS),
     ),
     "release-governance": VerificationPack(
         pack_id="release-governance",

@@ -41,6 +41,42 @@ def _decision_provenance(data: dict[str, Any]) -> JsonValue:
     return _json({"状态来源": rows})
 
 
+def _decision_input_assessment(data: dict[str, Any]) -> JsonValue:
+    return _json(
+        {
+            "证据置信度": _number(data.get("evidence_confidence"), unit="ratio"),
+            "阻塞因素": [_reason(item) for item in data.get("blocking_reason_codes", [])],
+            "输入维度": [
+                {
+                    "维度": _dimension(item.get("dimension")),
+                    "状态": _status(item.get("state", "UNKNOWN")),
+                    "可用性": _status(item.get("availability", "INSUFFICIENT_EVIDENCE")),
+                }
+                for item in data.get("dimensions", [])
+            ],
+        }
+    )
+
+
+def _decision_derivation(data: dict[str, Any]) -> JsonValue:
+    return _json(
+        {
+            "形成规则": f"{data.get('rule_id')}@{data.get('rule_version')}",
+            "输出状态": _status(data.get("output_state", "INSUFFICIENT_EVIDENCE")),
+            "支持因素": [
+                _reason(item) for item in data.get("supporting_reason_codes", [])
+            ],
+            "阻塞因素": [
+                _reason(item) for item in data.get("blocking_reason_codes", [])
+            ],
+            "输入状态": "；".join(
+                f"{_dimension(item.get('dimension'))}: {_status(item.get('state', 'UNKNOWN'))}"
+                for item in data.get("input_states", [])
+            ),
+        }
+    )
+
+
 def _business_model(data: dict[str, Any]) -> JsonValue:
     return _json(
         {

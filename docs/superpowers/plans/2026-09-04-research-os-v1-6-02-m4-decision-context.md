@@ -10,6 +10,8 @@
 
 **Spec:** `docs/superpowers/specs/2026-09-04-research-os-v1-6-02-professional-research-semantic-closure-design.md`
 
+**Execution note:** Per user instruction, all five tasks are delivered in one verified M4 commit rather than one commit per task.
+
 ## Global Constraints
 
 - M1, M2, and M3 must be complete before M4 integration.
@@ -48,7 +50,7 @@
 - Consumes: artifact IDs, normalized dimension states, EvidenceRef.
 - Produces: `DecisionDimensionAssessment`, `DecisionInputAssessment`, `DecisionDerivation`, additive `DecisionContext` fields.
 
-- [ ] **Step 1: Write RED contracts**
+- [x] **Step 1: Write RED contracts**
 
 ```python
 def test_decision_assessment_rejects_duplicate_dimensions() -> None:
@@ -64,7 +66,7 @@ def test_context_defaults_keep_existing_constructor_valid() -> None:
     assert context.scenario_state == "UNAVAILABLE"
 ```
 
-- [ ] **Step 2: Implement additive contracts**
+- [x] **Step 2: Implement additive contracts**
 
 ```python
 class DecisionDimensionAssessment(LineageValue):
@@ -104,7 +106,7 @@ scenario_state: Literal["AVAILABLE", "UNAVAILABLE", "ADVERSE"] = "UNAVAILABLE"
 
 Canonicalize dimensions/reasons/IDs and collect lineage deterministically.
 
-- [ ] **Step 3: Run and commit**
+- [x] **Step 3: Run and commit**
 
 ```bash
 pytest -q tests/unit/decision/test_context_contracts.py tests/unit/decision/test_models.py
@@ -123,7 +125,7 @@ git commit -m "feat: add decision derivation contracts"
 - Consumes: `ResearchContext`, `ResearchStateView`, M1-M3 and existing thesis/funding/expectation/semantic artifacts.
 - Produces: `DecisionContextBuilder.build(context, state) -> tuple[DecisionContext, DecisionInputAssessment]`.
 
-- [ ] **Step 1: Write valuation/funding RED**
+- [x] **Step 1: Write valuation/funding RED**
 
 ```python
 def test_market_gap_drives_valuation_state() -> None:
@@ -137,7 +139,7 @@ def test_material_funding_risk_is_preserved() -> None:
     assert context.material_funding_risk is True
 ```
 
-- [ ] **Step 2: Write missingness/determinism RED**
+- [x] **Step 2: Write missingness/determinism RED**
 
 ```python
 def test_missing_scenario_is_explicit() -> None:
@@ -151,7 +153,7 @@ def test_context_is_order_independent(envelopes) -> None:
     assert build_from(envelopes) == build_from(canonical_envelopes())
 ```
 
-- [ ] **Step 3: Implement explicit dimension mapping**
+- [x] **Step 3: Implement explicit dimension mapping**
 
 Build these dimensions in stable order:
 
@@ -171,7 +173,7 @@ research_sufficiency
 
 Map `UNDERVALUED -> CHEAP`, `FAIR -> FAIR`, `OVERVALUED -> EXPENSIVE`, all unsupported states to `UNRELIABLE`. Derive fundamental state from temporal evidence, funding, capital efficiency, and semantic signals with explicit reason codes; never interpret a generic rising cost metric as improvement. Evidence confidence is the minimum supported thesis confidence bounded by sufficiency; no primary thesis yields zero.
 
-- [ ] **Step 4: Run and commit**
+- [x] **Step 4: Run and commit**
 
 ```bash
 pytest -q tests/unit/decision/test_context_builder.py tests/property/decision/test_context_determinism.py
@@ -192,7 +194,7 @@ git commit -m "feat: build decision context from artifacts"
 - Consumes: `DecisionContext`, `DecisionInputAssessment`.
 - Produces: existing `evaluate(context)` and new `evaluate_with_derivation(context, assessment)`.
 
-- [ ] **Step 1: Write RED veto/promotion tests**
+- [x] **Step 1: Write RED veto/promotion tests**
 
 ```python
 def test_insufficient_sufficiency_blocks_conviction() -> None:
@@ -206,7 +208,7 @@ def test_failed_forecast_cannot_produce_high_conviction() -> None:
     assert record.state != "HIGH_CONVICTION_WATCH"
 ```
 
-- [ ] **Step 2: Extract one private rule evaluator**
+- [x] **Step 2: Extract one private rule evaluator**
 
 ```python
 class _RuleOutcome(NamedTuple):
@@ -218,7 +220,7 @@ class _RuleOutcome(NamedTuple):
 
 Both public methods call `_evaluate_rule(context)`. `evaluate()` converts the outcome to the existing record. `evaluate_with_derivation()` returns that same record plus a `DecisionDerivation`; it must not evaluate the rule table twice.
 
-- [ ] **Step 3: Apply rule precedence**
+- [x] **Step 3: Apply rule precedence**
 
 Required precedence:
 
@@ -236,7 +238,7 @@ insufficient material evidence
 
 Version the rule policy as `decision_aggregation@2.0.2`; thresholds remain in PolicyRegistry.
 
-- [ ] **Step 4: Run compatibility and GREEN tests**
+- [x] **Step 4: Run compatibility and GREEN tests**
 
 ```bash
 pytest -q tests/unit/decision tests/integration/runtime/test_portfolio_decision.py
@@ -256,7 +258,7 @@ git commit -m "feat: derive decisions through versioned rules"
 - Consumes: all builder inputs and sufficiency.
 - Produces: existing decision record/provenance plus `DECISION_INPUT_ASSESSMENT`, `DECISION_DERIVATION`.
 
-- [ ] **Step 1: Write runtime RED**
+- [x] **Step 1: Write runtime RED**
 
 ```python
 def test_portfolio_decision_publishes_every_consumed_dimension() -> None:
@@ -269,7 +271,7 @@ def test_portfolio_decision_publishes_every_consumed_dimension() -> None:
 
 The three-company regression asserts: 300034 distinguishes temporal improvement, model disagreement, market gap, and insufficiency; 001287 retains `RISK_REVIEW` when the quantitative funding bridge proves material funding risk; 301073 is re-evaluated after hospitality resolution but remains fail-closed for missing industry evidence. It never requires a buy/sell or optimistic state.
 
-- [ ] **Step 2: Register keys and update module spec**
+- [x] **Step 2: Register keys and update module spec**
 
 ```python
 DECISION_INPUT_ASSESSMENT = ArtifactKey(
@@ -282,7 +284,7 @@ DECISION_DERIVATION = ArtifactKey(
 
 Add M1-M3 artifact keys to `PortfolioDecisionModule.spec.requires`; replace its private state helpers with `DecisionContextBuilder`; write all four decision artifacts from the same record/assessment/derivation.
 
-- [ ] **Step 3: Run and commit**
+- [x] **Step 3: Run and commit**
 
 ```bash
 pytest -q tests/integration/runtime/test_decision_context_v1_6_02.py tests/regression/professional/test_v1_6_02_decision_context.py tests/unit/contracts/test_core_artifacts.py tests/unit/snapshots tests/property/snapshots
@@ -304,7 +306,7 @@ git commit -m "feat: publish decision context and derivation"
 - Consumes: decision assessment/derivation.
 - Produces: decision-first human projection and pack `v1-6-02-decision-context`.
 
-- [ ] **Step 1: Write projector and no-trading RED**
+- [x] **Step 1: Write projector and no-trading RED**
 
 ```python
 def test_decision_projection_explains_support_blockers_and_upgrade_evidence() -> None:
@@ -315,11 +317,11 @@ def test_decision_projection_explains_support_blockers_and_upgrade_evidence() ->
     assert not any(term in str(payload) for term in ("下单", "买入数量", "目标仓位"))
 ```
 
-- [ ] **Step 2: Implement the projection**
+- [x] **Step 2: Implement the projection**
 
 Render normalized dimension labels, rule ID/version, support/block reason labels, and output state. Do not derive a new decision summary in the projector.
 
-- [ ] **Step 3: Register the verification pack**
+- [x] **Step 3: Register the verification pack**
 
 ```python
 _V1_6_02_DECISION_CHECKS = {
@@ -333,7 +335,7 @@ _V1_6_02_DECISION_CHECKS = {
 
 Register but do not select the pack before M6.
 
-- [ ] **Step 4: Run M4 exit gate and commit**
+- [x] **Step 4: Run M4 exit gate and commit**
 
 ```bash
 pytest -q tests/unit/decision tests/property/decision tests/integration/runtime/test_portfolio_decision.py tests/integration/runtime/test_decision_context_v1_6_02.py tests/regression/professional/test_v1_6_02_decision_context.py tests/unit/reporting/test_v1_6_02_decision.py tests/regression/architecture/test_release_governance.py

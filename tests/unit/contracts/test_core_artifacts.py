@@ -41,6 +41,7 @@ from research_os.contracts.errors import ArtifactTypeMismatchError
 from research_os.contracts.metrics import MetricSet
 from research_os.contracts.evidence import EvidenceRef, EvidenceSet
 from research_os.domain.evidence import Evidence
+from research_os.decision.models import DecisionDerivation, DecisionInputAssessment
 from research_os.forecasting.contracts import ForecastBenchmarkEvidence
 from research_os.readiness.models import ResearchReadinessAssessment
 from research_os.runtime.core_artifacts import (
@@ -94,6 +95,8 @@ def test_core_catalog_registers_every_strictly_typed_durable_artifact() -> None:
         "valuation.market_gap": ValuationMarketGap,
         "decision.record": DecisionStateRecord,
         "decision.state_provenance": DecisionStateProvenance,
+        "decision.input_assessment": DecisionInputAssessment,
+        "decision.derivation": DecisionDerivation,
         "monitoring.plan": MonitoringPlan,
         "research.readiness": ResearchReadinessAssessment,
         "validation.repository_preflight": BaselineFingerprint,

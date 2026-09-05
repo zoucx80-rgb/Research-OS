@@ -33,6 +33,8 @@ EXPECTED_ARTIFACT_IDS = {
     "capital.funding_loop",
     "cash_flow.quality_bridge",
     "decision.record",
+    "decision.derivation",
+    "decision.input_assessment",
     "decision.state_provenance",
     "drivers.graph",
     "evidence.pit",

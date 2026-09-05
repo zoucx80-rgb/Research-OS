@@ -30,10 +30,12 @@ def _policy(
     policy_type: str,
     parameters: dict[str, PolicyParameter],
     rationale: str,
+    *,
+    policy_version: str = "1.0.0",
 ) -> PolicyDefinition:
     return PolicyDefinition(
         policy_id=policy_id,
-        policy_version="1.0.0",
+        policy_version=policy_version,
         policy_type=policy_type,
         applicability=frozenset({"core_api:2.0"}),
         parameters=parameters,
@@ -152,6 +154,7 @@ def builtin_policy_definitions() -> tuple[PolicyDefinition, ...]:
                 ),
             },
             "Aggregate every thesis and material risk before assigning a decision state.",
+            policy_version="2.0.2",
         ),
         _policy(
             "forecast_promotion",

@@ -10,6 +10,8 @@ from ._core import (
     _cash_flow,
     _claims,
     _decision,
+    _decision_derivation,
+    _decision_input_assessment,
     _decision_provenance,
     _driver_graph,
     _financial_series,
@@ -42,6 +44,8 @@ from ._shared import ArtifactProjection, _ARTIFACT_META, _AUDIT_IDS, _AUDIT_PREF
 _PROJECTORS: dict[str, Callable[[dict[str, Any]], JsonValue]] = {
     "decision.record": _decision,
     "decision.state_provenance": _decision_provenance,
+    "decision.input_assessment": _decision_input_assessment,
+    "decision.derivation": _decision_derivation,
     "business_model.profile": _business_model,
     "kpi.metrics": _metrics,
     "financial.time_series": _financial_series,
@@ -79,12 +83,15 @@ _PROJECTORS: dict[str, Callable[[dict[str, Any]], JsonValue]] = {
 def _substantive(artifact_id: str, data: dict[str, Any]) -> bool:
     if artifact_id in {
         "decision.record",
-        "decision.state_provenance",
+        "decision.derivation",
         "business_model.profile",
         "research.readiness",
         "research.sufficiency",
     }:
         return True
+    if artifact_id == "decision.state_provenance":
+        inputs = data.get("inputs", [])
+        return bool(inputs) and len(inputs) < 11
     if artifact_id == "methodology.disclosure":
         return bool(data.get("limitations"))
     if artifact_id == "expectation.quality":
