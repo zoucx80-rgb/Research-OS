@@ -1,0 +1,24 @@
+{
+  "schema_version": "valuation-market-gap-case@1.0.0",
+  "company": {
+    "company_id": "001287.SZ",
+    "display_name": "中电港",
+    "exchange": "SZSE"
+  },
+  "decision_ts": "2026-08-30T00:00:00Z",
+  "market_anchor": {
+    "evidence_id": "ev:001287.SZ:market-close:2026-08-28",
+    "source_id": "dabanke:daily-close",
+    "source_document_id": "dabanke-001287-2026-08-28-close",
+    "source_url": "https://dabanke.com/hangqing-001287.html",
+    "observed_ts": "2026-08-28T07:00:00Z",
+    "available_ts": "2026-08-28T09:00:00Z",
+    "price": "22.92",
+    "currency": "CNY",
+    "unit": "CNY/share",
+    "share_class": "A",
+    "valuation_basis": "per_share",
+    "corporate_action_basis": "unadjusted_close",
+    "content_fingerprint": "d47d9fe79935fe51f04549fe1aebb92f04d38ec8b8547f11a99461cdd2106ca8"
+  }
+}

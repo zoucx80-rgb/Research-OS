@@ -2,7 +2,11 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
-from research_os.contracts.artifact_values import DomainStatus
+from research_os.contracts.artifact_values import (
+    DomainStatus,
+    ValuationExecution,
+    ValuationReconciliation,
+)
 from research_os.contracts.evidence import EvidenceRef
 from research_os.forecasting.contracts import ForecastBenchmarkEvidence
 from research_os.runtime.state import ResearchStateView
@@ -14,10 +18,12 @@ from research_os.sufficiency.models import (
     SufficiencyStatus,
 )
 from research_os.temporal.models import FinancialTemporalAnalysis
+from research_os.valuation.market import ValuationMarketGap
 
 
 _FINANCIAL_TEMPORAL_DOMAIN = "financial_temporal"
 _FORECAST_DOMAIN = "forecast"
+_VALUATION_DOMAIN = "valuation"
 _FORECAST_METRICS = frozenset(
     ("MAE", "RMSE", "DIRECTION_ACCURACY", "INTERVAL_COVERAGE")
 )
@@ -30,15 +36,33 @@ class ResearchSufficiencyEvaluator:
         from research_os.runtime.core_artifacts import (
             FINANCIAL_TEMPORAL_ANALYSIS,
             FORECAST_BENCHMARK_EVIDENCE,
+            VALUATION_EXECUTION,
+            VALUATION_MARKET_GAP,
+            VALUATION_RECONCILIATION,
         )
 
         temporal = state.get(FINANCIAL_TEMPORAL_ANALYSIS)
         forecast = state.get(FORECAST_BENCHMARK_EVIDENCE)
+        valuation_execution = state.get(VALUATION_EXECUTION)
+        valuation_reconciliation = state.get(VALUATION_RECONCILIATION)
+        valuation_gap = state.get(VALUATION_MARKET_GAP)
         domains: tuple[DomainSufficiencyAssessment, ...] = (
             self._financial_temporal(temporal),
         )
         if forecast is not None:
             domains = (*domains, self._forecast(forecast))
+        if any(
+            item is not None
+            for item in (valuation_execution, valuation_reconciliation, valuation_gap)
+        ):
+            domains = (
+                *domains,
+                self._valuation(
+                    valuation_execution,
+                    valuation_reconciliation,
+                    valuation_gap,
+                ),
+            )
         blocking_gap_keys = tuple(
             gap.gap_key for domain in domains for gap in domain.material_gaps
         )
@@ -173,6 +197,126 @@ class ResearchSufficiencyEvaluator:
             material_gaps=gaps,
             evidence_refs=forecast.evidence_refs,
             assumption_refs=forecast.assumption_refs,
+        )
+
+    @staticmethod
+    def _valuation(
+        execution: ValuationExecution | None,
+        reconciliation: ValuationReconciliation | None,
+        gap: ValuationMarketGap | None,
+    ) -> DomainSufficiencyAssessment:
+        supported_results = (
+            ()
+            if execution is None
+            else tuple(item for item in execution.results if item.status == "SUPPORTED")
+        )
+        execution_ready = bool(
+            execution is not None
+            and execution.execution_source == "CONTROLLED"
+            and execution.validation_status == "PASS"
+            and supported_results
+        )
+        reconciliation_ready = bool(
+            reconciliation is not None and reconciliation.domain_status == "SUPPORTED"
+        )
+        market_ready = bool(
+            gap is not None
+            and gap.domain_status == "SUPPORTED"
+            and gap.comparison_status == "PASS"
+        )
+        reasons = []
+        if not execution_ready:
+            if execution is None or execution.execution_source != "CONTROLLED":
+                reasons.append("CONTROLLED_VALUATION_EXECUTION_MISSING")
+            elif execution.validation_status != "PASS":
+                reasons.append("VALUATION_EXECUTION_NOT_VALIDATED")
+            else:
+                reasons.append("VALUATION_RESULT_UNSUPPORTED")
+        if not reconciliation_ready:
+            reasons.append("VALUATION_RECONCILIATION_MISSING")
+        if not market_ready:
+            if gap is not None and gap.reason_codes:
+                reasons.extend(gap.reason_codes)
+            else:
+                reasons.append("MARKET_COMPARISON_MISSING")
+        canonical_reasons = tuple(sorted(set(reasons)))
+        lineage_values = tuple(
+            item for item in (execution, reconciliation, gap) if item is not None
+        )
+        evidence_refs = ResearchSufficiencyEvaluator._unique_refs(
+            reference for item in lineage_values for reference in item.evidence_refs
+        )
+        assumption_refs = tuple(
+            {
+                (
+                    reference.assumption_key,
+                    reference.assumption_version,
+                    reference.content_fingerprint,
+                ): reference
+                for item in lineage_values
+                for reference in item.assumption_refs
+            }.values()
+        )
+        if evidence_refs:
+            evidence_quality: CoverageLevel = "COMPLETE"
+        elif assumption_refs:
+            evidence_quality = "PARTIAL"
+        else:
+            evidence_quality = "MISSING"
+        known_items = tuple(
+            sorted(
+                {
+                    *(f"model_execution:{item.model_key}" for item in supported_results),
+                    *(
+                        (f"reconciliation:{reconciliation.reconciliation_status}",)
+                        if reconciliation_ready and reconciliation is not None
+                        else ()
+                    ),
+                    *(
+                        (f"market_comparison:{gap.state}",)
+                        if market_ready and gap is not None
+                        else ()
+                    ),
+                }
+            )
+        )
+        gaps = tuple(
+            MaterialResearchGap(
+                gap_key=f"{_VALUATION_DOMAIN}:{reason}",
+                domain_id=_VALUATION_DOMAIN,
+                reason_code=reason,
+                description=f"Valuation execution or market comparison is incomplete: {reason}.",
+                required_evidence=(
+                    "validated controlled valuation execution",
+                    "basis-compatible PIT market anchor and model range",
+                ),
+                evidence_refs=evidence_refs,
+                assumption_refs=assumption_refs,
+            )
+            for reason in canonical_reasons
+        )
+        complete = execution_ready and reconciliation_ready and market_ready
+        return DomainSufficiencyAssessment(
+            domain_id=_VALUATION_DOMAIN,
+            coverage="COMPLETE" if complete else ("PARTIAL" if known_items else "MISSING"),
+            evidence_quality=evidence_quality,
+            temporal_coverage="NOT_APPLICABLE",
+            benchmark_coverage="NOT_APPLICABLE",
+            peer_coverage="NOT_APPLICABLE",
+            model_executability="EXECUTABLE" if execution_ready else "BLOCKED",
+            known_items=known_items,
+            unknown_items=tuple(f"valuation_evidence:{reason}" for reason in canonical_reasons),
+            why_unknown=canonical_reasons,
+            upgrade_evidence_requirements=(
+                ()
+                if not canonical_reasons
+                else (
+                    "add controlled valuation execution and a basis-compatible PIT market anchor",
+                )
+            ),
+            material_gaps=gaps,
+            evidence_refs=evidence_refs,
+            assumption_refs=assumption_refs,
         )
 
     @staticmethod

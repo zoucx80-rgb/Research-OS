@@ -11,6 +11,7 @@ from research_os.application.professional_modules import (
     MethodologyDisclosureModule,
     ResearchSufficiencyModule,
 )
+from research_os.contracts.artifact_values import ValuationExecution, ValuationReconciliation
 from research_os.contracts.artifacts import ArtifactStore, ArtifactWrite
 from research_os.contracts.evidence import EvidenceRef
 from research_os.contracts.values import AccountingScope
@@ -30,9 +31,13 @@ from research_os.runtime.core_artifacts import (
     BUSINESS_MODEL_PROFILE,
     FINANCIAL_TEMPORAL_ANALYSIS,
     RESEARCH_SUFFICIENCY,
+    VALUATION_EXECUTION,
+    VALUATION_MARKET_GAP,
+    VALUATION_RECONCILIATION,
     build_core_artifact_catalog,
 )
 from research_os.temporal.models import FinancialPeriodObservation
+from research_os.valuation.market import ValuationMarketGap
 
 
 DECISION_TS = datetime(2026, 9, 4, tzinfo=timezone.utc)
@@ -124,17 +129,29 @@ def test_sufficiency_module_runs_after_methodology_and_publishes_through_engine(
     command = _command()
     catalog = build_core_artifact_catalog()
     initial = ArtifactStore(catalog)
-    initial.write(
-        ArtifactWrite(
-            key=BUSINESS_MODEL_PROFILE,
-            value=BusinessModelProfile(
+    for key, value in (
+        (
+            BUSINESS_MODEL_PROFILE,
+            BusinessModelProfile(
                 company_id=COMPANY_ID,
                 primary_model="unknown",
                 classification_status="INSUFFICIENT_EVIDENCE",
             ),
-            producer_id="test:business-model",
+        ),
+        (VALUATION_EXECUTION, ValuationExecution()),
+        (VALUATION_RECONCILIATION, ValuationReconciliation()),
+        (
+            VALUATION_MARKET_GAP,
+            ValuationMarketGap(reason_codes=("MARKET_ANCHOR_MISSING",)),
+        ),
+    ):
+        initial.write(
+            ArtifactWrite(
+                key=key,
+                value=value,
+                producer_id="test:prerequisite",
+            )
         )
-    )
     plan = ModulePlanCompiler(catalog).compile(
         (
             ResearchSufficiencyModule(),

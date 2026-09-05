@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import copy
 import re
 from collections.abc import Mapping, Sequence
 from datetime import date
 from decimal import Decimal, InvalidOperation
 from types import MappingProxyType
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
 
@@ -69,6 +70,19 @@ class ValuationMethodInput(BaseModel):
     @field_serializer("values")
     def _serialize_values(self, value: Mapping[str, object]) -> dict[str, object]:
         return dict(value)
+
+    def __deepcopy__(
+        self,
+        memo: dict[int, Any] | None = None,
+    ) -> ValuationMethodInput:
+        return type(self)(
+            currency=self.currency,
+            basis=self.basis,
+            valuation_date=self.valuation_date,
+            values=copy.deepcopy(dict(self.values), memo),
+            evidence_refs=self.evidence_refs,
+            assumption_refs=self.assumption_refs,
+        )
 
 
 class SensitivityPoint(BaseModel):

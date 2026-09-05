@@ -54,6 +54,7 @@ from research_os.router.models import BusinessModelProfile
 from research_os.runtime.context import BaselineFingerprint
 from research_os.sufficiency.models import ResearchSufficiencyAssessment
 from research_os.temporal.models import FinancialTemporalAnalysis
+from research_os.valuation.market import PitMarketAnchor, ValuationMarketGap
 
 
 def test_core_catalog_registers_every_strictly_typed_durable_artifact() -> None:
@@ -89,6 +90,8 @@ def test_core_catalog_registers_every_strictly_typed_durable_artifact() -> None:
         "valuation.execution": ValuationExecution,
         "valuation.result": ValuationResult,
         "valuation.reconciliation": ValuationReconciliation,
+        "valuation.market_anchor": PitMarketAnchor,
+        "valuation.market_gap": ValuationMarketGap,
         "decision.record": DecisionStateRecord,
         "decision.state_provenance": DecisionStateProvenance,
         "monitoring.plan": MonitoringPlan,

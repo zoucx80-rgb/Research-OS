@@ -132,6 +132,27 @@ def test_v1_6_02_forecast_benchmark_pack_is_registered_but_not_selected() -> Non
     assert "v1-6-02-forecast-benchmark" not in CURRENT_RELEASE.verification_packs
 
 
+def test_v1_6_02_valuation_market_gap_pack_is_registered_but_not_selected() -> None:
+    expected = {
+        "v1_6_02_valuation_unit": "tests/unit/valuation",
+        "v1_6_02_valuation_property": "tests/property/valuation",
+        "v1_6_02_valuation_runtime": (
+            "tests/integration/runtime/test_valuation_market_gap.py"
+        ),
+        "v1_6_02_valuation_field": (
+            "tests/regression/professional/test_v1_6_02_valuation_market_gap.py"
+        ),
+        "v1_6_02_valuation_reporting": (
+            "tests/unit/reporting/test_v1_6_02_valuation.py"
+        ),
+    }
+
+    pack = PACK_REGISTRY["v1-6-02-valuation-market-gap"]
+    assert pack.check_ids == tuple(expected)
+    assert {check_id: CHECK_REGISTRY[check_id] for check_id in pack.check_ids} == expected
+    assert "v1-6-02-valuation-market-gap" not in CURRENT_RELEASE.verification_packs
+
+
 def test_field_replay_profiles_are_unique_and_historical_profiles_are_frozen():
     profiles = resolve_replay_profiles(CURRENT_RELEASE)
     ids = [profile.profile_id for profile in profiles]

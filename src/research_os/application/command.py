@@ -24,7 +24,7 @@ from research_os.contracts.artifact_values import (
     Thesis,
     ComparisonRule,
     VerificationEvent,
-    ValuationExecution,
+    ValuationExecution as ArtifactValuationExecution,
     ValuationRange,
     ValuationRationale,
     ModelFitnessInputs,
@@ -32,6 +32,8 @@ from research_os.contracts.artifact_values import (
 from research_os.runtime.context import ResearchContext
 from research_os.forecasting.contracts import ForecastExperimentInput
 from research_os.temporal.models import FinancialPeriodObservation
+from research_os.valuation.execution import ValuationExecutionRequest
+from research_os.valuation.market import PitMarketAnchor
 
 
 class _FrozenInput(BaseModel):
@@ -134,9 +136,11 @@ class ValuationModelInput(_FrozenInput):
 
 class ValuationResearchInput(_FrozenInput):
     models: tuple[ValuationModelInput, ...] = Field(default_factory=tuple)
-    execution: ValuationExecution | None = None
+    execution: ArtifactValuationExecution | None = None
+    execution_requests: tuple[ValuationExecutionRequest, ...] = Field(default_factory=tuple)
     ranges: tuple[ValuationRange, ...] = Field(default_factory=tuple)
     rationales: tuple[ValuationRationale, ...] = Field(default_factory=tuple)
+    market_anchor: PitMarketAnchor | None = None
 
 
 class MonitoringResearchInput(_FrozenInput):

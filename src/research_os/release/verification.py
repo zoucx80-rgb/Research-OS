@@ -85,6 +85,19 @@ _V1_6_02_FORECAST_CHECKS: dict[str, str] = {
         "tests/regression/professional/test_v1_6_02_forecast_benchmark.py"
     ),
 }
+_V1_6_02_VALUATION_CHECKS: dict[str, str] = {
+    "v1_6_02_valuation_unit": "tests/unit/valuation",
+    "v1_6_02_valuation_property": "tests/property/valuation",
+    "v1_6_02_valuation_runtime": (
+        "tests/integration/runtime/test_valuation_market_gap.py"
+    ),
+    "v1_6_02_valuation_field": (
+        "tests/regression/professional/test_v1_6_02_valuation_market_gap.py"
+    ),
+    "v1_6_02_valuation_reporting": (
+        "tests/unit/reporting/test_v1_6_02_valuation.py"
+    ),
+}
 
 CHECK_REGISTRY: Mapping[str, str] = {
     **_BASELINE_CHECKS,
@@ -95,6 +108,7 @@ CHECK_REGISTRY: Mapping[str, str] = {
     **_V1_6_01_PROFESSIONAL_CLOSURE_CHECKS,
     **_V1_6_02_TEMPORAL_CHECKS,
     **_V1_6_02_FORECAST_CHECKS,
+    **_V1_6_02_VALUATION_CHECKS,
     **_RELEASE_GOVERNANCE_CHECKS,
 }
 
@@ -130,6 +144,10 @@ PACK_REGISTRY: Mapping[str, VerificationPack] = {
     "v1-6-02-forecast-benchmark": VerificationPack(
         pack_id="v1-6-02-forecast-benchmark",
         check_ids=tuple(_V1_6_02_FORECAST_CHECKS),
+    ),
+    "v1-6-02-valuation-market-gap": VerificationPack(
+        pack_id="v1-6-02-valuation-market-gap",
+        check_ids=tuple(_V1_6_02_VALUATION_CHECKS),
     ),
     "release-governance": VerificationPack(
         pack_id="release-governance",

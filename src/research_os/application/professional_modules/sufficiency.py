@@ -9,6 +9,9 @@ from research_os.runtime.core_artifacts import (
     FORECAST_BENCHMARK_EVIDENCE,
     METHODOLOGY_DISCLOSURE,
     RESEARCH_SUFFICIENCY,
+    VALUATION_EXECUTION,
+    VALUATION_MARKET_GAP,
+    VALUATION_RECONCILIATION,
 )
 from research_os.runtime.modules import ModuleResult, ModuleSpec
 from research_os.runtime.state import ResearchStateView
@@ -24,6 +27,9 @@ class ResearchSufficiencyModule:
                 FINANCIAL_TEMPORAL_ANALYSIS,
                 FORECAST_BENCHMARK_EVIDENCE,
                 METHODOLOGY_DISCLOSURE,
+                VALUATION_EXECUTION,
+                VALUATION_MARKET_GAP,
+                VALUATION_RECONCILIATION,
             )
         ),
         provides=frozenset((RESEARCH_SUFFICIENCY,)),

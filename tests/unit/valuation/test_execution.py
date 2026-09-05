@@ -1,8 +1,9 @@
 import importlib
 import importlib.util
+from datetime import date
 
 from research_os.contracts.evidence import EvidenceRef
-from research_os.valuation.methods import ValuationSupportAssessment
+from research_os.valuation.methods import ValuationMethodResult, ValuationSupportAssessment
 
 
 def _load(name: str):
@@ -40,6 +41,14 @@ def _base_execution(**updates):
             "Credit / Inventory Loss",
             "Net Profit / Cash Economics",
             "Valuation",
+        ),
+        result=ValuationMethodResult(
+            method_id="ps",
+            status="SUPPORTED",
+            currency="CNY",
+            basis="equity_per_share",
+            valuation_date=date(2026, 9, 4),
+            base_case=10,
         ),
     )
     data.update(updates)

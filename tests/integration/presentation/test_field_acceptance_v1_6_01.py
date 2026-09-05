@@ -61,6 +61,7 @@ EXPECTED_ARTIFACT_IDS = {
     "validation.financial",
     "validation.repository_preflight",
     "valuation.execution",
+    "valuation.market_gap",
     "valuation.reconciliation",
     "valuation.result",
     "valuation.routing",
@@ -287,6 +288,7 @@ def test_real_company_artifact_sets_and_fail_closed_states_are_exact() -> None:
         "thesis.portfolio",
         "thesis.semantic_signal_assessment",
         "valuation.execution",
+        "valuation.market_gap",
         "valuation.reconciliation",
     }
 

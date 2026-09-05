@@ -34,6 +34,9 @@ from research_os.runtime.context import (
     ResearchContext,
 )
 from research_os.temporal.models import FinancialPeriodObservation
+from research_os.valuation.execution import ValuationExecutionRequest
+from research_os.valuation.methods import ValuationMethodInput
+from research_os.valuation.market import PitMarketAnchor
 
 
 def _evidence_ref() -> EvidenceRef:
@@ -227,6 +230,52 @@ def test_command_accepts_one_forecast_experiment() -> None:
 
     assert command.forecasting.experiment is not None
     assert command.forecasting.experiment.model_key == "ols:revenue"
+
+
+def test_command_accepts_controlled_valuation_execution_requests() -> None:
+    request = ValuationExecutionRequest(
+        model_key="pe",
+        method_input=ValuationMethodInput(
+            currency="CNY",
+            basis="equity_per_share",
+            valuation_date=date(2026, 8, 29),
+            values={"eps": Decimal("2"), "multiple": Decimal("10")},
+            evidence_refs=(_evidence_ref(),),
+        ),
+        scenario_logic="EPS multiplied by an evidence-bound PE multiple.",
+    )
+
+    command = ResearchRunCommand(
+        context=_context(),
+        valuation=ValuationResearchInput(execution_requests=(request,)),
+    )
+
+    assert command.valuation.execution_requests == (request,)
+
+
+def test_command_accepts_lineage_bound_market_anchor() -> None:
+    timestamp = datetime(2026, 8, 29, tzinfo=timezone.utc)
+    anchor = PitMarketAnchor(
+        company_id="synthetic:command",
+        security_id="300034.SZ",
+        share_class="A",
+        source_id="exchange:close",
+        observed_ts=timestamp,
+        available_ts=timestamp,
+        price=Decimal("12"),
+        currency="CNY",
+        unit="CNY/share",
+        valuation_basis="per_share",
+        corporate_action_basis="unadjusted_close",
+        evidence_refs=(_evidence_ref(),),
+    )
+
+    command = ResearchRunCommand(
+        context=_context(),
+        valuation=ValuationResearchInput(market_anchor=anchor),
+    )
+
+    assert command.valuation.market_anchor == anchor
 
 
 def test_financial_command_orders_periods_when_optional_start_is_missing() -> None:

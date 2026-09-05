@@ -148,6 +148,12 @@ def _valuation_routing(data: dict[str, Any]) -> JsonValue:
 def _valuation_execution(data: dict[str, Any]) -> JsonValue:
     return _json(
         {
+            "执行来源": _status(data.get("execution_source", "NONE")),
+            "验证状态": _status(data.get("validation_status", "INSUFFICIENT_EVIDENCE")),
+            "选定模型": _model(data.get("selected_model"))
+            if data.get("selected_model")
+            else None,
+            "验证限制": [_reason(item) for item in data.get("validation_errors", [])],
             "模型结果": [
                 {
                     "模型": _model(item.get("model_key")),
@@ -156,6 +162,44 @@ def _valuation_execution(data: dict[str, Any]) -> JsonValue:
                 }
                 for item in data.get("results", [])
             ]
+        }
+    )
+
+
+def _valuation_market_anchor(data: dict[str, Any]) -> JsonValue:
+    return _json(
+        {
+            "证券": data.get("security_id"),
+            "股类别": data.get("share_class"),
+            "观测时点": data.get("observed_ts"),
+            "可用时点": data.get("available_ts"),
+            "价格": _number(data.get("price"), unit=data.get("unit")),
+            "币种": data.get("currency"),
+            "估值口径": _status(data.get("valuation_basis")),
+            "复权口径": _status(data.get("corporate_action_basis")),
+            "市场来源": data.get("source_id"),
+        }
+    )
+
+
+def _valuation_market_gap(data: dict[str, Any]) -> JsonValue:
+    basis = data.get("valuation_basis")
+    currency = data.get("currency")
+    unit = f"{currency}/share" if basis == "per_share" and currency else currency
+    return _json(
+        {
+            "市场比较状态": _status(data.get("comparison_status", "INSUFFICIENT_EVIDENCE")),
+            "市场估值状态": _status(data.get("state", "UNKNOWN")),
+            "证券": data.get("market_anchor_security_id"),
+            "市场观测时点": data.get("market_anchor_observed_ts"),
+            "市场价格": _number(data.get("market_value"), unit=unit),
+            "模型区间下限": _number(data.get("model_low"), unit=unit),
+            "模型区间上限": _number(data.get("model_high"), unit=unit),
+            "相对市场差额下限": _number(data.get("gap_low"), unit=unit),
+            "相对市场差额上限": _number(data.get("gap_high"), unit=unit),
+            "币种": currency,
+            "估值口径": _status(basis),
+            "不足原因": [_reason(item) for item in data.get("reason_codes", [])],
         }
     )
 

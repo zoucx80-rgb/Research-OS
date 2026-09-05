@@ -10,6 +10,8 @@
 
 **Spec:** `docs/superpowers/specs/2026-09-04-research-os-v1-6-02-professional-research-semantic-closure-design.md`
 
+**Execution note:** Per user instruction, all five tasks are delivered in one verified M3 commit rather than one commit per task.
+
 ## Global Constraints
 
 - M1 is required for final sufficiency integration; M2 is not a code dependency but its forecast quality later influences Decision.
@@ -49,7 +51,7 @@
 - Consumes: `PEMethod`, `PBMethod`, `DCFMethod`, `SOTPMethod`.
 - Produces: `ValuationMethodRegistry.require(method_id)` and `builtin_valuation_method_registry()`.
 
-- [ ] **Step 1: Write registry RED**
+- [x] **Step 1: Write registry RED**
 
 ```python
 def test_builtin_registry_contains_supported_methods() -> None:
@@ -63,7 +65,7 @@ def test_conflicting_method_identity_is_rejected() -> None:
         ValuationMethodRegistry((PEMethod(), PEMethod()))
 ```
 
-- [ ] **Step 2: Implement deterministic registry**
+- [x] **Step 2: Implement deterministic registry**
 
 ```python
 class ValuationMethod(Protocol):
@@ -79,7 +81,7 @@ class ValuationMethodRegistry:
 
 Freeze sorted `methods`, reject duplicates, and raise `KeyError("unregistered valuation method: <id>")` for missing methods.
 
-- [ ] **Step 3: Run and commit**
+- [x] **Step 3: Run and commit**
 
 ```bash
 pytest -q tests/unit/valuation/test_registry.py tests/unit/valuation/test_method_fitness_v2.py
@@ -99,7 +101,7 @@ git commit -m "feat: register valuation methods"
 - Consumes: `ValuationMethodInput`, `ModelFitnessInputs`, funding state/reasons, method registry.
 - Produces: `ValuationExecutionRequest` and `ControlledValuationExecutionService.execute(...)`.
 
-- [ ] **Step 1: Write RED**
+- [x] **Step 1: Write RED**
 
 ```python
 def test_controlled_execution_calls_selected_method_and_validator() -> None:
@@ -115,7 +117,7 @@ def test_controlled_execution_calls_selected_method_and_validator() -> None:
     assert result.execution.result.base_case == Decimal("20")
 ```
 
-- [ ] **Step 2: Implement request/result/service**
+- [x] **Step 2: Implement request/result/service**
 
 ```python
 class ValuationExecutionRequest(BaseModel):
@@ -134,7 +136,7 @@ class ControlledValuationExecution(BaseModel):
 
 `ControlledValuationExecutionService` must call `ValuationFitnessPolicy.assess`, execute only the request's registered model, build the existing domain `ValuationExecution`, and validate it with `ValuationExecutionValidator`. Do not execute a contraindicated method; return an insufficient domain execution with the fitness reason.
 
-- [ ] **Step 3: Add the command field**
+- [x] **Step 3: Add the command field**
 
 ```python
 class ValuationResearchInput(_FrozenInput):
@@ -148,7 +150,7 @@ class ValuationResearchInput(_FrozenInput):
 
 Alias the existing artifact-value `ValuationExecution` import explicitly to avoid collision with `valuation.execution.ValuationExecution`.
 
-- [ ] **Step 4: Run and commit**
+- [x] **Step 4: Run and commit**
 
 ```bash
 pytest -q tests/unit/valuation/test_controlled_execution.py tests/unit/valuation/test_execution.py tests/unit/application/test_command.py
@@ -168,7 +170,7 @@ git commit -m "feat: execute routed valuation methods"
 - Consumes: `ValuationReconciliation`, included `ValuationRange` values, optional `PitMarketAnchor`.
 - Produces: `ValuationMarketGapService.compare(reconciliation, ranges, anchor) -> ValuationMarketGap`.
 
-- [ ] **Step 1: Write PIT/basis RED**
+- [x] **Step 1: Write PIT/basis RED**
 
 ```python
 def test_market_anchor_requires_pit_order() -> None:
@@ -183,7 +185,7 @@ def test_incompatible_basis_is_not_compared() -> None:
     assert gap.reason_codes == ("VALUATION_BASIS_MISMATCH",)
 ```
 
-- [ ] **Step 2: Write state RED**
+- [x] **Step 2: Write state RED**
 
 ```python
 @pytest.mark.parametrize(
@@ -194,7 +196,7 @@ def test_market_state_compares_price_with_model_band(price: Decimal, expected: s
     assert ValuationMarketGapService().compare(reconciliation_10_20(), ranges_10_20(), anchor(price=price)).state == expected
 ```
 
-- [ ] **Step 3: Implement contracts/service**
+- [x] **Step 3: Implement contracts/service**
 
 ```python
 class PitMarketAnchor(LineageValue):
@@ -229,7 +231,7 @@ class ValuationMarketGap(DomainArtifact):
 
 Implement `MarketAnchorValidator.validate(anchor, *, company_id, decision_ts)` for identity, UTC/PIT order, positive value, share class, unit, valuation basis, and corporate-action basis. Derive the comparable currency/basis from all ranges named by `included_range_keys`; reject missing, mixed, or scenario/market-anchor-only ranges. Calculate `gap_low=model_low-price`, `gap_high=model_high-price`. Preserve reconciliation/anchor identities and anchor/included-range lineage.
 
-- [ ] **Step 4: Run and commit**
+- [x] **Step 4: Run and commit**
 
 ```bash
 pytest -q tests/unit/valuation/test_market_gap.py tests/property/valuation/test_market_gap_invariants.py
@@ -251,7 +253,7 @@ git commit -m "feat: compare PIT market anchors with valuation"
 - Consumes: routing, execution requests/external execution, ranges, anchor, funding state.
 - Produces: existing valuation artifacts plus `VALUATION_MARKET_ANCHOR`, `VALUATION_MARKET_GAP`.
 
-- [ ] **Step 1: Write runtime RED**
+- [x] **Step 1: Write runtime RED**
 
 ```python
 def test_valuation_module_executes_and_publishes_market_gap() -> None:
@@ -261,7 +263,7 @@ def test_valuation_module_executes_and_publishes_market_gap() -> None:
     assert result.artifacts.require(VALUATION_MARKET_GAP).comparison_status == "PASS"
 ```
 
-- [ ] **Step 2: Register keys**
+- [x] **Step 2: Register keys**
 
 ```python
 VALUATION_MARKET_ANCHOR = ArtifactKey(
@@ -276,15 +278,15 @@ VALUATION_MARKET_GAP = ArtifactKey(
 )
 ```
 
-- [ ] **Step 3: Implement module ordering**
+- [x] **Step 3: Implement module ordering**
 
 Execute the preferred routed request, validate it, map supported method results to the existing artifact `ValuationExecution/ValuationResult`, reconcile command/model ranges, validate the anchor against `context.company.company_id` and `context.decision_ts`, then compute the gap. External execution remains accepted only after an explicit validation path and must retain lineage.
 
-- [ ] **Step 4: Update sufficiency**
+- [x] **Step 4: Update sufficiency**
 
 Valuation model executability is `EXECUTABLE` only when controlled execution passes; market comparison coverage is complete only when gap comparison passes. A supported range without execution or anchor is partial, not complete.
 
-- [ ] **Step 5: Run and commit**
+- [x] **Step 5: Run and commit**
 
 ```bash
 pytest -q tests/unit/valuation tests/property/valuation tests/integration/runtime/test_valuation_market_gap.py tests/regression/professional/test_v1_6_02_valuation_market_gap.py tests/unit/sufficiency
@@ -309,11 +311,11 @@ git commit -m "feat: publish valuation execution and market gap"
 - Consumes: canonical valuation execution/anchor/gap.
 - Produces: presentation-safe valuation output and pack `v1-6-02-valuation-market-gap`.
 
-- [ ] **Step 1: Add verified PIT anchor evidence**
+- [x] **Step 1: Add verified PIT anchor evidence**
 
 For each company, record the last market observation available at or before `2026-08-30T00:00:00Z`, including actual observation timestamp, availability timestamp, source identity, share class, currency, basis, corporate-action basis, and evidence fingerprint. Do not use 2026-08-30 as a fabricated trading timestamp.
 
-- [ ] **Step 2: Write projector/field RED**
+- [x] **Step 2: Write projector/field RED**
 
 ```python
 def test_market_gap_projector_displays_observation_time_and_basis() -> None:
@@ -327,7 +329,7 @@ def test_at_least_one_real_company_has_supported_market_gap() -> None:
     assert any(item.comparison_status == "PASS" for item in gaps)
 ```
 
-- [ ] **Step 3: Implement projectors and gate registry**
+- [x] **Step 3: Implement projectors and gate registry**
 
 ```python
 _V1_6_02_VALUATION_CHECKS = {
@@ -341,7 +343,7 @@ _V1_6_02_VALUATION_CHECKS = {
 
 Register but do not select the pack before M6.
 
-- [ ] **Step 4: Run M3 exit gate and commit**
+- [x] **Step 4: Run M3 exit gate and commit**
 
 ```bash
 pytest -q tests/unit/valuation tests/property/valuation tests/integration/runtime/test_valuation_market_gap.py tests/regression/professional/test_v1_6_02_valuation_market_gap.py tests/unit/reporting/test_v1_6_02_valuation.py tests/unit/snapshots tests/property/snapshots tests/regression/architecture/test_release_governance.py

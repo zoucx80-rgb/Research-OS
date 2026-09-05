@@ -1,0 +1,24 @@
+{
+  "schema_version": "valuation-market-gap-case@1.0.0",
+  "company": {
+    "company_id": "301073.SZ",
+    "display_name": "君亭酒店",
+    "exchange": "SZSE"
+  },
+  "decision_ts": "2026-08-30T00:00:00Z",
+  "market_anchor": {
+    "evidence_id": "ev:301073.SZ:market-close:2026-08-28",
+    "source_id": "dabanke:daily-close",
+    "source_document_id": "dabanke-301073-2026-08-28-close",
+    "source_url": "https://dabanke.com/hangqing-301073.html",
+    "observed_ts": "2026-08-28T07:00:00Z",
+    "available_ts": "2026-08-28T09:00:00Z",
+    "price": "20.04",
+    "currency": "CNY",
+    "unit": "CNY/share",
+    "share_class": "A",
+    "valuation_basis": "per_share",
+    "corporate_action_basis": "unadjusted_close",
+    "content_fingerprint": "8a281f2a606bac08b4f15d73da0f2d0eb4b738c830cf841651cee6f18406a356"
+  }
+}

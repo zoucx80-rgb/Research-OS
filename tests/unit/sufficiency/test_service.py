@@ -6,7 +6,12 @@ from decimal import Decimal
 import pytest
 from pydantic import ValidationError
 
-from research_os.contracts.artifact_values import AssumptionRef
+from research_os.contracts.artifact_values import (
+    AssumptionRef,
+    ValuationExecution,
+    ValuationReconciliation,
+    ValuationResult,
+)
 from research_os.contracts.artifacts import ArtifactStore, ArtifactWrite
 from research_os.contracts.evidence import EvidenceRef
 from research_os.contracts.values import AccountingScope
@@ -19,6 +24,9 @@ from research_os.period.models import ReportingPeriod
 from research_os.runtime.core_artifacts import (
     FINANCIAL_TEMPORAL_ANALYSIS,
     FORECAST_BENCHMARK_EVIDENCE,
+    VALUATION_EXECUTION,
+    VALUATION_MARKET_GAP,
+    VALUATION_RECONCILIATION,
     build_core_artifact_catalog,
 )
 from research_os.runtime.state import ResearchStateView
@@ -34,6 +42,7 @@ from research_os.temporal.models import (
     MetricTemporalAssessment,
 )
 from research_os.temporal.service import TemporalAnalysisService
+from research_os.valuation.market import ValuationMarketGap
 
 
 DECISION_TS = datetime(2026, 9, 4, tzinfo=timezone.utc)
@@ -201,6 +210,90 @@ def test_complete_forecast_evidence_is_executable_even_when_model_is_not_promote
     assert domain.model_executability == "EXECUTABLE"
     assert domain.material_gaps == ()
     assert result.overall_status == "SUFFICIENT"
+
+
+def test_valuation_sufficiency_requires_controlled_execution_and_market_comparison() -> None:
+    reference = _observation(2025, "110").evidence_refs[0]
+    catalog = build_core_artifact_catalog()
+    store = ArtifactStore(catalog)
+    temporal = TemporalAnalysisService().analyze(
+        (_observation(2024, "100"), _observation(2025, "110")),
+        decision_ts=DECISION_TS,
+    )
+    for key, value in (
+        (FINANCIAL_TEMPORAL_ANALYSIS, temporal),
+        (
+            VALUATION_EXECUTION,
+            ValuationExecution(
+                domain_status="SUPPORTED",
+                execution_source="CONTROLLED",
+                validation_status="PASS",
+                selected_model="pe",
+                results=(
+                    ValuationResult(
+                        model_key="pe",
+                        status="SUPPORTED",
+                        formula_version="pe@1.0.0",
+                        value=Decimal("20"),
+                        unit="CNY/share",
+                        evidence_refs=(reference,),
+                    ),
+                ),
+                evidence_refs=(reference,),
+            ),
+        ),
+        (
+            VALUATION_RECONCILIATION,
+            ValuationReconciliation(
+                domain_status="SUPPORTED",
+                reconciliation_status="INTERSECTION",
+                method="mathematical_intersection",
+                low=Decimal("18"),
+                high=Decimal("22"),
+                included_range_keys=("range:1", "range:2"),
+                evidence_refs=(reference,),
+            ),
+        ),
+        (
+            VALUATION_MARKET_GAP,
+            ValuationMarketGap(
+                domain_status="SUPPORTED",
+                reconciliation_key="INTERSECTION:mathematical_intersection",
+                market_anchor_security_id="300034.SZ",
+                market_anchor_observed_ts=DECISION_TS,
+                market_value=Decimal("12"),
+                model_low=Decimal("18"),
+                model_high=Decimal("22"),
+                gap_low=Decimal("6"),
+                gap_high=Decimal("10"),
+                currency="CNY",
+                valuation_basis="per_share",
+                state="UNDERVALUED",
+                comparison_status="PASS",
+                evidence_refs=(reference,),
+            ),
+        ),
+    ):
+        store.write(
+            ArtifactWrite(
+                key=key,
+                value=value,
+                producer_id="test:sufficiency",
+                evidence_refs=getattr(value, "evidence_refs", ()),
+            )
+        )
+
+    result = ResearchSufficiencyEvaluator().evaluate(ResearchStateView(store.freeze()))
+
+    domain = result.require_domain("valuation")
+    assert domain.coverage == "COMPLETE"
+    assert domain.model_executability == "EXECUTABLE"
+    assert domain.known_items == (
+        "market_comparison:UNDERVALUED",
+        "model_execution:pe",
+        "reconciliation:INTERSECTION",
+    )
+    assert domain.material_gaps == ()
 
 
 def test_sufficiency_explains_upgrade_evidence_for_single_period() -> None:

@@ -5,7 +5,7 @@
     "display_name": "钢研高纳",
     "exchange": "SZSE"
   },
-  "decision_ts": "2025-04-24T00:00:00Z",
+  "decision_ts": "2026-08-30T00:00:00Z",
   "hypothesis": {
     "hypothesis_key": "hyp:300034:annual-revenue",
     "statement": "Prior-year revenue contains explanatory signal for next annual revenue.",
@@ -98,5 +98,61 @@
       "realized_revenue": 3523917418.25,
       "content_fingerprint": "0974e8960fd0fc6b6abdc8f3ef316b5cb942e6730cb3d933df65193f628d936a"
     }
-  ]
+  ],
+  "market_anchor": {
+    "evidence_id": "ev:300034.SZ:market-close:2026-08-28",
+    "source_id": "10jqka:daily-close",
+    "source_document_id": "10jqka-300034-2026-08-28-close",
+    "source_url": "https://news.10jqka.com.cn/20260828/c679393179.shtml",
+    "observed_ts": "2026-08-28T07:00:00Z",
+    "available_ts": "2026-08-28T08:30:00Z",
+    "price": "16.05",
+    "currency": "CNY",
+    "unit": "CNY/share",
+    "share_class": "A",
+    "valuation_basis": "per_share",
+    "corporate_action_basis": "unadjusted_close",
+    "content_fingerprint": "fad3d2370f3f0835743bebf011d7905167db84dfeabd42cb115c58ceecec1885"
+  },
+  "valuation": {
+    "evidence": {
+      "evidence_id": "ev:300034.SZ:valuation:net-profit-parent:2026H1",
+      "period_end": "2026-06-30",
+      "period": "2026H1",
+      "publish_ts": "2026-08-25T00:00:00Z",
+      "value": "102870971.88",
+      "unit": "CNY",
+      "source_document_id": "300034.SZ-2026H1-full-report",
+      "source_url": "https://disc.static.szse.cn/disc/disk03/finalpage/2026-08-25/fc6a5e7f-dd11-47f9-b460-c4e67a821115.PDF",
+      "content_fingerprint": "64d1e71c133f78a419b3b05be52943afbeca4f2a779cfb029311dcffea0c429e"
+    },
+    "assumptions": [
+      {
+        "assumption_key": "assumption:300034.SZ:normalized-forward-eps",
+        "assumption_version": "2026-08-30@1",
+        "value": "0.80",
+        "rationale": "Analyst-normalized forward EPS used only as an explicit valuation assumption.",
+        "content_fingerprint": "b6e70dc164881ab10876bfd3d2f6988b0f30eba1c6e7f8fe428e4c577995e915"
+      },
+      {
+        "assumption_key": "assumption:300034.SZ:pe-band",
+        "assumption_version": "2026-08-30@1",
+        "value": {"bear": "20", "base": "25", "bull": "30"},
+        "rationale": "Explicit PE scenario band; not reported company guidance or a market fact.",
+        "content_fingerprint": "a2f6b49ac97714c1cc01c069a869c3ca4816d23479522b0836c66071f707485a"
+      }
+    ],
+    "fitness": {
+      "data_quality": 0.9,
+      "earnings_stability": 0.8,
+      "cash_flow_visibility": 0.8,
+      "capital_structure_fit": 0.8,
+      "business_model_fit": 0.9,
+      "forecast_stability": 0.8
+    },
+    "ranges": [
+      {"range_key": "range:300034.SZ:pe", "low": "16.00", "high": "24.00", "role": "model_implied"},
+      {"range_key": "range:300034.SZ:earnings-normalization", "low": "15.00", "high": "22.00", "role": "model_implied"}
+    ]
+  }
 }

@@ -381,6 +381,12 @@ class ValuationResult(LineageValue):
 
 
 class ValuationExecution(DomainArtifact):
+    execution_source: Literal["CONTROLLED", "EXTERNAL", "NONE"] = "NONE"
+    validation_status: Literal[
+        "PASS", "VALUATION_GATE_FAIL", "INSUFFICIENT_EVIDENCE"
+    ] = "INSUFFICIENT_EVIDENCE"
+    validation_errors: tuple[str, ...] = Field(default_factory=tuple)
+    selected_model: str | None = None
     results: tuple[ValuationResult, ...] = Field(default_factory=tuple)
 
 
@@ -390,6 +396,9 @@ class ValuationRange(LineageValue):
     high: Decimal | float
     basis: str
     currency: str
+    unit: str | None = None
+    share_class: str | None = None
+    corporate_action_basis: str | None = None
     role: Literal["model_implied", "cross_check", "scenario", "market_anchor"]
 
 

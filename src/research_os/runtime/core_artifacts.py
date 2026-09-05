@@ -42,6 +42,7 @@ from research_os.contracts.artifacts import (
 )
 from research_os.contracts.metrics import MetricSet
 from research_os.forecasting.contracts import ForecastBenchmarkEvidence
+from research_os.valuation.market import PitMarketAnchor, ValuationMarketGap
 from research_os.plugins.models import StrategyResolution
 from research_os.readiness.models import ResearchReadinessAssessment
 from research_os.router.models import BusinessModelProfile
@@ -178,6 +179,16 @@ VALUATION_RECONCILIATION = ArtifactKey(
     schema_version=_SCHEMA_VERSION,
     value_type=ValuationReconciliation,
 )
+VALUATION_MARKET_ANCHOR = ArtifactKey(
+    artifact_id="valuation.market_anchor",
+    schema_version=_SCHEMA_VERSION,
+    value_type=PitMarketAnchor,
+)
+VALUATION_MARKET_GAP = ArtifactKey(
+    artifact_id="valuation.market_gap",
+    schema_version=_SCHEMA_VERSION,
+    value_type=ValuationMarketGap,
+)
 DECISION_RECORD = ArtifactKey(
     artifact_id="decision.record",
     schema_version=_SCHEMA_VERSION,
@@ -267,6 +278,8 @@ CORE_ARTIFACT_KEYS = (
     VALUATION_EXECUTION,
     VALUATION_RESULT,
     VALUATION_RECONCILIATION,
+    VALUATION_MARKET_ANCHOR,
+    VALUATION_MARKET_GAP,
     DECISION_RECORD,
     DECISION_STATE_PROVENANCE,
     MONITORING_PLAN,
